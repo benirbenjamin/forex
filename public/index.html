@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ForexDoubleSniper · Gold signal</title>
+<meta name="theme-color" content="#0e0f12">
+<link rel="icon" href="/logo.svg" type="image/svg+xml">
+<style>
+:root{--ink:#0e0f12;--panel:#17191e;--line:#262a31;--bone:#ece7dc;--mut:#98a0ab;--gold:#c9a24a;--up:#3fbf8f;--dn:#e5575f;--wait:#98a0ab}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ink);color:var(--bone);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:max(20px,env(safe-area-inset-top)) 20px max(28px,env(safe-area-inset-bottom));line-height:1.45}
+main{max-width:560px;margin:0 auto}
+header{display:flex;align-items:center;gap:12px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+header img{width:40px;height:40px}
+header b{font-size:19px;letter-spacing:.3px;font-weight:700}
+header span{color:var(--gold)}
+header small{display:block;color:var(--mut);font-size:13px;font-weight:400;letter-spacing:0}
+.price-row{display:flex;justify-content:space-between;align-items:flex-end;margin:26px 0 6px}
+.sym{color:var(--mut);font-size:15px}
+.price{font-size:46px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.5px;line-height:1.1}
+.chg{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;padding-bottom:6px}
+.up{color:var(--up)}.dn{color:var(--dn)}.wait{color:var(--wait)}
+.decision{margin:18px 0;padding:22px;border:2px solid currentColor;border-radius:6px;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.decision .word{font-size:38px;font-weight:800;letter-spacing:1.5px}
+.decision p{margin:0;font-size:14px;color:var(--bone);max-width:230px;text-align:right}
+.levels{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:26px}
+.levels div,.block{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px}
+.k{color:var(--mut);font-size:13px}
+.v{font-size:20px;font-weight:650;font-variant-numeric:tabular-nums;margin-top:2px}
+h2{font-size:16px;margin:0 0 10px;font-weight:650}
+.block{margin-bottom:12px}
+.line{display:flex;justify-content:space-between;padding:7px 0;border-top:1px solid var(--line);font-size:15px}
+.line:first-of-type{border-top:0}
+.bar{height:6px;border-radius:3px;background:var(--line);position:relative;margin:10px 0 4px}
+.bar i{position:absolute;top:-3px;width:3px;height:12px;background:var(--gold);border-radius:2px;transform:translateX(-1px)}
+.news{list-style:none;margin:10px 0 0;padding:0}
+.news li{padding:9px 0;border-top:1px solid var(--line);font-size:14px}
+.news a{color:var(--bone);text-decoration:none}
+.news a:hover,.news .sum{display:flex;gap:18px;font-size:14px;color:var(--mut);margin-bottom:8px;flex-wrap:wrap}.sum b{color:var(--bone)}
+svg.chart{width:100%;height:auto;display:block}
+.tbl{overflow-x:auto;padding:0}
+table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap}
+th{color:var(--mut);font-weight:500;text-align:left;padding:12px 14px;border-bottom:1px solid var(--line)}
+td{padding:10px 14px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+.empty{color:var(--mut);font-size:14px;padding:16px}
+.bk{display:grid;gap:12px;margin:8px 0 10px}
+.bk a.card2{display:flex;justify-content:space-between;align-items:center;gap:14px;text-decoration:none;color:var(--bone);background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:6px;padding:16px}
+.bk .nm{font-size:22px;font-weight:800;letter-spacing:.5px}
+.bk .ds{font-size:13px;color:var(--mut);margin-top:2px}
+.bk .go{background:var(--gold);color:#0e0f12;font-weight:700;font-size:14px;padding:10px 14px;border-radius:6px;white-space:nowrap}
+.bk a.card2:hover .go,.bk a.card2:focus-visible .go{filter:brightness(1.1)}
+.disc{font-size:12.5px;color:var(--mut);line-height:1.55;margin:0 0 6px}
+.contact{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+.contact a{display:block;text-align:center;text-decoration:none;font-weight:700;font-size:15px;padding:13px 10px;border-radius:6px;border:1px solid var(--line);color:var(--bone);background:var(--panel)}
+.contact a.wa{background:#25a65b;border-color:#25a65b;color:#fff}
+.contact a:hover,.contact a:focus-visible{filter:brightness(1.12)}
+@media(max-width:380px){.contact{grid-template-columns:1fr}}
+a:focus-visible{text-decoration:underline}
+.news small{color:var(--mut)}
+.status{color:var(--mut);font-size:13px;margin:14px 0 0}
+.err{border:1px solid var(--dn);color:var(--bone);background:var(--panel);padding:16px;border-radius:6px;margin-top:22px}
+footer{margin-top:26px;color:var(--mut);font-size:12.5px;line-height:1.55}
+a:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <img src="/logo.svg" alt="">
+  <b>FOREX<span>DOUBLESNIPER</span><small>Gold market signal</small></b>
+</header>
+
+<div id="err" class="err" hidden></div>
+
+<div id="app" hidden>
+  <div class="price-row">
+    <div><div class="sym">XAU/USD · Gold in US dollars</div><div class="price" id="price"></div></div>
+    <div class="chg" id="chg"></div>
+  </div>
+
+  <div class="decision" id="decision"><div class="word" id="word"></div><p id="why"></p></div>
+
+  <div class="levels">
+    <div><div class="k">Stop-loss</div><div class="v" id="sl">–</div></div>
+    <div><div class="k">Take-profit</div><div class="v" id="tp">–</div></div>
+  </div>
+
+  <section class="block">
+    <h2>Trend</h2>
+    <div class="line"><span>Fast average (10 candles)</span><b id="f"></b></div>
+    <div class="line"><span>Slow average (30 candles)</span><b id="s"></b></div>
+    <div class="line"><span>Direction</span><b id="trend"></b></div>
+  </section>
+
+  <section class="block">
+    <h2>News sentiment outlook</h2>
+    <div class="line"><span>Outlook for gold</span><b id="sentLabel"></b></div>
+    <div class="bar" aria-hidden="true"><i id="pin"></i></div>
+    <div class="k" style="display:flex;justify-content:space-between"><span>Bearish</span><span>Bullish</span></div>
+    <ul class="news" id="news"></ul>
+  </section>
+  <section class="block">
+    <h2>Signal results</h2>
+    <div class="sum" id="sum"></div>
+    <svg class="chart" id="chart" viewBox="0 0 320 150" role="img" aria-label="Profit and loss of recent closed signals"></svg>
+  </section>
+
+  <section class="block">
+    <h2>Our partner brokers</h2>
+    <div class="bk">
+      <a class="card2" href="https://affs.click/t2wGW" target="_blank" rel="sponsored noopener noreferrer"><div><div class="nm">XM</div><div class="ds">Gold (XAU/USD) available · demo account</div></div><span class="go">Open account</span></a>
+      <a class="card2" href="https://one.toexness.com/a/d1at2p0vjr" target="_blank" rel="sponsored noopener noreferrer"><div><div class="nm">Exness</div><div class="ds">Forex and gold trading platform</div></div><span class="go">Open account</span></a>
+    </div>
+    <p class="disc">Partner links · we may earn a commission, at no cost to you.</p>
+  </section>
+  <section class="block">
+    <h2>Questions? Contact us</h2>
+    <div class="k">Ask us for more information about the signals or getting started.</div>
+    <div class="contact">
+      <a class="wa" href="https://wa.me/250786659188" target="_blank" rel="noopener noreferrer">WhatsApp us</a>
+      <a href="mailto:forexdoublesniper@gmail.com">Email us</a>
+    </div>
+    <div class="k" style="margin-top:10px">WhatsApp: +250 786 659 188 · forexdoublesniper@gmail.com</div>
+  </section>
+</div>
+
+<p class="status" id="status">Loading live gold data…</p>
+
+<footer>
+  Live prices and news from market data providers. The signal combines trend (15-minute candles), today’s move and news tone. It is an estimate, not a guarantee, and not financial advice. Trading gold carries risk of loss. Signal results are saved on this device while the page is open, in dollars per ounce.
+</footer>
+</main>
+<script>
+var $=function(id){return document.getElementById(id)};
+function fmt(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+var COLORS={BUY:'up',SELL:'dn',WAIT:'wait'};
+var WHY={BUY:'Trend and market tone point up.',SELL:'Trend and market tone point down.',WAIT:'Signals disagree. No clear edge right now.'};
+
+var KEY='fds_log';
+function loadLog(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return []}}
+function saveLog(l){try{localStorage.setItem(KEY,JSON.stringify(l.slice(0,100)))}catch(e){}}
+function pnlOf(t,exit){return t.side==='BUY'?exit-t.entry:t.entry-exit}
+function updateLog(d){
+  var log=loadLog(),open=null,i;
+  for(i=0;i<log.length;i++){
+    var t=log[i];if(t.status!=='open')continue;
+    var hitTp=t.side==='BUY'?d.price>=t.tp:d.price<=t.tp;
+    var hitSl=t.side==='BUY'?d.price<=t.sl:d.price>=t.sl;
+    if(hitTp){t.status='tp';t.exit=t.tp}
+    else if(hitSl){t.status='sl';t.exit=t.sl}
+    else if(d.decision!=='WAIT'&&d.decision!==t.side){t.status='flip';t.exit=d.price}
+    if(t.status!=='open')t.pnl=pnlOf(t,t.exit);else open=t;
+  }
+  if(!open&&d.decision!=='WAIT'&&d.stop!==null){
+    log.unshift({t:Date.now(),side:d.decision,entry:d.price,sl:d.stop,tp:d.target,status:'open'});
+  }
+  saveLog(log);return log;
+}
+var LBL={open:'Open',tp:'Target hit',sl:'Stop hit',flip:'Closed on flip'};
+function renderLog(log){
+  var closed=log.filter(function(t){return t.status!=='open'}),wins=closed.filter(function(t){return t.pnl>0}).length,total=closed.reduce(function(a,t){return a+t.pnl},0);
+  var sum=$('sum');sum.textContent='';
+  [['Closed',closed.length],['Win rate',closed.length?Math.round(wins/closed.length*100)+'%':'–'],['Total',(total>=0?'+':'')+total.toFixed(2)]].forEach(function(x){
+    var sp=document.createElement('span'),b=document.createElement('b');b.textContent=x[1];sp.textContent=x[0]+' ';sp.appendChild(b);sum.appendChild(sp)});
+  var ch=$('chart');ch.textContent='';
+  var bars=closed.slice(0,10).reverse(),NS='http://www.w3.org/2000/svg';
+  if(!bars.length){var tx=document.createElementNS(NS,'text');tx.setAttribute('x','160');tx.setAttribute('y','75');tx.setAttribute('text-anchor','middle');tx.setAttribute('fill','#98a0ab');tx.setAttribute('font-size','12');tx.textContent='Results appear when a signal closes';ch.appendChild(tx)}
+  else{
+    var max=Math.max.apply(null,bars.map(function(t){return Math.abs(t.pnl)}))||1,mid=75,w=320/bars.length;
+    var ln=document.createElementNS(NS,'line');ln.setAttribute('x1','0');ln.setAttribute('x2','320');ln.setAttribute('y1',mid);ln.setAttribute('y2',mid);ln.setAttribute('stroke','#262a31');ch.appendChild(ln);
+    bars.forEach(function(t,i){
+      var h=Math.max(2,Math.abs(t.pnl)/max*50),r=document.createElementNS(NS,'rect');
+      r.setAttribute('x',i*w+w*0.2);r.setAttribute('width',w*0.6);r.setAttribute('height',h);r.setAttribute('rx','3');
+      r.setAttribute('y',t.pnl>=0?mid-h:mid);r.setAttribute('fill',t.pnl>=0?'#3fbf8f':'#e5575f');ch.appendChild(r);
+      var l=document.createElementNS(NS,'text');l.setAttribute('x',i*w+w/2);l.setAttribute('text-anchor','middle');l.setAttribute('fill','#98a0ab');l.setAttribute('font-size','9');
+      l.setAttribute('y',t.pnl>=0?mid-h-4:mid+h+11);l.textContent=(t.pnl>=0?'+':'')+t.pnl.toFixed(1);ch.appendChild(l);
+    });
+  }
+}
+function render(d){
+  $('err').hidden=true;$('app').hidden=false;
+  $('price').textContent=fmt(d.price);
+  var up=d.changePct>=0;
+  $('chg').textContent=(up?'▲ +':'▼ ')+d.changePct.toFixed(2)+'%';
+  $('chg').className='chg '+(up?'up':'dn');
+  $('word').textContent=d.decision;
+  $('decision').className='decision '+COLORS[d.decision];
+  $('why').textContent=WHY[d.decision];
+  $('sl').textContent=d.stop===null?'–':fmt(d.stop);
+  $('tp').textContent=d.target===null?'–':fmt(d.target);
+  $('f').textContent=fmt(d.sma10);$('s').textContent=fmt(d.sma30);
+  $('trend').textContent=d.trend;$('trend').className=d.trend==='Up'?'up':'dn';
+  var s=d.sentiment,ul=$('news');ul.textContent='';
+  if(!s){
+    $('sentLabel').textContent='Unavailable';$('pin').style.left='50%';
+  }else{
+    $('sentLabel').textContent=s.label;
+    $('sentLabel').className=s.label==='Bullish'?'up':s.label==='Bearish'?'dn':'';
+    $('pin').style.left=(s.score===null?50:(s.score+1)*50)+'%';
+    s.headlines.forEach(function(h){
+      var li=document.createElement('li'),a=document.createElement('a'),m=document.createElement('small');
+      a.textContent=h.headline;a.href=h.url;a.target='_blank';a.rel='noopener noreferrer';
+      m.textContent=' '+h.source+' · '+(h.tone>0?'bullish':'bearish');
+      li.appendChild(a);li.appendChild(m);ul.appendChild(li);
+    });
+  }
+  renderLog(updateLog(d));
+  $('status').textContent='Updated '+new Date(d.updated).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+}
+function fail(msg){
+  $('err').hidden=false;$('err').textContent=msg;$('status').textContent='';
+}
+function load(){
+  fetch('/api/signal').then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j}})})
+  .then(function(x){x.ok?render(x.j):fail(x.j.error||'Live data unavailable.')})
+  .catch(function(){fail('Could not reach the server. Check your connection.')});
+}
+load();setInterval(load,30000);
+</script>
+</body>
+</html>
