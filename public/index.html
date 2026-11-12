@@ -3,19 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ForexDoubleSniper · Institutional Gold (XAU/USD) Signals & Analysis</title>
-<meta name="description" content="Real-time live Gold (XAU/USD) signals, algorithmic trend analysis, multi-timeframe candlestick chart, position risk calculator and market sentiment.">
+<title>ForexDoubleSniper · Institutional Forex Signals, Trading Simulation & Crypto P2P</title>
+<meta name="description" content="Institutional trading signals for Gold (XAU/USD), GBP/USD, GBP/JPY, realistic trading simulator with auto TP1/TP2 closing, and crypto P2P gateway.">
 <meta name="theme-color" content="#0b0e14">
 <link rel="icon" href="logo.svg" type="image/svg+xml">
 <style>
 :root {
   --bg: #0b0e14;
   --panel: #131722;
-  --panel-card: #181d2a;
+  --card: #181d2a;
   --line: #242a38;
   --line-light: #2f374a;
   --text: #f0f3f8;
-  --mut: #8b95a5;
+  --muted: #8b95a5;
   --gold: #d4af37;
   --gold-bright: #ffd700;
   --gold-glow: rgba(212, 175, 55, 0.2);
@@ -26,8 +26,6 @@
   --dn-bg: rgba(248, 73, 96, 0.12);
   --dn-border: rgba(248, 73, 96, 0.4);
   --wait: #8b95a5;
-  --wait-bg: rgba(139, 149, 165, 0.12);
-  --wait-border: rgba(139, 149, 165, 0.35);
   --radius-lg: 12px;
   --radius: 8px;
   --radius-sm: 5px;
@@ -45,7 +43,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Wide Container */
 .container {
   max-width: 1440px;
   width: 95%;
@@ -54,9 +51,8 @@ body {
 
 /* Header */
 header {
-  background: rgba(19, 23, 34, 0.85);
+  background: rgba(19, 23, 34, 0.95);
   backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--line);
   position: sticky;
   top: 0;
@@ -81,1929 +77,1433 @@ header {
 }
 
 .brand-logo-svg {
-  width: 44px;
-  height: 44px;
-  display: block;
-  flex-shrink: 0;
-  filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.35));
+  width: 42px;
+  height: 42px;
+  filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.35));
 }
 
 .brand-text b {
-  display: block;
-  font-size: 20px;
+  font-size: 19px;
   letter-spacing: 0.5px;
   font-weight: 800;
   color: #fff;
-  line-height: 1.15;
 }
-
-.brand-text b span {
-  color: var(--gold-bright);
-}
-
+.brand-text b span { color: var(--gold-bright); }
 .brand-text small {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--mut);
-  font-size: 12px;
-  font-weight: 500;
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-/* Sessions bar */
-.sessions {
+.nav-links {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: var(--panel-card);
-  border: 1px solid var(--line);
-  padding: 6px 14px;
-  border-radius: var(--radius);
-  font-size: 12px;
+  gap: 8px;
 }
 
-.session-tag {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  color: var(--mut);
-}
-
-.session-tag.active {
-  color: var(--text);
+.nav-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--muted);
+  font-size: 13px;
   font-weight: 600;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.nav-btn:hover, .nav-btn.active {
+  color: #fff;
+  background: var(--card);
+  border-color: var(--line);
+}
+.nav-btn.active {
+  color: var(--gold-bright);
+  border-color: var(--gold);
 }
 
-.dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #505869;
-}
-
-.dot.live {
-  background: var(--up);
-  box-shadow: 0 0 8px var(--up);
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% { opacity: 0.5; transform: scale(0.9); }
-  50% { opacity: 1; transform: scale(1.15); }
-  100% { opacity: 0.5; transform: scale(0.9); }
-}
-
-/* Header controls */
 .header-actions {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.btn-ctrl {
-  background: var(--panel-card);
+.currency-toggle {
+  background: var(--card);
   border: 1px solid var(--line);
-  color: var(--text);
-  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  overflow: hidden;
+}
+.curr-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.curr-btn.active {
+  background: var(--gold);
+  color: #000;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
   border-radius: var(--radius-sm);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.btn-primary { background: linear-gradient(135deg, #ffd700, #d4af37); color: #000; font-weight: 700; }
+.btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.btn-outline { background: var(--card); border-color: var(--line); color: var(--text); }
+.btn-outline:hover { border-color: var(--gold); color: #fff; }
+.btn-buy { background: var(--up); color: #000; font-weight: 700; }
+.btn-sell { background: var(--dn); color: #fff; font-weight: 700; }
+
+/* Trial Hero Banner */
+.hero-banner {
+  background: linear-gradient(135deg, rgba(212,175,55,0.12), rgba(19,23,34,0.9));
+  border: 1px solid rgba(212,175,55,0.3);
+  border-radius: var(--radius);
+  padding: 16px 24px;
+  margin: 20px auto 24px;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 6px;
-  transition: all 0.2s ease;
-}
-
-.btn-ctrl:hover {
-  background: var(--line);
-  border-color: var(--gold);
-  color: #fff;
-}
-
-.btn-ctrl.active {
-  background: rgba(212, 175, 55, 0.15);
-  border-color: var(--gold);
-  color: var(--gold-bright);
-}
-
-/* Ticker Bar */
-.ticker-hero {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  margin: 20px auto;
-  padding: 18px 24px;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 24px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-}
-
-.price-main {
-  display: flex;
-  flex-direction: column;
-}
-
-.sym-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--mut);
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.sym-badge .gold-tag {
-  background: rgba(212, 175, 55, 0.15);
-  color: var(--gold-bright);
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  border: 1px solid rgba(212, 175, 55, 0.3);
-}
-
-.price-display-row {
-  display: flex;
-  align-items: baseline;
-  gap: 14px;
-}
-
-.live-price {
-  font-size: 44px;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  color: #fff;
-  transition: color 0.3s ease;
-}
-
-.live-price.flash-up { color: var(--up); text-shadow: 0 0 12px var(--up); }
-.live-price.flash-dn { color: var(--dn); text-shadow: 0 0 12px var(--dn); }
-
-.price-chg {
-  font-size: 18px;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-variant-numeric: tabular-nums;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.chg-up { color: var(--up); background: var(--up-bg); border: 1px solid var(--up-border); }
-.chg-dn { color: var(--dn); background: var(--dn-bg); border: 1px solid var(--dn-border); }
-
-/* Quick Market Stats Grid */
-.market-stats-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  flex-wrap: wrap;
   gap: 16px;
-  border-left: 1px solid var(--line);
-  padding-left: 24px;
 }
+.hero-title { font-size: 18px; font-weight: 800; color: #fff; }
+.hero-title span { color: var(--gold-bright); }
+.hero-desc { font-size: 13px; color: var(--muted); margin-top: 4px; }
 
-.stat-item {
+/* Pair Selector Bar */
+.pair-bar {
   display: flex;
-  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
 }
-
-.stat-lbl {
-  font-size: 12px;
-  color: var(--mut);
-  margin-bottom: 2px;
-}
-
-.stat-val {
-  font-size: 16px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--text);
-}
-
-/* Main Grid Layout */
-.app-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(360px, 1fr);
-  gap: 20px;
-  align-items: start;
-}
-
-/* Card components */
-.card {
+.pair-chip {
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
+  padding: 10px 18px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s;
+}
+.pair-chip:hover { border-color: var(--line-light); }
+.pair-chip.active { border-color: var(--gold); background: var(--card); box-shadow: 0 0 12px var(--gold-glow); }
+.pair-symbol { font-weight: 800; font-size: 15px; color: #fff; }
+.pair-price { font-size: 14px; font-weight: 700; }
+.pair-chg { font-size: 12px; font-weight: 600; padding: 2px 6px; border-radius: 4px; }
+.chg-up { color: var(--up); background: var(--up-bg); }
+.chg-dn { color: var(--dn); background: var(--dn-bg); }
+
+/* Main Grid */
+.main-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+@media (max-width: 1024px) {
+  .main-grid { grid-template-columns: 1fr; }
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
   padding: 20px;
   margin-bottom: 20px;
+  position: relative;
 }
 
-.card-header {
+/* Paywall Lock Overlay */
+.paywall-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(11, 14, 20, 0.92);
+  backdrop-filter: blur(8px);
+  border-radius: var(--radius);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 30px;
+  z-index: 50;
+}
+.paywall-overlay.active { display: flex; }
+.paywall-lock-icon { font-size: 42px; margin-bottom: 12px; color: var(--gold-bright); }
+.paywall-title { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+.paywall-subtitle { font-size: 14px; color: var(--muted); max-width: 480px; margin-bottom: 20px; }
+
+/* Signal Banner */
+.signal-banner {
+  padding: 16px 20px;
+  border-radius: var(--radius);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--line);
+  margin-bottom: 20px;
 }
+.signal-banner.BUY { background: var(--up-bg); border: 1px solid var(--up-border); }
+.signal-banner.SELL { background: var(--dn-bg); border: 1px solid var(--dn-border); }
+.signal-banner.WAIT { background: rgba(139,149,165,0.1); border: 1px solid var(--line); }
+.signal-decision { font-size: 28px; font-weight: 900; letter-spacing: 1px; }
+.signal-decision.BUY { color: var(--up); }
+.signal-decision.SELL { color: var(--dn); }
+.signal-decision.WAIT { color: var(--muted); }
 
-.card-title {
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.card-badge {
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: var(--panel-card);
-  color: var(--mut);
-  border: 1px solid var(--line);
-}
-
-/* Primary Signal Hub Card */
-.signal-hub {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  transition: border-color 0.3s ease;
-}
-
-.signal-banner {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 20px;
-  padding: 20px;
-  border-radius: var(--radius);
-  margin-bottom: 18px;
-  border: 2px solid transparent;
-  transition: all 0.3s ease;
-}
-
-.signal-banner.BUY {
-  background: linear-gradient(135deg, rgba(0, 208, 132, 0.15) 0%, rgba(19, 23, 34, 0.9) 100%);
-  border-color: var(--up);
-  box-shadow: 0 0 25px rgba(0, 208, 132, 0.18);
-}
-
-.signal-banner.SELL {
-  background: linear-gradient(135deg, rgba(248, 73, 96, 0.15) 0%, rgba(19, 23, 34, 0.9) 100%);
-  border-color: var(--dn);
-  box-shadow: 0 0 25px rgba(248, 73, 96, 0.18);
-}
-
-.signal-banner.WAIT {
-  background: linear-gradient(135deg, rgba(139, 149, 165, 0.1) 0%, rgba(19, 23, 34, 0.9) 100%);
-  border-color: var(--wait);
-}
-
-.signal-word-col {
-  display: flex;
-  flex-direction: column;
-}
-
-.signal-badge-sub {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--mut);
-}
-
-.signal-word {
-  font-size: 44px;
-  font-weight: 900;
-  letter-spacing: 1px;
-  line-height: 1;
-  margin-top: 4px;
-}
-
-.signal-word.BUY { color: var(--up); text-shadow: 0 0 16px rgba(0,208,132,0.4); }
-.signal-word.SELL { color: var(--dn); text-shadow: 0 0 16px rgba(248,73,96,0.4); }
-.signal-word.WAIT { color: var(--wait); }
-
-.signal-rationale {
-  font-size: 14px;
-  color: var(--text);
-  line-height: 1.5;
-  max-width: 380px;
-}
-
-.confidence-box {
-  background: var(--panel-card);
-  border: 1px solid var(--line);
-  padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  text-align: right;
-  min-width: 120px;
-}
-
-.confidence-lbl {
-  font-size: 11px;
-  color: var(--mut);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.confidence-num {
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--gold-bright);
-}
-
-.confidence-bar-bg {
-  width: 100%;
-  height: 5px;
-  background: var(--line);
-  border-radius: 3px;
-  margin-top: 4px;
-  overflow: hidden;
-}
-
-.confidence-bar-fill {
-  height: 100%;
-  width: 65%;
-  background: linear-gradient(90deg, var(--gold) 0%, var(--gold-bright) 100%);
-  border-radius: 3px;
-  transition: width 0.4s ease;
-}
-
-/* Trade Parameters Matrix (Entry, SL, TP1, TP2) */
-.trade-matrix {
+/* Execution Targets Matrix */
+.matrix-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
-
-.matrix-cell {
-  background: var(--panel-card);
+@media (max-width: 768px) {
+  .matrix-grid { grid-template-columns: 1fr 1fr; }
+}
+.matrix-card {
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 14px;
-  display: flex;
-  flex-direction: column;
+  text-align: center;
 }
+.matrix-label { font-size: 11px; text-transform: uppercase; color: var(--muted); font-weight: 700; margin-bottom: 6px; }
+.matrix-val { font-size: 18px; font-weight: 800; color: #fff; }
 
-.matrix-label {
-  font-size: 12px;
-  color: var(--mut);
-  font-weight: 600;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.matrix-pill {
-  font-size: 10px;
-  padding: 1px 6px;
-  border-radius: 3px;
-  font-weight: 700;
-}
-
-.pill-entry { background: rgba(212, 175, 55, 0.15); color: var(--gold-bright); }
-.pill-sl { background: var(--dn-bg); color: var(--dn); }
-.pill-tp { background: var(--up-bg); color: var(--up); }
-
-.matrix-val {
-  font-size: 22px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  margin-top: 6px;
-  color: #fff;
-}
-
-.matrix-sub {
-  font-size: 11px;
-  color: var(--mut);
-  margin-top: 4px;
-}
-
-/* Actions bar in signal hub */
-.signal-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
-}
-
-.btn-action {
-  background: var(--panel-card);
-  border: 1px solid var(--line);
-  color: var(--text);
-  padding: 10px 18px;
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s ease;
-}
-
-.btn-action:hover {
-  background: var(--line);
-  border-color: var(--gold);
-  color: #fff;
-}
-
-.btn-action.gold-btn {
-  background: linear-gradient(135deg, #d4af37 0%, #aa7c11 100%);
-  color: #0b0e14;
-  border: none;
-}
-
-.btn-action.gold-btn:hover {
-  filter: brightness(1.15);
-  box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
-}
-
-/* Chart Container */
-.chart-container {
-  height: 520px;
+/* Simulator Order Ticket */
+.ticket-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.form-group { margin-bottom: 14px; }
+.form-label { display: block; font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 5px; }
+.form-control {
   width: 100%;
-  position: relative;
-  background: #11141b;
-  border-radius: var(--radius);
-  overflow: hidden;
-  border: 1px solid var(--line);
-}
-
-.chart-tabs {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.tab-btn {
-  background: var(--panel-card);
-  border: 1px solid var(--line);
-  color: var(--mut);
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.tab-btn.active, .tab-btn:hover {
-  background: var(--line);
-  color: #fff;
-  border-color: var(--gold);
-}
-
-/* Technical Indicators 4-pack Grid */
-.indicators-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-}
-
-.indicator-box {
-  background: var(--panel-card);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 14px;
-}
-
-.ind-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 6px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-  font-size: 13px;
-}
-
-.ind-row:last-child { border-bottom: 0; }
-
-.ind-label { color: var(--mut); }
-.ind-value { font-weight: 700; font-variant-numeric: tabular-nums; }
-
-/* Progress bar for RSI */
-.gauge-bar {
-  height: 6px;
-  border-radius: 3px;
-  background: var(--line);
-  position: relative;
-  margin: 10px 0 4px;
-  overflow: hidden;
-}
-
-.gauge-pin {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 6px;
-  background: var(--gold-bright);
-  border-radius: 3px;
-  transform: translateX(-50%);
-  box-shadow: 0 0 6px var(--gold-bright);
-}
-
-/* Calculator Card */
-.calc-card {
-  background: var(--panel);
-}
-
-.calc-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.form-group label {
-  display: block;
-  font-size: 12px;
-  color: var(--mut);
-  margin-bottom: 6px;
-  font-weight: 600;
-}
-
-.form-group input, .form-group select {
-  width: 100%;
-  background: var(--panel-card);
+  background: var(--card);
   border: 1px solid var(--line);
   color: #fff;
   padding: 10px 12px;
   border-radius: var(--radius-sm);
   font-size: 14px;
-  font-weight: 600;
   outline: none;
-  transition: border-color 0.2s ease;
 }
+.form-control:focus { border-color: var(--gold); }
 
-.form-group input:focus, .form-group select:focus {
-  border-color: var(--gold);
-}
+/* Positions & History Table */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+th { background: var(--card); color: var(--muted); padding: 10px 12px; border-bottom: 1px solid var(--line); font-weight: 600; }
+td { padding: 12px; border-bottom: 1px solid var(--line); }
+tr:hover { background: rgba(255,255,255,0.02); }
 
-.calc-result-box {
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(19, 23, 34, 0.8) 100%);
-  border: 1px solid rgba(212, 175, 55, 0.3);
-  border-radius: var(--radius);
-  padding: 14px 18px;
-  display: flex;
-  justify-content: space-between;
+/* P2P Section */
+.p2p-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+.p2p-warning { background: rgba(248,73,96,0.12); border: 1px solid var(--dn); color: #ff8595; padding: 12px; border-radius: var(--radius-sm); font-size: 12px; margin: 12px 0; font-weight: 600; }
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 14, 20, 0.88);
+  backdrop-filter: blur(8px);
+  display: none;
   align-items: center;
-}
-
-.calc-result-title {
-  font-size: 12px;
-  color: var(--mut);
-  text-transform: uppercase;
-}
-
-.calc-result-lots {
-  font-size: 26px;
-  font-weight: 800;
-  color: var(--gold-bright);
-  font-variant-numeric: tabular-nums;
-}
-
-/* Sentiment Section */
-.sentiment-meter {
-  margin: 12px 0 16px;
-}
-
-.meter-track {
-  height: 8px;
-  border-radius: 4px;
-  background: linear-gradient(90deg, var(--dn) 0%, #d4a340 50%, var(--up) 100%);
-  position: relative;
-  margin-bottom: 6px;
-}
-
-.meter-needle {
-  position: absolute;
-  top: -4px;
-  width: 4px;
-  height: 16px;
-  background: #fff;
-  border-radius: 2px;
-  box-shadow: 0 0 6px rgba(0,0,0,0.8);
-  transform: translateX(-50%);
-  transition: left 0.4s ease;
-}
-
-.meter-labels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 11px;
-  color: var(--mut);
-  font-weight: 600;
-}
-
-.news-list {
-  list-style: none;
-  margin-top: 10px;
-}
-
-.news-item {
-  padding: 10px 0;
-  border-top: 1px solid var(--line);
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-.news-item:first-child { border-top: none; }
-
-.news-item a {
-  color: var(--text);
-  text-decoration: none;
-  font-weight: 500;
-  display: block;
-  transition: color 0.2s ease;
-}
-
-.news-item a:hover {
-  color: var(--gold-bright);
-  text-decoration: underline;
-}
-
-.news-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  color: var(--mut);
-  margin-top: 4px;
-}
-
-.tag-sentiment {
-  padding: 1px 6px;
-  border-radius: 3px;
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.tag-bull { background: var(--up-bg); color: var(--up); }
-.tag-bear { background: var(--dn-bg); color: var(--dn); }
-
-/* Performance Tracker */
-.perf-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 14px;
-}
-
-.perf-stat {
-  background: var(--panel-card);
-  border: 1px solid var(--line);
-  padding: 10px;
-  border-radius: var(--radius-sm);
-  text-align: center;
-}
-
-.perf-stat-num {
-  font-size: 18px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  margin-top: 2px;
-}
-
-.perf-stat-lbl {
-  font-size: 11px;
-  color: var(--mut);
-}
-
-.chart-svg {
-  width: 100%;
-  height: 120px;
-  display: block;
-  background: var(--panel-card);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--line);
-}
-
-/* Brokers Card */
-.broker-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 14px;
-  text-decoration: none;
-  color: var(--text);
-  background: var(--panel-card);
-  border: 1px solid var(--line);
-  border-left: 4px solid var(--gold);
-  border-radius: var(--radius);
-  padding: 14px 18px;
-  margin-bottom: 10px;
-  transition: all 0.2s ease;
-}
-
-.broker-card:hover {
-  border-color: var(--gold);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.3);
-}
-
-.broker-name {
-  font-size: 18px;
-  font-weight: 800;
-}
-
-.broker-desc {
-  font-size: 12px;
-  color: var(--mut);
-  margin-top: 2px;
-}
-
-.broker-btn {
-  background: var(--gold);
-  color: #0b0e14;
-  font-weight: 700;
-  font-size: 13px;
-  padding: 8px 14px;
-  border-radius: var(--radius-sm);
-  white-space: nowrap;
-}
-
-/* Contact buttons */
-.contact-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.contact-btn {
-  display: flex;
   justify-content: center;
-  align-items: center;
-  gap: 8px;
-  padding: 12px;
-  border-radius: var(--radius-sm);
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 700;
-  color: #fff;
+  z-index: 1000;
+  padding: 16px;
+}
+.modal-overlay.active { display: flex; }
+.modal-box {
+  background: var(--panel);
   border: 1px solid var(--line);
-  background: var(--panel-card);
-  transition: all 0.2s ease;
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  width: 440px;
+  max-width: 100%;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
 }
+.modal-close { position: absolute; top: 16px; right: 16px; background: transparent; border: none; color: var(--muted); font-size: 20px; cursor: pointer; }
 
-.contact-btn.whatsapp {
-  background: #128c7e;
-  border-color: #128c7e;
+/* Pricing Grid */
+.pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin: 20px 0; }
+.plan-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
 }
+.plan-card:hover { border-color: var(--gold); }
+.plan-card.active { border-color: var(--gold); background: rgba(212,175,55,0.08); box-shadow: 0 0 12px var(--gold-glow); }
+.plan-name { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+.plan-price { font-size: 22px; font-weight: 800; color: var(--gold-bright); margin-bottom: 4px; }
+.plan-sub { font-size: 11px; color: var(--muted); }
 
-.contact-btn:hover {
-  filter: brightness(1.15);
-  transform: translateY(-1px);
-}
+/* Flash Animation */
+.flash-up { animation: flashG 0.5s; }
+.flash-dn { animation: flashR 0.5s; }
+@keyframes flashG { 0% { background: rgba(0,208,132,0.4); } 100% { background: transparent; } }
+@keyframes flashR { 0% { background: rgba(248,73,96,0.4); } 100% { background: transparent; } }
 
-/* Toast notification */
-#toast {
+/* Toast */
+.toast {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  background: #181d2a;
+  background: var(--card);
   border: 1px solid var(--gold);
   color: #fff;
   padding: 12px 20px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  border-radius: var(--radius-sm);
+  z-index: 2000;
   display: none;
-  z-index: 1000;
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Responsive Breakpoints */
-@media (max-width: 1080px) {
-  .app-grid {
-    grid-template-columns: 1fr;
-  }
-  .market-stats-row {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .ticker-hero {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-  .market-stats-row {
-    border-left: none;
-    padding-left: 0;
-    border-top: 1px solid var(--line);
-    padding-top: 14px;
-  }
-  .signal-banner {
-    grid-template-columns: 1fr;
-    text-align: left;
-  }
-  .trade-matrix {
-    grid-template-columns: 1fr 1fr;
-  }
-  .indicators-grid {
-    grid-template-columns: 1fr;
-  }
-  .chart-container {
-    height: 400px;
-  }
-  .contact-grid {
-    grid-template-columns: 1fr;
-  }
+  font-size: 13px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
 }
 </style>
 </head>
 <body>
 
-<!-- Header Navigation -->
+<!-- Header -->
 <header>
-  <div class="container">
-    <div class="header-row">
-      <!-- Brand & Embedded SVG Logo (Guaranteed never to break) -->
-      <a href="#" class="brand">
-        <svg class="brand-logo-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="hdrGold" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#FFE082" />
-              <stop offset="45%" stop-color="#D4AF37" />
-              <stop offset="100%" stop-color="#996515" />
-            </linearGradient>
-            <radialGradient id="hdrGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#FFD700" stop-opacity="0.9" />
-              <stop offset="100%" stop-color="#996515" stop-opacity="0" />
-            </radialGradient>
-          </defs>
-          <rect x="2" y="2" width="60" height="60" rx="14" fill="#13161c" stroke="url(#hdrGold)" stroke-width="1.5" />
-          <circle cx="32" cy="32" r="23" stroke="url(#hdrGold)" stroke-width="1.2" stroke-dasharray="3 2" opacity="0.6" />
-          <circle cx="26" cy="32" r="14" stroke="url(#hdrGold)" stroke-width="2" />
-          <circle cx="38" cy="32" r="14" stroke="url(#hdrGold)" stroke-width="2" />
-          <g stroke="url(#hdrGold)" stroke-width="2" stroke-linecap="round">
-            <line x1="32" y1="10" x2="32" y2="18" />
-            <line x1="32" y1="46" x2="32" y2="54" />
-            <line x1="6" y1="32" x2="14" y2="32" />
-            <line x1="50" y1="32" x2="58" y2="32" />
-          </g>
-          <circle cx="32" cy="32" r="4" fill="url(#hdrGlow)" />
-          <circle cx="32" cy="32" r="2.2" fill="#FFF275" />
-        </svg>
-        <div class="brand-text">
-          <b>FOREX<span>DOUBLESNIPER</span></b>
-          <small><span class="dot live"></span> Live Institutional Gold Terminal</small>
-        </div>
-      </a>
+  <div class="container header-row">
+    <a href="/" class="brand">
+      <img src="logo.svg" alt="FDS" class="brand-logo-svg">
+      <div class="brand-text">
+        <b>Forex<span>Double</span>Sniper</b>
+        <small>Institutional Signal Engine</small>
+      </div>
+    </a>
 
-      <!-- Major Trading Sessions -->
-      <div class="sessions" id="sessionList">
-        <span class="session-tag" id="sess-tokyo"><span class="dot" id="dot-tokyo"></span> Tokyo</span>
-        <span class="session-tag" id="sess-london"><span class="dot" id="dot-london"></span> London</span>
-        <span class="session-tag" id="sess-ny"><span class="dot" id="dot-ny"></span> New York</span>
+    <div class="nav-links">
+      <button class="nav-btn active" data-tab="signals">📈 Signals</button>
+      <button class="nav-btn" data-tab="simulator">🎮 Simulator</button>
+      <button class="nav-btn" data-tab="p2p">⚡ P2P Crypto</button>
+      <button class="nav-btn" data-tab="pricing">💎 Subscriptions</button>
+      <button class="nav-btn" data-tab="referrals">🎁 Referrals</button>
+    </div>
+
+    <div class="header-actions">
+      <!-- Currency Switcher -->
+      <div class="currency-toggle">
+        <button class="curr-btn active" id="currUsdBtn">USD</button>
+        <button class="curr-btn" id="currRwfBtn">RWF</button>
       </div>
 
-      <!-- Quick Control Actions -->
-      <div class="header-actions">
-        <button class="btn-ctrl" id="soundToggle" title="Toggle audio chime on signal updates">
-          <span id="soundIcon">🔔</span> Sound Alerts: <span id="soundState">ON</span>
-        </button>
-        <button class="btn-ctrl" id="refreshBtn" title="Instant Refresh Data">
-          ↻ Refresh
-        </button>
+      <div id="authArea">
+        <button class="btn btn-outline" id="loginModalBtn">Login</button>
+        <button class="btn btn-primary" id="signupModalBtn">7-Day Free Trial</button>
+      </div>
+
+      <div id="userProfileArea" style="display:none; align-items:center; gap:10px;">
+        <span id="navUserName" style="font-weight:700; font-size:13px; color:var(--gold-bright);">Trader</span>
+        <button class="btn btn-outline" id="userLogoutBtn">Logout</button>
       </div>
     </div>
   </div>
 </header>
 
-<!-- Main Dashboard Container -->
 <div class="container">
+  
+  <!-- Hero Free Trial Notification -->
+  <div class="hero-banner" id="trialNoticeBanner">
+    <div>
+      <div class="hero-title">🎯 Get <span>7 Days VIP Signals Free</span> to Test</div>
+      <div class="hero-desc">Institutional Gold (XAU/USD), GBP/USD & GBP/JPY algorithmic BUY/SELL signals. No credit card required to start.</div>
+    </div>
+    <button class="btn btn-primary" id="heroStartTrialBtn">Activate 7-Day Trial</button>
+  </div>
 
-  <!-- Ticker Hero Banner -->
-  <div class="ticker-hero">
-    <div class="price-main">
-      <div class="sym-badge">
-        <span>XAU / USD</span>
-        <span class="gold-tag">SPOT GOLD</span>
-        <span id="dataSourceBadge" style="font-size:11px;color:var(--mut);">● Live Stream</span>
+  <!-- Pair Bar -->
+  <div class="pair-bar">
+    <div class="pair-chip active" data-symbol="XAUUSD">
+      <div>
+        <div class="pair-symbol">XAU/USD (Gold)</div>
+        <div class="pair-price" id="goldChipPrice">$2,715.50</div>
       </div>
-      <div class="price-display-row">
-        <div class="live-price" id="priceDisplay">$4,025.30</div>
-        <div class="price-chg chg-up" id="chgDisplay">▲ +0.62%</div>
+      <span class="pair-chg chg-up" id="goldChipChg">+0.45%</span>
+    </div>
+
+    <div class="pair-chip" data-symbol="GBPUSD">
+      <div>
+        <div class="pair-symbol">GBP/USD</div>
+        <div class="pair-price" id="gbpusdChipPrice">1.29450</div>
+      </div>
+      <span class="pair-chg chg-dn" id="gbpusdChipChg">-0.18%</span>
+    </div>
+
+    <div class="pair-chip" data-symbol="GBPJPY">
+      <div>
+        <div class="pair-symbol">GBP/JPY</div>
+        <div class="pair-price" id="gbpjpyChipPrice">198.850</div>
+      </div>
+      <span class="pair-chg chg-up" id="gbpjpyChipChg">+0.22%</span>
+    </div>
+  </div>
+
+  <!-- TAB 1: SIGNALS DASHBOARD -->
+  <div class="tab-content" id="tabContent-signals">
+    <div class="panel" id="signalsPanel">
+      
+      <!-- Paywall Lock Overlay -->
+      <div class="paywall-overlay" id="paywallOverlay">
+        <div class="paywall-lock-icon">🔒</div>
+        <div class="paywall-title">VIP Trading Signals Locked</div>
+        <div class="paywall-subtitle">Your trial or subscription has expired. Unlock institutional signals for 1 day (24 hours), 1 week, 1 month, or custom plans to continue.</div>
+        <button class="btn btn-primary" style="padding: 12px 28px; font-size: 15px;" onclick="switchTab('pricing')">View Subscription Plans & Unlock</button>
+      </div>
+
+      <!-- Live Signal Banner -->
+      <div class="signal-banner BUY" id="mainSignalBanner">
+        <div>
+          <div style="font-size: 12px; color: var(--muted); font-weight: 700; text-transform: uppercase;">Algorithmic Signal Decision</div>
+          <div class="signal-decision BUY" id="signalDecisionText">BUY</div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 12px; color: var(--muted); font-weight: 600;">Model Confidence</div>
+          <div style="font-size: 22px; font-weight: 800; color: #fff;" id="signalConfidenceText">88%</div>
+        </div>
+      </div>
+
+      <!-- Execution Targets Matrix -->
+      <div class="matrix-grid">
+        <div class="matrix-card">
+          <div class="matrix-label">Current Market Price</div>
+          <div class="matrix-val" id="sigCurrentPrice">$2,715.50</div>
+        </div>
+        <div class="matrix-card" style="border-color: rgba(248,73,96,0.3);">
+          <div class="matrix-label" style="color: var(--dn);">Stop Loss (1.5x ATR)</div>
+          <div class="matrix-val" id="sigStopLoss" style="color: var(--dn);">$2,708.20</div>
+        </div>
+        <div class="matrix-card" style="border-color: rgba(0,208,132,0.3);">
+          <div class="matrix-label" style="color: var(--up);">Target 1 (1.5x ATR)</div>
+          <div class="matrix-val" id="sigTarget1" style="color: var(--up);">$2,723.10</div>
+        </div>
+        <div class="matrix-card" style="border-color: rgba(0,208,132,0.5);">
+          <div class="matrix-label" style="color: var(--gold-bright);">Target 2 (3.0x ATR)</div>
+          <div class="matrix-val" id="sigTarget2" style="color: var(--gold-bright);">$2,730.50</div>
+        </div>
+      </div>
+
+      <!-- Indicators Row -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; background: var(--card); padding: 14px; border-radius: var(--radius);">
+        <div><small style="color:var(--muted);">SMA 10</small><div id="sigSma10" style="font-weight:700;">$2,712.40</div></div>
+        <div><small style="color:var(--muted);">SMA 30</small><div id="sigSma30" style="font-weight:700;">$2,705.80</div></div>
+        <div><small style="color:var(--muted);">RSI 14</small><div id="sigRsi14" style="font-weight:700; color:var(--up);">62.4 (Bullish)</div></div>
+        <div><small style="color:var(--muted);">ATR 14</small><div id="sigAtr14" style="font-weight:700;">$5.20</div></div>
+        <div><small style="color:var(--muted);">24h High / Low</small><div id="sigRange24" style="font-weight:700;">$2,728 / $2,701</div></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TAB 2: REALISTIC TRADING SIMULATOR -->
+  <div class="tab-content" id="tabContent-simulator" style="display:none;">
+    <div class="main-grid">
+      
+      <!-- Order Placement Ticket -->
+      <div class="panel">
+        <h3 style="margin-bottom: 16px; font-size: 16px;">New Simulated Order</h3>
+        <form id="simOrderForm">
+          <div class="ticket-grid">
+            <div class="form-group">
+              <label class="form-label">Symbol</label>
+              <select class="form-control" id="simSymbol">
+                <option value="XAUUSD">XAU/USD (Gold)</option>
+                <option value="GBPUSD">GBP/USD</option>
+                <option value="GBPJPY">GBP/JPY</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Lot Size (0.01 - 100 Lots)</label>
+              <input type="number" step="0.01" class="form-control" id="simLotSize" value="0.10" required>
+            </div>
+          </div>
+
+          <div class="ticket-grid">
+            <div class="form-group">
+              <label class="form-label">Stop Loss Price</label>
+              <input type="number" step="0.00001" class="form-control" id="simSlPrice">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Target 1 (TP1 Auto-Close)</label>
+              <input type="number" step="0.00001" class="form-control" id="simTp1Price">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Target 2 (TP2 Auto-Close)</label>
+            <input type="number" step="0.00001" class="form-control" id="simTp2Price">
+          </div>
+
+          <div style="display:flex; gap:12px; margin-top:16px;">
+            <button type="button" class="btn btn-buy" id="simBuyBtn" style="flex:1; padding:12px; font-size:15px;">BUY MARKET</button>
+            <button type="button" class="btn btn-sell" id="simSellBtn" style="flex:1; padding:12px; font-size:15px;">SELL MARKET</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Account Equity & Metrics -->
+      <div class="panel">
+        <h3 style="margin-bottom: 16px; font-size: 16px;">Simulator Performance</h3>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+          <div class="matrix-card">
+            <div class="matrix-label">Current Equity</div>
+            <div class="matrix-val" id="simEquityVal">$10,000.00</div>
+          </div>
+          <div class="matrix-card">
+            <div class="matrix-label">Win Rate</div>
+            <div class="matrix-val" id="simWinRateVal" style="color:var(--up);">0%</div>
+          </div>
+          <div class="matrix-card">
+            <div class="matrix-label">Total Realized PnL</div>
+            <div class="matrix-val" id="simTotalPnlVal">$0.00</div>
+          </div>
+          <div class="matrix-card">
+            <div class="matrix-label">Profit Factor</div>
+            <div class="matrix-val" id="simProfitFactorVal">1.00</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Active Open Positions (With Auto-Close Triggers) -->
+    <div class="panel">
+      <h3 style="margin-bottom: 14px; font-size: 16px;">Active Open Positions (Live Unrealized PnL & Auto TP/SL)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Ticket #</th>
+              <th>Symbol</th>
+              <th>Side</th>
+              <th>Lots</th>
+              <th>Entry Price</th>
+              <th>Current Price</th>
+              <th>Stop Loss</th>
+              <th>Target 1</th>
+              <th>Target 2</th>
+              <th>Unrealized PnL</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="openPositionsTableBody">
+            <tr><td colspan="11" style="text-align:center; color:var(--muted);">No open simulated positions. Place an order above!</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <div></div>
-
-    <div class="market-stats-row">
-      <div class="stat-item">
-        <span class="stat-lbl">24h High</span>
-        <span class="stat-val" id="highDisplay">$4,042.80</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-lbl">24h Low</span>
-        <span class="stat-val" id="lowDisplay">$4,008.50</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-lbl">ATR Volatility (14)</span>
-        <span class="stat-val" id="atrDisplay">$5.40</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-lbl">Last Synced</span>
-        <span class="stat-val" id="syncDisplay">Just now</span>
+    <!-- Closed Trade History Journal -->
+    <div class="panel">
+      <h3 style="margin-bottom: 14px; font-size: 16px;">Trade History & Signal Execution Journal</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Symbol</th>
+              <th>Side</th>
+              <th>Lots</th>
+              <th>Entry</th>
+              <th>Exit</th>
+              <th>Exit Reason</th>
+              <th>Realized PnL</th>
+            </tr>
+          </thead>
+          <tbody id="closedHistoryTableBody">
+            <tr><td colspan="8" style="text-align:center; color:var(--muted);">No closed trades yet.</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
 
-  <!-- Main 2-Column Responsive Dashboard -->
-  <div class="app-grid">
+  <!-- TAB 3: CRYPTO P2P PORTAL -->
+  <div class="tab-content" id="tabContent-p2p" style="display:none;">
+    <div class="panel">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h2 style="font-size:20px; color:#fff;">P2P Crypto Exchange (Direct Admin Escrow)</h2>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:12px; color:var(--muted);">Admin Support:</span>
+          <span id="p2pAdminPresenceBadge" style="font-size:12px; font-weight:700; color:var(--up);">● Online</span>
+        </div>
+      </div>
 
-    <!-- LEFT COLUMN: Signals, Charts, Indicators -->
-    <div class="main-stage">
+      <!-- Available Inventory -->
+      <div class="matrix-grid" style="grid-template-columns:repeat(3, 1fr);">
+        <div class="matrix-card">
+          <div class="matrix-label">Available USDT Inventory</div>
+          <div class="matrix-val" id="p2pInventoryVal" style="color:var(--gold-bright);">1,000.00 USDT</div>
+        </div>
+        <div class="matrix-card">
+          <div class="matrix-label">Price to Buy (1 USDT)</div>
+          <div class="matrix-val" id="p2pBuyRateVal">$1.00</div>
+        </div>
+        <div class="matrix-card">
+          <div class="matrix-label">Price to Sell (1 USDT)</div>
+          <div class="matrix-val" id="p2pSellRateVal">$1.00</div>
+        </div>
+      </div>
 
-      <!-- Double Sniper Signal Engine Card -->
-      <section class="card signal-hub" id="signalSection">
-        <div class="card-header">
-          <div class="card-title">
-            <span style="color:var(--gold-bright);">✦</span>
-            DOUBLE SNIPER SIGNAL ENGINE
+      <!-- P2P Buy Form -->
+      <div class="p2p-card">
+        <h3 style="color:var(--up); margin-bottom:12px;">Buy USDT from Admin</h3>
+        <form id="p2pBuyForm">
+          <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div class="form-group">
+              <label class="form-label">USDT Amount to Buy (e.g. 20 USDT)</label>
+              <input type="number" step="0.1" class="form-control" id="p2pBuyAmount" placeholder="20" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Total Fiat to Pay</label>
+              <input type="text" class="form-control" id="p2pBuyTotalFiat" readonly style="color:var(--gold-bright); font-weight:700;">
+            </div>
           </div>
-          <span class="card-badge" id="timeframeBadge">M15 Candles · Multi-Factor</span>
+
+          <div class="form-group">
+            <label class="form-label">Your Receiving TRC20 Wallet Address</label>
+            <input type="text" class="form-control" id="p2pUserWallet" placeholder="T..." required>
+          </div>
+
+          <div class="p2p-warning">
+            ⚠️ NOTICE: Provide TRC20 wallet address. Note that the wrong address may result into losing money, no money-back guarantee.
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="padding:12px 24px; font-size:15px;">Initiate P2P Buy Order</button>
+        </form>
+      </div>
+
+      <!-- AI Receipt Verification & Payment Confirmation Modal/Section -->
+      <div class="p2p-card" id="p2pActiveOrderBox" style="display:none; border-color:var(--gold);">
+        <h3 style="color:var(--gold-bright); margin-bottom:8px;">Active P2P Order #<span id="activeOrderIdText"></span></h3>
+        <p style="font-size:13px; color:var(--muted); margin-bottom:14px;">
+          Send payment to the admin account below, upload your receipt screenshot, and click <b>"I sent money"</b>.
+        </p>
+
+        <div style="background:var(--bg); border:1px solid var(--line); padding:14px; border-radius:var(--radius-sm); margin-bottom:16px;">
+          <b>Admin Payment Details:</b>
+          <div id="p2pPaymentDetailsText" style="font-size:13px; margin-top:6px; color:#d0d7de;"></div>
         </div>
 
-        <div class="signal-banner BUY" id="signalBanner">
-          <div class="signal-word-col">
-            <span class="signal-badge-sub">Algorithmic Order</span>
-            <div class="signal-word BUY" id="signalWord">BUY</div>
-          </div>
-          <div class="signal-rationale" id="signalWhy">
-            Double Moving Averages (10/30) in bullish crossover. Upward momentum confirmed with RSI alignment and positive commodity tone.
-          </div>
-          <div class="confidence-box">
-            <div class="confidence-lbl">Sniper Confidence</div>
-            <div class="confidence-num" id="confidenceNum">82%</div>
-            <div class="confidence-bar-bg">
-              <div class="confidence-bar-fill" id="confidenceBar" style="width: 82%;"></div>
-            </div>
-          </div>
+        <!-- Screenshot Upload with AI Receipt Verification -->
+        <div class="form-group">
+          <label class="form-label">Upload Payment Receipt Screenshot (Max 5MB)</label>
+          <input type="file" id="p2pScreenshotFile" class="form-control" accept="image/*">
+          <small style="color:var(--muted); display:block; margin-top:4px;">
+            AI verifies transaction receipt markers (TxID, amount, date) to reject dummy images.
+          </small>
         </div>
 
-        <!-- Trade Matrix -->
-        <div class="trade-matrix">
-          <div class="matrix-cell">
-            <div class="matrix-label">
-              <span>ENTRY PRICE</span>
-              <span class="matrix-pill pill-entry">MARKET</span>
-            </div>
-            <div class="matrix-val" id="entryVal">$4,025.30</div>
-            <div class="matrix-sub">Current price action</div>
-          </div>
-          <div class="matrix-cell">
-            <div class="matrix-label">
-              <span>STOP LOSS (SL)</span>
-              <span class="matrix-pill pill-sl">1.5x ATR</span>
-            </div>
-            <div class="matrix-val" id="slVal" style="color:var(--dn);">$4,017.20</div>
-            <div class="matrix-sub" id="slDist">Risk: $8.10 / oz</div>
-          </div>
-          <div class="matrix-cell">
-            <div class="matrix-label">
-              <span>TAKE PROFIT 1</span>
-              <span class="matrix-pill pill-tp">1:1.5 RR</span>
-            </div>
-            <div class="matrix-val" id="tp1Val" style="color:var(--up);">$4,037.45</div>
-            <div class="matrix-sub" id="tp1Dist">Target: +$12.15 / oz</div>
-          </div>
-          <div class="matrix-cell">
-            <div class="matrix-label">
-              <span>TAKE PROFIT 2</span>
-              <span class="matrix-pill pill-tp">1:3.0 RR</span>
-            </div>
-            <div class="matrix-val" id="tp2Val" style="color:var(--up);">$4,049.60</div>
-            <div class="matrix-sub" id="tp2Dist">Target: +$24.30 / oz</div>
-          </div>
+        <button type="button" class="btn btn-outline" id="p2pUploadProofBtn">Upload & Verify Screenshot</button>
+        <span id="p2pAiStatusBadge" style="margin-left:12px; font-size:13px; font-weight:700;"></span>
+
+        <div style="margin-top:20px;">
+          <button type="button" class="btn btn-buy" id="p2pConfirmSentBtn" disabled style="padding:12px 24px; font-size:15px; opacity:0.5;">
+            I Have Sent Money
+          </button>
+          <button type="button" class="btn btn-outline" id="p2pOpenChatBtn" style="margin-left:10px;">💬 Chat with Admin</button>
+          <button type="button" class="btn btn-danger" id="p2pDisputeBtn" style="margin-left:10px; display:none;">Not Received (Claim)</button>
         </div>
 
-        <div class="signal-actions">
-          <div style="font-size:12px;color:var(--mut);">
-            Strategy: Dual EMA Trend Filter + Wilder's RSI + ATR Dynamic Guardrails
-          </div>
-          <div style="display:flex;gap:10px;">
-            <button class="btn-action" id="copySignalBtn">
-              📋 Copy Signal Setup
-            </button>
-            <button class="btn-action gold-btn" id="simulateTradeBtn">
-              ⚡ Execute Simulation
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <!-- Interactive Candlestick Chart (TradingView Live Chart) -->
-      <section class="card">
-        <div class="card-header">
-          <div class="card-title">
-            <span>📈</span> LIVE INSTITUTIONAL CHART · XAU/USD
-          </div>
-          <div class="chart-tabs" id="chartTimeframes">
-            <button class="tab-btn" data-interval="5">5m</button>
-            <button class="tab-btn active" data-interval="15">15m</button>
-            <button class="tab-btn" data-interval="60">1h</button>
-            <button class="tab-btn" data-interval="240">4h</button>
-            <button class="tab-btn" data-interval="D">1D</button>
-          </div>
-        </div>
-        <div class="chart-container" id="tvContainer">
-          <!-- TradingView Widget loaded via JS -->
-          <div id="tradingview_chart" style="width: 100%; height: 100%;"></div>
-        </div>
-      </section>
-
-      <!-- Technical Indicator Breakdown -->
-      <section class="card">
-        <div class="card-header">
-          <div class="card-title">
-            <span>⚙</span> TECHNICAL INDICATORS BREAKDOWN
-          </div>
-          <span class="card-badge">Computed from Live Candles</span>
-        </div>
-        <div class="indicators-grid">
-          <div class="indicator-box">
-            <div class="ind-row">
-              <span class="ind-label">Fast Average (10 Candles)</span>
-              <span class="ind-value" id="sma10Display">$4,024.10</span>
-            </div>
-            <div class="ind-row">
-              <span class="ind-label">Slow Average (30 Candles)</span>
-              <span class="ind-value" id="sma30Display">$4,021.50</span>
-            </div>
-            <div class="ind-row">
-              <span class="ind-label">Spread Delta</span>
-              <span class="ind-value" id="maDelta" style="color:var(--up);">+$2.60 (Bullish)</span>
-            </div>
-          </div>
-
-          <div class="indicator-box">
-            <div class="ind-row">
-              <span class="ind-label">Relative Strength Index (RSI 14)</span>
-              <span class="ind-value" id="rsiVal">58.4</span>
-            </div>
-            <div class="gauge-bar">
-              <div class="gauge-pin" id="rsiPin" style="left: 58.4%;"></div>
-            </div>
-            <div class="ind-row">
-              <span class="ind-label" style="font-size:11px;">Oversold (30)</span>
-              <span class="ind-value" style="font-size:11px;" id="rsiStatus">Bullish Momentum</span>
-              <span class="ind-label" style="font-size:11px;">Overbought (70)</span>
-            </div>
-          </div>
-
-          <div class="indicator-box">
-            <div class="ind-row">
-              <span class="ind-label">Primary Trend</span>
-              <span class="ind-value" id="trendDisplay" style="color:var(--up);">UPWARD (BULLISH)</span>
-            </div>
-            <div class="ind-row">
-              <span class="ind-label">True Volatility (ATR 14)</span>
-              <span class="ind-value" id="atrDetailDisplay">$5.40 / candle</span>
-            </div>
-          </div>
-
-          <div class="indicator-box">
-            <div class="ind-row">
-              <span class="ind-label">Market Bias</span>
-              <span class="ind-value" id="biasDisplay">LONG ACCUMULATION</span>
-            </div>
-            <div class="ind-row">
-              <span class="ind-label">Risk/Reward Profile</span>
-              <span class="ind-value" style="color:var(--gold-bright);">1 : 2.0 (Favorable)</span>
-            </div>
-          </div>
-        </div>
-      </section>
+        <div id="p2pOrderStatusText" style="margin-top:14px; font-size:14px; font-weight:700; color:var(--gold-bright);"></div>
+      </div>
 
     </div>
-
-    <!-- RIGHT COLUMN: Risk Calculator, News, Log, Brokers -->
-    <div class="side-stage">
-
-      <!-- Position Size & Risk Calculator -->
-      <section class="card calc-card">
-        <div class="card-header">
-          <div class="card-title">
-            <span>🧮</span> LOT SIZE & RISK CALCULATOR
-          </div>
-          <span class="card-badge">Gold (XAU/USD)</span>
-        </div>
-        <div class="calc-grid">
-          <div class="form-group">
-            <label for="calcBalance">Account Balance ($)</label>
-            <input type="number" id="calcBalance" value="1000" min="50" step="50">
-          </div>
-          <div class="form-group">
-            <label for="calcRisk">Risk Percentage (%)</label>
-            <select id="calcRisk">
-              <option value="0.5">0.5% (Conservative)</option>
-              <option value="1" selected>1.0% (Standard)</option>
-              <option value="2">2.0% (Aggressive)</option>
-              <option value="3">3.0% (High Risk)</option>
-            </select>
-          </div>
-        </div>
-        <div class="calc-result-box">
-          <div>
-            <div class="calc-result-title">Recommended Lot Size</div>
-            <div style="font-size:11px;color:var(--mut);margin-top:2px;">
-              Max Risk: <b id="calcMaxRisk" style="color:#fff;">$10.00</b> (<span id="calcSlDistance">$8.10 SL</span>)
-            </div>
-          </div>
-          <div class="calc-result-lots" id="calcLots">0.01 Lots</div>
-        </div>
-      </section>
-
-      <!-- Macro News Sentiment Outlook -->
-      <section class="card">
-        <div class="card-header">
-          <div class="card-title">
-            <span>🌐</span> GOLD NEWS & SENTIMENT
-          </div>
-          <span class="card-badge" id="sentLabelBadge">Bullish (0.28)</span>
-        </div>
-        <div class="sentiment-meter">
-          <div class="meter-track">
-            <div class="meter-needle" id="sentNeedle" style="left: 64%;"></div>
-          </div>
-          <div class="meter-labels">
-            <span>Bearish Tone</span>
-            <span>Neutral</span>
-            <span>Bullish Tone</span>
-          </div>
-        </div>
-        <ul class="news-list" id="newsList">
-          <li class="news-item">
-            <a href="https://www.reuters.com" target="_blank" rel="noopener noreferrer">Central bank gold purchases continue strong momentum amid reserve diversification</a>
-            <div class="news-meta">
-              <span>Reuters</span>
-              <span class="tag-sentiment tag-bull">Bullish</span>
-            </div>
-          </li>
-          <li class="news-item">
-            <a href="https://www.bloomberg.com" target="_blank" rel="noopener noreferrer">US Dollar Index fluctuates as traders parse Federal Reserve interest rate path</a>
-            <div class="news-meta">
-              <span>Bloomberg</span>
-              <span class="tag-sentiment">Neutral</span>
-            </div>
-          </li>
-          <li class="news-item">
-            <a href="https://www.marketwatch.com" target="_blank" rel="noopener noreferrer">Treasury yields consolidate ahead of key US inflation and labor data prints</a>
-            <div class="news-meta">
-              <span>MarketWatch</span>
-              <span class="tag-sentiment tag-bull">Bullish</span>
-            </div>
-          </li>
-        </ul>
-      </section>
-
-      <!-- Live Performance & Signal History -->
-      <section class="card">
-        <div class="card-header">
-          <div class="card-title">
-            <span>📊</span> SIGNAL PERFORMANCE
-          </div>
-          <span class="card-badge">Session Tracking</span>
-        </div>
-        <div class="perf-stats">
-          <div class="perf-stat">
-            <div class="perf-stat-lbl">Closed Signals</div>
-            <div class="perf-stat-num" id="statClosed">0</div>
-          </div>
-          <div class="perf-stat">
-            <div class="perf-stat-lbl">Win Rate</div>
-            <div class="perf-stat-num" id="statWinRate" style="color:var(--up);">–</div>
-          </div>
-          <div class="perf-stat">
-            <div class="perf-stat-lbl">Net P&L ($)</div>
-            <div class="perf-stat-num" id="statTotalPnl">$0.00</div>
-          </div>
-        </div>
-        <svg class="chart-svg" id="pnlSvg" viewBox="0 0 320 120" role="img" aria-label="PnL chart"></svg>
-      </section>
-
-      <!-- Verified Partner Brokers -->
-      <section class="card">
-        <div class="card-header">
-          <div class="card-title">
-            <span>⚡</span> RECOMMENDED BROKERS
-          </div>
-          <span class="card-badge">Verified Low Spread</span>
-        </div>
-        <a class="broker-card" href="https://affs.click/t2wGW" target="_blank" rel="sponsored noopener noreferrer">
-          <div>
-            <div class="broker-name">XM Broker</div>
-            <div class="broker-desc">Ultra-low XAU/USD spreads · Demo accounts · $0 deposit fee</div>
-          </div>
-          <span class="broker-btn">Trade Gold</span>
-        </a>
-        <a class="broker-card" href="https://one.toexness.com/a/d1at2p0vjr" target="_blank" rel="sponsored noopener noreferrer">
-          <div>
-            <div class="broker-name">Exness</div>
-            <div class="broker-desc">Instant withdrawals · Raw gold spreads · MT4/MT5</div>
-          </div>
-          <span class="broker-btn">Trade Gold</span>
-        </a>
-      </section>
-
-      <!-- Direct Contact & Support -->
-      <section class="card">
-        <div class="card-header">
-          <div class="card-title">
-            <span>💬</span> TRADER SUPPORT
-          </div>
-        </div>
-        <div style="font-size:13px;color:var(--mut);">
-          Connect directly with the ForexDoubleSniper technical desk for setup assistance:
-        </div>
-        <div class="contact-grid">
-          <a class="contact-btn whatsapp" href="https://wa.me/250786659188" target="_blank" rel="noopener noreferrer">
-            <span>💬</span> WhatsApp Us
-          </a>
-          <a class="contact-btn" href="mailto:forexdoublesniper@gmail.com">
-            <span>✉</span> Email Desk
-          </a>
-        </div>
-      </section>
-
-    </div>
-
   </div>
 
-  <footer style="margin-top:30px;padding-top:20px;border-top:1px solid var(--line);color:var(--mut);font-size:12px;text-align:center;line-height:1.6;">
-    ForexDoubleSniper is an algorithmic technical analysis terminal. Financial market trading, particularly leveraged commodities and Forex (XAU/USD), involves substantial risk of capital loss. Past performance does not guarantee future results.
-  </footer>
+  <!-- TAB 4: PRICING & SUBSCRIPTION CHECKOUT -->
+  <div class="tab-content" id="tabContent-pricing" style="display:none;">
+    <div class="panel">
+      <div style="text-align:center; max-width:600px; margin:0 auto 20px;">
+        <h2 style="font-size:24px; color:#fff; font-weight:800;">Choose Your Signals Subscription</h2>
+        <p style="color:var(--muted); font-size:14px; margin-top:6px;">
+          Get real-time VIP institutional BUY/SELL signals for Gold, GBP/USD & GBP/JPY. Automatic activation via Flutterwave or manual confirmation.
+        </p>
+      </div>
+
+      <div class="pricing-grid" id="pricingGrid">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div class="form-card" style="max-width:550px; margin:20px auto 0; background:var(--card); padding:24px; border-radius:var(--radius);">
+        <h3 style="margin-bottom:14px; font-size:16px;">Checkout via Flutterwave</h3>
+        <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">
+          Enter your mobile phone. You will receive an authorization prompt or WhatsApp OTP to complete the payment.
+        </p>
+        <form id="checkoutForm">
+          <input type="hidden" id="selectedPlanId">
+          <div class="form-group">
+            <label class="form-label">Phone Number for Payment Prompt (e.g. MTN/Airtel)</label>
+            <input type="text" class="form-control" id="checkoutPhone" placeholder="+250 788 000 000" required>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%; padding:14px; font-size:16px; justify-content:center;">
+            Pay with Flutterwave (Instant Unlock)
+          </button>
+        </form>
+      </div>
+
+      <!-- Payment History -->
+      <div style="margin-top:40px;">
+        <h3 style="margin-bottom:14px; font-size:16px;">Your Payment History</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Plan</th>
+                <th>Amount</th>
+                <th>Method</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="paymentHistoryBody">
+              <tr><td colspan="5" style="text-align:center; color:var(--muted);">No payment history yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TAB 5: REFERRALS -->
+  <div class="tab-content" id="tabContent-referrals" style="display:none;">
+    <div class="panel">
+      <h2 style="font-size:20px; color:#fff; margin-bottom:8px;">Referral Earnings & Instant Rewards</h2>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:20px;">
+        Share your unique link. Earn a guaranteed <b>10% commission</b> every time your referral activates any subscription.
+      </p>
+
+      <div class="matrix-grid" style="grid-template-columns:repeat(3, 1fr);">
+        <div class="matrix-card">
+          <div class="matrix-label">Your Referral Code</div>
+          <div class="matrix-val" id="refCodeDisplay" style="color:var(--gold-bright);">-----</div>
+        </div>
+        <div class="matrix-card">
+          <div class="matrix-label">Total Referrals</div>
+          <div class="matrix-val" id="refCountDisplay">0</div>
+        </div>
+        <div class="matrix-card">
+          <div class="matrix-label">Available Balance</div>
+          <div class="matrix-val" id="refBalanceDisplay" style="color:var(--up);">$0.00</div>
+        </div>
+      </div>
+
+      <div class="p2p-card" style="margin-top:20px;">
+        <label class="form-label">Your Referral Link (Copy & Share)</label>
+        <div style="display:flex; gap:10px;">
+          <input type="text" class="form-control" id="refLinkInput" readonly>
+          <button class="btn btn-primary" id="copyRefBtn">Copy Link</button>
+        </div>
+      </div>
+
+      <div class="p2p-card" style="margin-top:20px;">
+        <h3 style="color:#fff; margin-bottom:12px;">Request Manual Withdrawal</h3>
+        <form id="refWithdrawForm">
+          <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div class="form-group">
+              <label class="form-label">Amount in USD ($)</label>
+              <input type="number" step="0.01" class="form-control" id="withAmount" placeholder="10.00" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Receiving Payment Details (MoMo Number / Bank / USDT TRC20)</label>
+              <input type="text" class="form-control" id="withDetails" placeholder="MTN MoMo: 0788123456" required>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-success">Submit Withdrawal Request</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<!-- Notification Toast -->
-<div id="toast">Signal copied to clipboard!</div>
+<!-- Auth Modal (Sign In / Sign Up / Forgot Password / OTP) -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal-box">
+    <button class="modal-close" id="authModalClose">✕</button>
+    
+    <!-- Sign In Box -->
+    <div id="authBoxSignIn">
+      <h2 style="font-size:20px; font-weight:800; color:#fff; margin-bottom:4px;">Sign In to Account</h2>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:18px;">Access live signals, trading simulation & P2P</p>
+      <form id="formSignIn">
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" class="form-control" id="signInEmail" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-control" id="signInPassword" required>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%; padding:12px; font-size:15px; justify-content:center; margin-bottom:12px;">Sign In</button>
+      </form>
+      <div style="display:flex; justify-content:space-between; font-size:12px;">
+        <a href="#" id="toForgotBtn" style="color:var(--muted);">Forgot Password?</a>
+        <a href="#" id="toSignUpBtn" style="color:var(--gold-bright); font-weight:700;">Create Account</a>
+      </div>
+    </div>
 
-<!-- Client-Side Engine Script -->
+    <!-- Sign Up Box -->
+    <div id="authBoxSignUp" style="display:none;">
+      <h2 style="font-size:20px; font-weight:800; color:#fff; margin-bottom:4px;">Create Free Account</h2>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:18px;">Includes 7-Day Free VIP Signals Trial</p>
+      <form id="formSignUp">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" class="form-control" id="signUpName" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" class="form-control" id="signUpEmail" required>
+          <small id="emailUniqueMsg" style="font-size:11px;"></small>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone Number</label>
+          <input type="text" class="form-control" id="signUpPhone" placeholder="+250..." required>
+          <small id="phoneUniqueMsg" style="font-size:11px;"></small>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-control" id="signUpPass" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Re-enter Password</label>
+          <input type="password" class="form-control" id="signUpPassConfirm" required>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%; padding:12px; font-size:15px; justify-content:center; margin-bottom:12px;">Start 7-Day Free Trial</button>
+      </form>
+      <div style="text-align:center; font-size:12px;">
+        <a href="#" id="toSignInBtn" style="color:var(--gold-bright); font-weight:700;">Already have an account? Sign In</a>
+      </div>
+    </div>
+
+    <!-- OTP Verification Box -->
+    <div id="authBoxOtp" style="display:none;">
+      <h2 style="font-size:20px; font-weight:800; color:#fff; margin-bottom:4px;">Verify Your Email</h2>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:18px;">Enter the 6-digit code sent to your email to activate your account</p>
+      <form id="formVerifyOtp">
+        <div class="form-group">
+          <input type="text" class="form-control" id="otpCodeInput" maxlength="6" style="text-align:center; font-size:24px; letter-spacing:6px; font-weight:800; color:var(--gold-bright);" required>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%; padding:12px; font-size:15px; justify-content:center;">Verify & Start</button>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
 <script>
-// UI Helper
-var $ = function(id) { return document.getElementById(id); };
-function fmt(n) { return (typeof n === 'number') ? n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : n; }
-
 // State
-var currentSignal = {
-  price: 4025.30,
-  changePct: 0.62,
-  high24h: 4042.80,
-  low24h: 4008.50,
-  sma10: 4024.10,
-  sma30: 4021.50,
-  rsi14: 58.4,
-  atr: 5.40,
-  decision: 'BUY',
-  confidence: 82,
-  stop: 4017.20,
-  target: 4037.45,
-  target2: 4049.60,
-  stopDistance: 8.10
-};
+let authToken = localStorage.getItem('fds_user_token') || null;
+let currentUser = null;
+let activeSymbol = 'XAUUSD';
+let currencyMode = 'USD';
+let liveExchangeRate = 1350.00;
+let currentSignal = null;
+let activeOrderId = null;
+let currentPlans = [];
 
-var audioEnabled = true;
-var lastDecision = null;
-var prevPrice = null;
+const $ = id => document.getElementById(id);
 
-// Sound alerts with Web Audio API (no external file dependencies)
-function playTone(freq, type, duration) {
-  if (!audioEnabled) return;
-  try {
-    var ctx = new (window.AudioContext || window.webkitAudioContext)();
-    var osc = ctx.createOscillator();
-    var gain = ctx.createGain();
-    osc.type = type || 'sine';
-    osc.frequency.setValueAtTime(freq, ctx.currentTime);
-    gain.gain.setValueAtTime(0.12, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + duration);
-  } catch(e) {}
-}
-
-function notifySignal(side) {
-  if (side === 'BUY') {
-    playTone(587, 'triangle', 0.2);
-    setTimeout(function() { playTone(880, 'sine', 0.4); }, 150);
-  } else if (side === 'SELL') {
-    playTone(660, 'sawtooth', 0.2);
-    setTimeout(function() { playTone(440, 'sine', 0.4); }, 150);
-  }
-}
-
-// Toast notification
 function showToast(msg) {
-  var t = $('toast');
+  const t = $('toast');
   t.textContent = msg;
   t.style.display = 'block';
-  setTimeout(function() { t.style.display = 'none'; }, 2500);
+  setTimeout(() => t.style.display = 'none', 3500);
 }
 
-// Sound toggle handler
-$('soundToggle').addEventListener('click', function() {
-  audioEnabled = !audioEnabled;
-  $('soundState').textContent = audioEnabled ? 'ON' : 'OFF';
-  $('soundIcon').textContent = audioEnabled ? '🔔' : '🔕';
-  $('soundToggle').classList.toggle('active', audioEnabled);
-  if (audioEnabled) playTone(784, 'sine', 0.2);
-});
-
-// Update Major Forex Sessions
-function updateSessions() {
-  var now = new Date();
-  var utcHour = now.getUTCHours();
-  
-  // Tokyo / Asian: 00:00 - 09:00 UTC
-  var tokyoOpen = utcHour >= 0 && utcHour < 9;
-  // London: 08:00 - 16:30 UTC
-  var londonOpen = utcHour >= 8 && utcHour < 17;
-  // New York: 13:00 - 21:00 UTC
-  var nyOpen = utcHour >= 13 && utcHour < 21;
-
-  $('sess-tokyo').className = 'session-tag ' + (tokyoOpen ? 'active' : '');
-  $('dot-tokyo').className = 'dot ' + (tokyoOpen ? 'live' : '');
-  
-  $('sess-london').className = 'session-tag ' + (londonOpen ? 'active' : '');
-  $('dot-london').className = 'dot ' + (londonOpen ? 'live' : '');
-  
-  $('sess-ny').className = 'session-tag ' + (nyOpen ? 'active' : '');
-  $('dot-ny').className = 'dot ' + (nyOpen ? 'live' : '');
-}
-setInterval(updateSessions, 60000);
-updateSessions();
-
-// TradingView Widget Initializer
-var currentInterval = '15';
-function initTradingView(interval) {
-  var container = $('tradingview_chart');
-  container.innerHTML = '';
-  var script = document.createElement('script');
-  script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
-  script.type = 'text/javascript';
-  script.async = true;
-  script.innerHTML = JSON.stringify({
-    "autosize": true,
-    "symbol": "OANDA:XAUUSD",
-    "interval": interval || "15",
-    "timezone": "Etc/UTC",
-    "theme": "dark",
-    "style": "1",
-    "locale": "en",
-    "enable_publishing": false,
-    "backgroundColor": "rgba(17, 20, 27, 1)",
-    "gridColor": "rgba(36, 42, 56, 0.4)",
-    "hide_top_toolbar": false,
-    "hide_legend": false,
-    "save_image": false,
-    "calendar": false,
-    "support_host": "https://www.tradingview.com"
-  });
-  container.appendChild(script);
-}
-initTradingView(currentInterval);
-
-// Timeframe tab clicks
-var tabBtns = document.querySelectorAll('.tab-btn');
-tabBtns.forEach(function(btn) {
-  btn.addEventListener('click', function() {
-    tabBtns.forEach(function(b) { b.classList.remove('active'); });
-    this.classList.add('active');
-    currentInterval = this.getAttribute('data-interval');
-    $('timeframeBadge').textContent = 'M' + currentInterval + ' Candles · Multi-Factor';
-    initTradingView(currentInterval);
-  });
-});
-
-// Lot Size & Risk Calculator
-function updateCalculator() {
-  var balance = parseFloat($('calcBalance').value) || 1000;
-  var riskPct = parseFloat($('calcRisk').value) || 1;
-  var slDist = currentSignal.stopDistance || (Math.abs(currentSignal.price - (currentSignal.stop || (currentSignal.price - 8.0))));
-  if (slDist <= 0) slDist = 5.0;
-
-  var maxRiskDollars = balance * (riskPct / 100);
-  // Standard XAU/USD: 1 standard lot = 100 oz.
-  // Dollar risk per 1.00 lot = slDist * 100
-  var rawLots = maxRiskDollars / (slDist * 100);
-  var lots = Math.max(0.01, Math.round(rawLots * 100) / 100);
-
-  $('calcMaxRisk').textContent = '$' + maxRiskDollars.toFixed(2);
-  $('calcSlDistance').textContent = '$' + slDist.toFixed(2) + ' SL';
-  $('calcLots').textContent = lots.toFixed(2) + ' Lots';
-}
-$('calcBalance').addEventListener('input', updateCalculator);
-$('calcRisk').addEventListener('change', updateCalculator);
-
-// Copy Signal Handler
-$('copySignalBtn').addEventListener('click', function() {
-  var d = currentSignal;
-  var txt = '🎯 FOREX DOUBLE SNIPER SIGNAL' + '\n' +
-            'Asset: XAU/USD (Gold)' + '\n' +
-            'Action: ' + d.decision + '\n' +
-            'Entry: $' + fmt(d.price) + '\n' +
-            'Stop Loss: $' + (d.stop ? fmt(d.stop) : 'None') + '\n' +
-            'Take Profit 1: $' + (d.target ? fmt(d.target) : 'None') + '\n' +
-            'Take Profit 2: $' + (d.target2 ? fmt(d.target2) : 'None') + '\n' +
-            'Confidence: ' + (d.confidence || 80) + '%' + '\n' +
-            'Time: ' + new Date().toUTCString();
-  
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(txt).then(function() {
-      showToast('Signal copied to clipboard!');
-    });
-  } else {
-    var ta = document.createElement('textarea');
-    ta.value = txt;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    showToast('Signal copied to clipboard!');
-  }
-});
-
-// Signal Performance Logger (Persisted in localStorage)
-var LOG_KEY = 'fds_gold_log_v2';
-function loadLog() {
-  try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; } catch(e) { return []; }
-}
-function saveLog(l) {
-  try { localStorage.setItem(LOG_KEY, JSON.stringify(l.slice(0, 50))); } catch(e) {}
-}
-
-function processTradeLog(d) {
-  var log = loadLog();
-  var open = null;
-  for (var i = 0; i < log.length; i++) {
-    var t = log[i];
-    if (t.status !== 'open') continue;
-    var hitTp = (t.side === 'BUY') ? (d.price >= t.tp) : (d.price <= t.tp);
-    var hitSl = (t.side === 'BUY') ? (d.price <= t.sl) : (d.price >= t.sl);
-    if (hitTp) { t.status = 'tp'; t.exit = t.tp; t.pnl = (t.side === 'BUY') ? (t.tp - t.entry) : (t.entry - t.tp); }
-    else if (hitSl) { t.status = 'sl'; t.exit = t.sl; t.pnl = (t.side === 'BUY') ? (t.sl - t.entry) : (t.entry - t.sl); }
-    else if (d.decision !== 'WAIT' && d.decision !== t.side) {
-      t.status = 'flip'; t.exit = d.price; t.pnl = (t.side === 'BUY') ? (d.price - t.entry) : (t.entry - d.price);
-    }
-    if (t.status === 'open') open = t;
-  }
-
-  // Open new trade if none open and decision is actionable
-  if (!open && d.decision !== 'WAIT' && d.stop) {
-    log.unshift({
-      id: Date.now(),
-      side: d.decision,
-      entry: d.price,
-      sl: d.stop,
-      tp: d.target,
-      status: 'open',
-      t: Date.now()
-    });
-  }
-  saveLog(log);
-  renderPerformance(log);
-}
-
-// Simulate trade click
-$('simulateTradeBtn').addEventListener('click', function() {
-  var log = loadLog();
-  var side = currentSignal.decision === 'WAIT' ? 'BUY' : currentSignal.decision;
-  var entry = currentSignal.price;
-  var sl = currentSignal.stop || (entry - 8);
-  var tp = currentSignal.target || (entry + 12);
-  
-  // Close oldest open trade with simulated outcome
-  var hasOpen = false;
-  for (var i = 0; i < log.length; i++) {
-    if (log[i].status === 'open') {
-      log[i].status = Math.random() > 0.35 ? 'tp' : 'sl';
-      log[i].exit = log[i].status === 'tp' ? log[i].tp : log[i].sl;
-      log[i].pnl = log[i].side === 'BUY' ? (log[i].exit - log[i].entry) : (log[i].entry - log[i].exit);
-      hasOpen = true;
-      break;
-    }
-  }
-  if (!hasOpen) {
-    log.unshift({
-      id: Date.now(),
-      side: side,
-      entry: entry,
-      sl: sl,
-      tp: tp,
-      status: 'open',
-      t: Date.now()
-    });
-    showToast('New simulated position opened at $' + fmt(entry));
-  } else {
-    showToast('Simulated position closed & recorded!');
-  }
-  saveLog(log);
-  renderPerformance(log);
-});
-
-function renderPerformance(log) {
-  var closed = log.filter(function(t) { return t.status !== 'open'; });
-  var wins = closed.filter(function(t) { return (t.pnl || 0) > 0; }).length;
-  var total = closed.reduce(function(a, b) { return a + (b.pnl || 0); }, 0);
-
-  $('statClosed').textContent = closed.length;
-  $('statWinRate').textContent = closed.length ? Math.round((wins / closed.length) * 100) + '%' : '–';
-  $('statTotalPnl').textContent = (total >= 0 ? '+' : '') + '$' + total.toFixed(2);
-  $('statTotalPnl').style.color = total >= 0 ? 'var(--up)' : 'var(--dn)';
-
-  // Render SVG PnL bars
-  var svg = $('pnlSvg');
-  svg.innerHTML = '';
-  var bars = closed.slice(0, 10).reverse();
-  var NS = 'http://www.w3.org/2000/svg';
-
-  if (!bars.length) {
-    var txt = document.createElementNS(NS, 'text');
-    txt.setAttribute('x', '160');
-    txt.setAttribute('y', '60');
-    txt.setAttribute('text-anchor', 'middle');
-    txt.setAttribute('fill', '#8b95a5');
-    txt.setAttribute('font-size', '12');
-    txt.textContent = 'Simulated trades will appear here';
-    svg.appendChild(txt);
-    return;
-  }
-
-  var maxPnl = Math.max.apply(null, bars.map(function(t) { return Math.abs(t.pnl || 1); })) || 5;
-  var midY = 60;
-  var barWidth = 320 / bars.length;
-
-  var line = document.createElementNS(NS, 'line');
-  line.setAttribute('x1', '0'); line.setAttribute('y1', midY);
-  line.setAttribute('x2', '320'); line.setAttribute('y2', midY);
-  line.setAttribute('stroke', '#242a38');
-  svg.appendChild(line);
-
-  bars.forEach(function(t, i) {
-    var pnl = t.pnl || 0;
-    var h = Math.max(4, (Math.abs(pnl) / maxPnl) * 44);
-    var rect = document.createElementNS(NS, 'rect');
-    rect.setAttribute('x', i * barWidth + barWidth * 0.2);
-    rect.setAttribute('width', barWidth * 0.6);
-    rect.setAttribute('height', h);
-    rect.setAttribute('rx', '3');
-    rect.setAttribute('y', pnl >= 0 ? midY - h : midY);
-    rect.setAttribute('fill', pnl >= 0 ? '#00d084' : '#f84960');
-    svg.appendChild(rect);
-
-    var label = document.createElementNS(NS, 'text');
-    label.setAttribute('x', i * barWidth + barWidth / 2);
-    label.setAttribute('y', pnl >= 0 ? midY - h - 3 : midY + h + 10);
-    label.setAttribute('text-anchor', 'middle');
-    label.setAttribute('fill', '#8b95a5');
-    label.setAttribute('font-size', '9');
-    label.textContent = (pnl >= 0 ? '+' : '') + pnl.toFixed(1);
-    svg.appendChild(label);
-  });
-}
-
-// Render Main App Data
-function renderApp(d) {
-  currentSignal = d;
-
-  // Flash price indicator
-  var priceEl = $('priceDisplay');
-  if (prevPrice !== null) {
-    if (d.price > prevPrice) {
-      priceEl.classList.remove('flash-dn');
-      priceEl.classList.add('flash-up');
-      setTimeout(function() { priceEl.classList.remove('flash-up'); }, 600);
-    } else if (d.price < prevPrice) {
-      priceEl.classList.remove('flash-up');
-      priceEl.classList.add('flash-dn');
-      setTimeout(function() { priceEl.classList.remove('flash-dn'); }, 600);
-    }
-  }
-  prevPrice = d.price;
-
-  // Top Ticker
-  priceEl.textContent = '$' + fmt(d.price);
-  var isUp = d.changePct >= 0;
-  $('chgDisplay').textContent = (isUp ? '▲ +' : '▼ ') + d.changePct.toFixed(2) + '%';
-  $('chgDisplay').className = 'price-chg ' + (isUp ? 'chg-up' : 'chg-dn');
-  $('highDisplay').textContent = '$' + fmt(d.high24h || (d.price + d.atr * 1.5));
-  $('lowDisplay').textContent = '$' + fmt(d.low24h || (d.price - d.atr * 1.5));
-  $('atrDisplay').textContent = '$' + fmt(d.atr);
-  $('syncDisplay').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  if (d.source) $('dataSourceBadge').textContent = '● ' + d.source;
-
-  // Signal Banner
-  var banner = $('signalBanner');
-  banner.className = 'signal-banner ' + d.decision;
-  var word = $('signalWord');
-  word.className = 'signal-word ' + d.decision;
-  word.textContent = d.decision;
-
-  var confidence = d.confidence || Math.min(95, Math.max(60, Math.round(50 + Math.abs(d.composite || 0.4) * 45)));
-  $('confidenceNum').textContent = confidence + '%';
-  $('confidenceBar').style.width = confidence + '%';
-
-  if (d.decision === 'BUY') {
-    $('signalWhy').textContent = 'Fast MA (10) above Slow MA (30) with RSI in bullish expansion. Entry targets 1:1.5 to 1:3 risk-to-reward.';
-  } else if (d.decision === 'SELL') {
-    $('signalWhy').textContent = 'Bearish moving average crossover with negative price momentum. Target lower liquidity levels with strict SL.';
-  } else {
-    $('signalWhy').textContent = 'Consolidation phase detected. Indicators range-bound without clear directional edge. Stand by for breakout.';
-  }
-
-  // Play audio alert if signal changed
-  if (lastDecision !== null && lastDecision !== d.decision && d.decision !== 'WAIT') {
-    notifySignal(d.decision);
-  }
-  lastDecision = d.decision;
-
-  // Trade Matrix Values
-  $('entryVal').textContent = '$' + fmt(d.price);
-  $('slVal').textContent = d.stop ? ('$' + fmt(d.stop)) : '–';
-  $('tp1Val').textContent = d.target ? ('$' + fmt(d.target)) : '–';
-  $('tp2Val').textContent = d.target2 ? ('$' + fmt(d.target2)) : '–';
-
-  var slDiff = d.stop ? Math.abs(d.price - d.stop) : (d.stopDistance || 7.5);
-  $('slDist').textContent = 'Risk: $' + slDiff.toFixed(2) + ' / oz (' + (slDiff * 10).toFixed(0) + ' pips)';
-  $('tp1Dist').textContent = 'Target: +$' + (slDiff * 1.5).toFixed(2) + ' / oz';
-  $('tp2Dist').textContent = 'Target: +$' + (slDiff * 3.0).toFixed(2) + ' / oz';
-
-  // Indicators
-  $('sma10Display').textContent = '$' + fmt(d.sma10);
-  $('sma30Display').textContent = '$' + fmt(d.sma30);
-  var delta = d.sma10 - d.sma30;
-  $('maDelta').textContent = (delta >= 0 ? '+' : '') + '$' + delta.toFixed(2) + (delta >= 0 ? ' (Bullish)' : ' (Bearish)');
-  $('maDelta').style.color = delta >= 0 ? 'var(--up)' : 'var(--dn)';
-
-  var rsi = d.rsi14 || 50;
-  $('rsiVal').textContent = rsi.toFixed(1);
-  $('rsiPin').style.left = Math.min(95, Math.max(5, rsi)) + '%';
-  $('rsiStatus').textContent = rsi > 65 ? 'Overbought' : rsi < 35 ? 'Oversold' : 'Neutral Range';
-  $('rsiStatus').style.color = rsi > 60 ? 'var(--up)' : rsi < 40 ? 'var(--dn)' : 'var(--text)';
-
-  $('trendDisplay').textContent = d.trend === 'Up' ? 'UPWARD (BULLISH)' : 'DOWNWARD (BEARISH)';
-  $('trendDisplay').style.color = d.trend === 'Up' ? 'var(--up)' : 'var(--dn)';
-  $('atrDetailDisplay').textContent = '$' + fmt(d.atr) + ' / candle (' + (d.atr * 10).toFixed(0) + ' pips)';
-
-  // Sentiment
-  var s = d.sentiment;
-  if (s) {
-    var score = s.score !== null ? s.score : 0.25;
-    $('sentLabelBadge').textContent = s.label + ' (' + (score >= 0 ? '+' : '') + score.toFixed(2) + ')';
-    var needlePos = Math.min(95, Math.max(5, (score + 1) * 50));
-    $('sentNeedle').style.left = needlePos + '%';
-
-    if (s.headlines && s.headlines.length) {
-      var newsUl = $('newsList');
-      newsUl.innerHTML = '';
-      s.headlines.forEach(function(h) {
-        var li = document.createElement('li');
-        li.className = 'news-item';
-        var a = document.createElement('a');
-        a.textContent = h.headline;
-        a.href = h.url || '#';
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
-        
-        var meta = document.createElement('div');
-        meta.className = 'news-meta';
-        var src = document.createElement('span');
-        src.textContent = h.source || 'Market Feed';
-        var tag = document.createElement('span');
-        tag.className = 'tag-sentiment ' + (h.tone > 0 ? 'tag-bull' : h.tone < 0 ? 'tag-bear' : '');
-        tag.textContent = h.tone > 0 ? 'Bullish' : h.tone < 0 ? 'Bearish' : 'Neutral';
-        
-        meta.appendChild(src);
-        meta.appendChild(tag);
-        li.appendChild(a);
-        li.appendChild(meta);
-        newsUl.appendChild(li);
-      });
-    }
-  }
-
-  // Update calculator with new SL distance
-  updateCalculator();
-  // Process Trade Log
-  processTradeLog(d);
-}
-
-// Client-Side Direct Technical Analysis Engine (Fallback that runs directly in browser)
-function computeDirectSignal(candles, ticker) {
-  var closes = candles.map(function(c) { return c.close; });
-  var count = closes.length;
-  
-  // Fast MA 10 & Slow MA 30
-  var sum10 = 0, n10 = Math.min(10, count);
-  for (var i = count - n10; i < count; i++) sum10 += closes[i];
-  var sma10 = sum10 / n10;
-
-  var sum30 = 0, n30 = Math.min(30, count);
-  for (var j = count - n30; j < count; j++) sum30 += closes[j];
-  var sma30 = sum30 / n30;
-
-  // ATR 14
-  var trs = [];
-  for (var k = 1; k < candles.length; k++) {
-    var high = candles[k].high, low = candles[k].low, prevClose = candles[k - 1].close;
-    trs.push(Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose)));
-  }
-  var nAtr = Math.min(14, trs.length);
-  var sumAtr = 0;
-  for (var m = trs.length - nAtr; m < trs.length; m++) sumAtr += trs[m];
-  var atrVal = nAtr ? (sumAtr / nAtr) : 5.0;
-
-  // RSI 14
-  var rsi = 50;
-  if (closes.length >= 15) {
-    var gains = 0, losses = 0;
-    for (var r = closes.length - 14; r < closes.length; r++) {
-      var diff = closes[r] - closes[r - 1];
-      if (diff >= 0) gains += diff; else losses -= diff;
-    }
-    var avgG = gains / 14, avgL = losses / 14;
-    rsi = avgL === 0 ? 100 : (100 - (100 / (1 + (avgG / avgL))));
-  }
-
-  var price = +ticker.lastPrice;
-  var changePct = +ticker.priceChangePercent;
-  var high24h = +ticker.highPrice;
-  var low24h = +ticker.lowPrice;
-
-  var techScore = Math.min(1, Math.max(-1, (sma10 - sma30) / (2 * atrVal)));
-  var dayScore = Math.min(1, Math.max(-1, changePct / 1.0));
-  var rsiScore = Math.min(1, Math.max(-1, (rsi - 50) / 25));
-
-  var composite = 0.45 * techScore + 0.25 * dayScore + 0.30 * rsiScore;
-  var decision = 'WAIT';
-  if (composite > 0.18) decision = 'BUY';
-  else if (composite < -0.18) decision = 'SELL';
-
-  var dir = decision === 'SELL' ? -1 : 1;
-  var stopDist = +(1.5 * atrVal).toFixed(2);
-  var tp1Dist = +(1.5 * atrVal).toFixed(2);
-  var tp2Dist = +(3.0 * atrVal).toFixed(2);
-
-  return {
-    price: price,
-    changePct: changePct,
-    high24h: high24h,
-    low24h: low24h,
-    sma10: +sma10.toFixed(2),
-    sma30: +sma30.toFixed(2),
-    rsi14: +rsi.toFixed(1),
-    atr: +atrVal.toFixed(2),
-    trend: sma10 >= sma30 ? 'Up' : 'Down',
-    decision: decision,
-    composite: +composite.toFixed(3),
-    confidence: Math.min(95, Math.max(60, Math.round(50 + Math.abs(composite) * 45))),
-    stop: decision === 'WAIT' ? null : +(price - dir * stopDist).toFixed(2),
-    target: decision === 'WAIT' ? null : +(price + dir * tp1Dist).toFixed(2),
-    target2: decision === 'WAIT' ? null : +(price + dir * tp2Dist).toFixed(2),
-    stopDistance: stopDist,
-    source: 'Binance Live Feed (Spot Gold)',
-    sentiment: {
-      score: 0.28,
-      label: 'Bullish',
-      count: 3,
-      headlines: [
-        { headline: 'Central bank gold purchases continue strong momentum amid reserve diversification', source: 'Reuters', tone: 1, url: 'https://www.reuters.com' },
-        { headline: 'US Dollar Index fluctuates as traders parse Federal Reserve interest rate path', source: 'Bloomberg', tone: 0, url: 'https://www.bloomberg.com' },
-        { headline: 'Treasury yields consolidate ahead of key US inflation and labor data prints', source: 'MarketWatch', tone: 1, url: 'https://www.marketwatch.com' }
-      ]
-    }
-  };
-}
-
-// Fetch directly from public Binance PAXGUSDT (100% CORS enabled, zero server required)
-function fetchClientDirect() {
-  Promise.all([
-    fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=PAXGUSDT').then(function(r) { return r.json(); }),
-    fetch('https://api.binance.com/api/v3/klines?symbol=PAXGUSDT&interval=15m&limit=60').then(function(r) { return r.json(); })
-  ]).then(function(res) {
-    var ticker = res[0];
-    var klines = res[1];
-    var candles = klines.map(function(k) {
-      return { time: k[0], open: +k[1], high: +k[2], low: +k[3], close: +k[4], vol: +k[5] };
-    });
-    var data = computeDirectSignal(candles, ticker);
-    renderApp(data);
-  }).catch(function(err) {
-    console.warn('Client direct fetch fallback:', err);
-    // If completely offline, continue with current data
-    renderApp(currentSignal);
-  });
-}
-
-// Main loader: Tries /api/signal first; if hosted without backend (benix.space), falls back to direct client stream
-function loadSignal() {
-  var controller = new AbortController();
-  var timeoutId = setTimeout(function() { controller.abort(); }, 4000);
-
-  fetch('/api/signal', { signal: controller.signal })
-    .then(function(r) {
-      clearTimeout(timeoutId);
-      if (!r.ok) throw new Error('API status ' + r.status);
-      return r.json();
-    })
-    .then(function(data) {
-      if (data && data.price) {
-        renderApp(data);
-      } else {
-        fetchClientDirect();
-      }
-    })
-    .catch(function(err) {
-      clearTimeout(timeoutId);
-      // Backend not found or static host (benix.space) -> switch seamlessly to direct public stream!
-      fetchClientDirect();
-    });
-}
-
-// Real-Time WebSocket for tick-by-tick price flashes
-function initWebSocket() {
+// Client Device Fingerprint Generator (Canvas, Audio, WebGL, Screen)
+function getDeviceFingerprint() {
   try {
-    var ws = new WebSocket('wss://stream.binance.com:9443/ws/paxgusdt@ticker');
-    ws.onmessage = function(event) {
-      try {
-        var msg = JSON.parse(event.data);
-        if (msg && msg.c) {
-          var livePrice = parseFloat(msg.c);
-          var chgPct = parseFloat(msg.P);
-          var high24 = parseFloat(msg.h);
-          var low24 = parseFloat(msg.l);
+    let fp = localStorage.getItem('fds_device_fp');
+    if (fp) return fp;
 
-          currentSignal.price = livePrice;
-          currentSignal.changePct = chgPct;
-          currentSignal.high24h = high24;
-          currentSignal.low24h = low24;
+    const screenData = `${screen.width}x${screen.height}x${screen.colorDepth}`;
+    const navData = `${navigator.userAgent}_${navigator.language}_${navigator.hardwareConcurrency || 4}`;
+    
+    // Canvas fingerprinting
+    const canvas = document.createElement('canvas');
+    canvas.width = 200;
+    canvas.height = 40;
+    const ctx = canvas.getContext('2d');
+    ctx.textBaseline = 'top';
+    ctx.font = '14px Arial';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = '#f60';
+    ctx.fillRect(125, 1, 62, 20);
+    ctx.fillStyle = '#069';
+    ctx.fillText('ForexDoubleSniperSecureHash', 2, 15);
+    const canvasHash = canvas.toDataURL().slice(-40);
 
-          var priceEl = $('priceDisplay');
-          if (prevPrice !== null) {
-            if (livePrice > prevPrice) {
-              priceEl.classList.remove('flash-dn');
-              priceEl.classList.add('flash-up');
-              setTimeout(function() { priceEl.classList.remove('flash-up'); }, 400);
-            } else if (livePrice < prevPrice) {
-              priceEl.classList.remove('flash-up');
-              priceEl.classList.add('flash-dn');
-              setTimeout(function() { priceEl.classList.remove('flash-dn'); }, 400);
-            }
-          }
-          prevPrice = livePrice;
-          priceEl.textContent = '$' + fmt(livePrice);
-          var isUp = chgPct >= 0;
-          $('chgDisplay').textContent = (isUp ? '▲ +' : '▼ ') + chgPct.toFixed(2) + '%';
-          $('chgDisplay').className = 'price-chg ' + (isUp ? 'chg-up' : 'chg-dn');
-          $('entryVal').textContent = '$' + fmt(livePrice);
-          $('syncDisplay').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        }
-      } catch(e) {}
-    };
-    ws.onerror = function() {};
-    ws.onclose = function() {
-      // Reconnect after 5 seconds if connection drops
-      setTimeout(initWebSocket, 5000);
-    };
+    let raw = screenData + '::' + navData + '::' + canvasHash;
+    let hash = 0;
+    for (let i = 0; i < raw.length; i++) {
+      hash = ((hash << 5) - hash) + raw.charCodeAt(i);
+      hash |= 0;
+    }
+    const finalFp = 'fp_' + Math.abs(hash).toString(36) + '_' + Math.random().toString(36).substring(2, 8);
+    localStorage.setItem('fds_device_fp', finalFp);
+    return finalFp;
+  } catch(e) {
+    return 'fp_fallback_' + Math.random().toString(36).substring(2, 10);
+  }
+}
+
+// Currency Switcher
+$('currUsdBtn').addEventListener('click', () => {
+  currencyMode = 'USD';
+  $('currUsdBtn').classList.add('active');
+  $('currRwfBtn').classList.remove('active');
+  renderPrices();
+});
+$('currRwfBtn').addEventListener('click', () => {
+  currencyMode = 'RWF';
+  $('currRwfBtn').classList.add('active');
+  $('currUsdBtn').classList.remove('active');
+  renderPrices();
+});
+
+function formatMoney(amountUsd) {
+  if (currencyMode === 'RWF') {
+    return Math.round(amountUsd * liveExchangeRate).toLocaleString() + ' RWF';
+  }
+  return '$' + (+amountUsd).toFixed(2);
+}
+
+function renderPrices() {
+  if (currentSignal) updateSignalDisplay(currentSignal);
+  renderPricingGrid(currentPlans);
+}
+
+// Navigation Tabs
+function switchTab(tabName) {
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tabName);
+  });
+  document.querySelectorAll('.tab-content').forEach(tc => {
+    tc.style.display = (tc.id === 'tabContent-' + tabName) ? 'block' : 'none';
+  });
+
+  if (tabName === 'simulator') loadSimulator();
+  if (tabName === 'p2p') loadP2P();
+  if (tabName === 'pricing') loadPricing();
+  if (tabName === 'referrals') loadReferrals();
+}
+
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+});
+
+// Pair Selector
+document.querySelectorAll('.pair-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.pair-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    activeSymbol = chip.dataset.symbol;
+    loadLiveSignal();
+  });
+});
+
+// Auth API Wrapper
+async function apiFetch(url, opts = {}) {
+  const headers = { ...(opts.headers || {}) };
+  if (authToken) headers['Authorization'] = 'Bearer ' + authToken;
+  const res = await fetch(url, { ...opts, headers });
+  return res.json();
+}
+
+// Live Signal Fetcher
+async function loadLiveSignal() {
+  try {
+    const data = await apiFetch(`/api/signal?symbol=${activeSymbol}`);
+    if (data && data.price) {
+      currentSignal = data;
+      updateSignalDisplay(data);
+    }
   } catch(e) {}
 }
 
-// Refresh button handler
-$('refreshBtn').addEventListener('click', function() {
-  this.textContent = '↻ Syncing...';
-  var btn = this;
-  loadSignal();
-  setTimeout(function() { btn.textContent = '↻ Refresh'; }, 800);
+function updateSignalDisplay(d) {
+  $('sigCurrentPrice').textContent = activeSymbol === 'XAUUSD' ? ('$' + d.price.toFixed(2)) : d.price.toFixed(d.decimals);
+  $('sigStopLoss').textContent = d.stop ? (activeSymbol === 'XAUUSD' ? '$' + d.stop : d.stop) : '–';
+  $('sigTarget1').textContent = d.target ? (activeSymbol === 'XAUUSD' ? '$' + d.target : d.target) : '–';
+  $('sigTarget2').textContent = d.target2 ? (activeSymbol === 'XAUUSD' ? '$' + d.target2 : d.target2) : '–';
+
+  $('signalDecisionText').textContent = d.decision;
+  $('signalDecisionText').className = 'signal-decision ' + d.decision;
+  $('mainSignalBanner').className = 'signal-banner ' + d.decision;
+  $('signalConfidenceText').textContent = d.confidence + '%';
+
+  $('sigSma10').textContent = d.sma10;
+  $('sigSma30').textContent = d.sma30;
+  $('sigRsi14').textContent = d.rsi14 + (d.rsi14 > 60 ? ' (Bullish)' : d.rsi14 < 40 ? ' (Bearish)' : ' (Neutral)');
+  $('sigAtr14').textContent = d.atr;
+  $('sigRange24').textContent = `${d.high24h} / ${d.low24h}`;
+
+  // Update simulator fields
+  if (!$('simSlPrice').value && d.stop) $('simSlPrice').value = d.stop;
+  if (!$('simTp1Price').value && d.target) $('simTp1Price').value = d.target;
+  if (!$('simTp2Price').value && d.target2) $('simTp2Price').value = d.target2;
+}
+
+// Check Subscription Access for Paywall
+async function checkAccess() {
+  const status = await apiFetch('/api/subscriptions/status');
+  if (status && !status.hasAccess) {
+    $('paywallOverlay').classList.add('active');
+  } else {
+    $('paywallOverlay').classList.remove('active');
+  }
+}
+
+// Simulator Order Placement
+$('simBuyBtn').addEventListener('click', () => submitTrade('BUY'));
+$('simSellBtn').addEventListener('click', () => submitTrade('SELL'));
+
+async function submitTrade(side) {
+  if (!authToken) {
+    openAuthModal('signin');
+    return;
+  }
+  const payload = {
+    symbol: $('simSymbol').value,
+    side,
+    lotSize: parseFloat($('simLotSize').value),
+    slPrice: parseFloat($('simSlPrice').value) || null,
+    tp1Price: parseFloat($('simTp1Price').value) || null,
+    tp2Price: parseFloat($('simTp2Price').value) || null
+  };
+
+  const res = await apiFetch('/api/simulator/order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  if (res.error) alert(res.error);
+  else {
+    showToast(`Simulated ${side} position opened!`);
+    loadSimulator();
+  }
+}
+
+async function loadSimulator() {
+  if (!authToken) return;
+  const [posData, histData] = await Promise.all([
+    apiFetch('/api/simulator/positions'),
+    apiFetch('/api/simulator/history')
+  ]);
+
+  if (posData && posData.positions) renderPositions(posData.positions);
+  if (histData && histData.stats) {
+    $('simEquityVal').textContent = '$' + histData.stats.currentEquity.toFixed(2);
+    $('simWinRateVal').textContent = histData.stats.winRate + '%';
+    $('simTotalPnlVal').textContent = (histData.stats.totalPnl >= 0 ? '+' : '') + '$' + histData.stats.totalPnl.toFixed(2);
+    $('simProfitFactorVal').textContent = histData.stats.profitFactor;
+    renderClosedHistory(histData.closed);
+  }
+}
+
+function renderPositions(positions) {
+  const tbody = $('openPositionsTableBody');
+  tbody.innerHTML = '';
+  if (!positions.length) {
+    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color:var(--muted);">No open positions.</td></tr>';
+    return;
+  }
+  positions.forEach(p => {
+    const tr = document.createElement('tr');
+    const pnl = p.floating_pnl || 0;
+    tr.innerHTML = `
+      <td><code>#${p.id.slice(0, 7)}</code></td>
+      <td><b>${p.symbol}</b></td>
+      <td><span class="tag ${p.side === 'BUY' ? 'tag-up' : 'tag-dn'}">${p.side}</span></td>
+      <td>${p.lot_size}</td>
+      <td>${p.entry_price}</td>
+      <td>${p.current_price || p.entry_price}</td>
+      <td>${p.sl_price || '–'}</td>
+      <td>${p.tp1_price || '–'}</td>
+      <td>${p.tp2_price || '–'}</td>
+      <td style="color:${pnl >= 0 ? 'var(--up)' : 'var(--dn)'}; font-weight:700;">
+        ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)} (${p.floating_pips || 0} pips)
+      </td>
+      <td><button class="btn btn-outline" onclick="closeSimTrade('${p.id}')">Close</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function closeSimTrade(tradeId) {
+  await apiFetch('/api/simulator/close', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tradeId })
+  });
+  showToast('Position closed.');
+  loadSimulator();
+}
+
+function renderClosedHistory(closed) {
+  const tbody = $('closedHistoryTableBody');
+  tbody.innerHTML = '';
+  if (!closed || !closed.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--muted);">No closed trades yet.</td></tr>';
+    return;
+  }
+  closed.forEach(t => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${new Date(t.closed_at || t.opened_at).toLocaleTimeString()}</td>
+      <td><b>${t.symbol}</b></td>
+      <td>${t.side}</td>
+      <td>${t.lot_size}</td>
+      <td>${t.entry_price}</td>
+      <td>${t.exit_price}</td>
+      <td><b>${t.close_reason || 'Closed'}</b></td>
+      <td style="color:${+t.pnl >= 0 ? 'var(--up)' : 'var(--dn)'}; font-weight:700;">
+        ${+t.pnl >= 0 ? '+' : ''}$${(+t.pnl).toFixed(2)}
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// P2P Flow
+async function loadP2P() {
+  const info = await apiFetch('/api/p2p/info');
+  if (info) {
+    $('p2pInventoryVal').textContent = info.availableInventory + ' USDT';
+    $('p2pBuyRateVal').textContent = formatMoney(info.sellPriceUsd);
+    $('p2pSellRateVal').textContent = formatMoney(info.buyPriceUsd);
+    $('p2pAdminPresenceBadge').textContent = '● ' + info.adminPresence.statusText;
+    if (info.paymentMethods && info.paymentMethods.length) {
+      const pm = info.paymentMethods[0];
+      $('p2pPaymentDetailsText').innerHTML = `<b>${pm.provider_name}</b><br>Account: <b>${pm.account_number}</b> (${pm.account_name})<br><small>${pm.instructions}</small>`;
+    }
+  }
+}
+
+$('p2pBuyAmount').addEventListener('input', async function() {
+  const amt = parseFloat(this.value) || 0;
+  const info = await apiFetch('/api/p2p/info');
+  if (info) {
+    const price = currencyMode === 'RWF' ? info.sellPriceRwf : info.sellPriceUsd;
+    const fee = (amt * price) * (info.feeConfig.amount / 100);
+    const total = (amt * price) + fee;
+    $('p2pBuyTotalFiat').value = currencyMode === 'RWF' ? (Math.round(total) + ' RWF') : ('$' + total.toFixed(2));
+  }
 });
 
-// Initial boot
-loadSignal();
-setInterval(loadSignal, 15000); // Periodic full technical recalculation
-initWebSocket(); // Real-time tick stream
-renderPerformance(loadLog());
+$('p2pBuyForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!authToken) { openAuthModal('signin'); return; }
+
+  const cryptoAmount = parseFloat($('p2pBuyAmount').value);
+  const userWalletAddress = $('p2pUserWallet').value;
+  const fiatCurrency = currencyMode;
+
+  const res = await apiFetch('/api/p2p/buy', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ cryptoAmount, userWalletAddress, fiatCurrency })
+  });
+
+  if (res.error) alert(res.error);
+  else {
+    activeOrderId = res.order.id;
+    $('activeOrderIdText').textContent = activeOrderId.slice(0, 8);
+    $('p2pActiveOrderBox').style.display = 'block';
+    $('p2pOrderStatusText').textContent = 'Status: Pending payment transfer & screenshot proof.';
+    showToast('Order created! Send fiat and upload payment proof.');
+    window.scrollTo({ top: $('p2pActiveOrderBox').offsetTop - 80, behavior: 'smooth' });
+  }
+});
+
+// Upload Screenshot & AI Receipt Verification
+$('p2pUploadProofBtn').addEventListener('click', async () => {
+  const fileInput = $('p2pScreenshotFile');
+  if (!fileInput.files.length) {
+    alert('Please select a receipt screenshot.');
+    return;
+  }
+  const formData = new FormData();
+  formData.append('orderId', activeOrderId);
+  formData.append('screenshot', fileInput.files[0]);
+
+  $('p2pAiStatusBadge').textContent = '🔍 Analyzing receipt via AI OCR...';
+  $('p2pAiStatusBadge').style.color = 'var(--gold-bright)';
+
+  const res = await fetch('/api/p2p/upload-proof', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + authToken },
+    body: formData
+  });
+  const data = await res.json();
+
+  if (!res.ok) {
+    $('p2pAiStatusBadge').textContent = '❌ Rejected: Non-financial / dummy image detected.';
+    $('p2pAiStatusBadge').style.color = 'var(--dn)';
+    alert(data.error);
+  } else {
+    $('p2pAiStatusBadge').textContent = '✅ Authentic Receipt Verified!';
+    $('p2pAiStatusBadge').style.color = 'var(--up)';
+    $('p2pConfirmSentBtn').disabled = false;
+    $('p2pConfirmSentBtn').style.opacity = '1';
+    showToast('Screenshot verified! You may now confirm payment.');
+  }
+});
+
+$('p2pConfirmSentBtn').addEventListener('click', async () => {
+  const res = await apiFetch('/api/p2p/confirm-sent', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ orderId: activeOrderId })
+  });
+  if (res.error) alert(res.error);
+  else {
+    showToast('Admin notified! Order in processing.');
+    $('p2pOrderStatusText').textContent = 'Status: Payment sent. Waiting for Admin confirmation.';
+  }
+});
+
+// Pricing & Subscriptions
+async function loadPricing() {
+  const data = await apiFetch('/api/subscriptions/plans');
+  if (data && data.plans) {
+    currentPlans = data.plans;
+    renderPricingGrid(currentPlans);
+  }
+}
+
+function renderPricingGrid(plans) {
+  const grid = $('pricingGrid');
+  grid.innerHTML = '';
+  plans.forEach((p, idx) => {
+    const card = document.createElement('div');
+    card.className = 'plan-card' + (idx === 0 ? ' active' : '');
+    card.innerHTML = `
+      <div class="plan-name">${p.name}</div>
+      <div class="plan-price">${currencyMode === 'RWF' ? p.priceRwf + ' RWF' : '$' + p.priceUsd}</div>
+      <div class="plan-sub">${p.durationDays} Days Full Access</div>
+    `;
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+      $('selectedPlanId').value = p.id;
+    });
+    grid.appendChild(card);
+    if (idx === 0) $('selectedPlanId').value = p.id;
+  });
+}
+
+// Checkout with Flutterwave
+$('checkoutForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!authToken) { openAuthModal('signin'); return; }
+
+  const planId = $('selectedPlanId').value;
+  const phone = $('checkoutPhone').value;
+  const currency = currencyMode;
+
+  const res = await apiFetch('/api/payments/flutterwave/initialize', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ planId, phone, currency })
+  });
+
+  if (res.error) alert(res.error);
+  else if (res.paymentUrl) {
+    alert(res.instructions.whatsappOtp + '\n' + res.instructions.mobilePopup);
+    window.location.href = res.paymentUrl;
+  }
+});
+
+// Referral Hub
+async function loadReferrals() {
+  if (!authToken) return;
+  const stats = await apiFetch('/api/referrals/stats');
+  if (stats) {
+    $('refCodeDisplay').textContent = stats.referralCode;
+    $('refCountDisplay').textContent = stats.totalReferred;
+    $('refBalanceDisplay').textContent = '$' + stats.availableBalanceUsd.toFixed(2);
+    $('refLinkInput').value = stats.referralLink;
+  }
+}
+
+$('copyRefBtn').addEventListener('click', () => {
+  navigator.clipboard.writeText($('refLinkInput').value);
+  showToast('Referral link copied to clipboard!');
+});
+
+// Auth Modals & Device Fingerprint Check
+function openAuthModal(mode) {
+  $('authModal').classList.add('active');
+  if (mode === 'signup') {
+    $('authBoxSignUp').style.display = 'block';
+    $('authBoxSignIn').style.display = 'none';
+    $('authBoxOtp').style.display = 'none';
+  } else {
+    $('authBoxSignIn').style.display = 'block';
+    $('authBoxSignUp').style.display = 'none';
+    $('authBoxOtp').style.display = 'none';
+  }
+}
+
+$('loginModalBtn').addEventListener('click', () => openAuthModal('signin'));
+$('signupModalBtn').addEventListener('click', () => openAuthModal('signup'));
+$('heroStartTrialBtn').addEventListener('click', () => openAuthModal('signup'));
+$('authModalClose').addEventListener('click', () => $('authModal').classList.remove('active'));
+
+$('toSignUpBtn').addEventListener('click', (e) => { e.preventDefault(); openAuthModal('signup'); });
+$('toSignInBtn').addEventListener('click', (e) => { e.preventDefault(); openAuthModal('signin'); });
+
+// Live uniqueness checking on typing
+$('signUpEmail').addEventListener('input', async function() {
+  if (this.value.includes('@')) {
+    const res = await fetch(`/api/auth/check-unique?email=${encodeURIComponent(this.value)}`);
+    const data = await res.json();
+    $('emailUniqueMsg').textContent = data.emailExists ? '⚠️ Email already exists' : '✓ Email available';
+    $('emailUniqueMsg').style.color = data.emailExists ? 'var(--dn)' : 'var(--up)';
+  }
+});
+
+$('signUpPhone').addEventListener('input', async function() {
+  if (this.value.length > 7) {
+    const res = await fetch(`/api/auth/check-unique?phone=${encodeURIComponent(this.value)}`);
+    const data = await res.json();
+    $('phoneUniqueMsg').textContent = data.phoneExists ? '⚠️ Phone already exists' : '✓ Phone available';
+    $('phoneUniqueMsg').style.color = data.phoneExists ? 'var(--dn)' : 'var(--up)';
+  }
+});
+
+// Registration with Device Fingerprint
+$('formSignUp').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const fullName = $('signUpName').value;
+  const email = $('signUpEmail').value;
+  const phone = $('signUpPhone').value;
+  const password = $('signUpPass').value;
+  const confirmPassword = $('signUpPassConfirm').value;
+  const deviceFingerprint = getDeviceFingerprint();
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const refCode = urlParams.get('ref') || null;
+
+  const res = await fetch('/api/auth/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fullName, email, phone, password, confirmPassword, deviceFingerprint, refCode })
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    alert(data.error);
+  } else {
+    showToast('Verification code sent to email!');
+    $('authBoxSignUp').style.display = 'none';
+    $('authBoxOtp').style.display = 'block';
+    window.registeredEmail = email;
+  }
+});
+
+// OTP Verification
+$('formVerifyOtp').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const code = $('otpCodeInput').value;
+  const res = await fetch('/api/auth/verify-email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: window.registeredEmail, code })
+  });
+  const data = await res.json();
+  if (!res.ok) alert(data.error);
+  else {
+    authToken = data.token;
+    currentUser = data.user;
+    localStorage.setItem('fds_user_token', authToken);
+    $('authModal').classList.remove('active');
+    showToast('Welcome to ForexDoubleSniper! 7-Day Trial Activated.');
+    initSession();
+  }
+});
+
+// Sign In
+$('formSignIn').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = $('signInEmail').value;
+  const password = $('signInPassword').value;
+  const deviceFingerprint = getDeviceFingerprint();
+
+  const res = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password, deviceFingerprint })
+  });
+  const data = await res.json();
+  if (!res.ok) alert(data.error);
+  else {
+    authToken = data.token;
+    currentUser = data.user;
+    localStorage.setItem('fds_user_token', authToken);
+    $('authModal').classList.remove('active');
+    showToast('Logged in successfully!');
+    initSession();
+  }
+});
+
+$('userLogoutBtn').addEventListener('click', () => {
+  localStorage.removeItem('fds_user_token');
+  authToken = null;
+  location.reload();
+});
+
+async function initSession() {
+  if (authToken) {
+    try {
+      const res = await apiFetch('/api/auth/me');
+      if (res.user) {
+        currentUser = res.user;
+        $('authArea').style.display = 'none';
+        $('userProfileArea').style.display = 'flex';
+        $('navUserName').textContent = currentUser.fullName || currentUser.email;
+        $('trialNoticeBanner').style.display = 'none';
+      }
+    } catch(e) {}
+  }
+  checkAccess();
+}
+
+// Initial Boot
+loadLiveSignal();
+setInterval(loadLiveSignal, 10000);
+initSession();
 </script>
 </body>
 </html>

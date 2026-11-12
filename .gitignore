@@ -1,0 +1,9 @@
+node_modules/
+.env
+.env.local
+*.log
+eng.traineddata*
+public/uploads/*
+!public/uploads/.gitkeep
+.DS_Store
+Thumbs.db
