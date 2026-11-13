@@ -654,20 +654,41 @@ document.querySelectorAll('.nav-tab').forEach(tab => {
   });
 });
 
+// API routing helper supporting root and sub-path deployment
+function getApiUrl(path) {
+  var clean = path.replace(/^\/+/, '');
+  var p = window.location.pathname;
+  if (/\.[a-zA-Z0-9]+$/.test(p)) {
+    p = p.substring(0, p.lastIndexOf('/') + 1);
+  } else if (!p.endsWith('/')) {
+    p += '/';
+  }
+  return p + clean;
+}
+
+async function apiFetch(endpoint, options = {}) {
+  const primaryUrl = getApiUrl(endpoint);
+  let res = await fetch(primaryUrl, options);
+  if (res.status === 404 && primaryUrl !== ('/' + endpoint.replace(/^\/+/, ''))) {
+    res = await fetch('/' + endpoint.replace(/^\/+/, ''), options);
+  }
+  return res;
+}
+
 // Admin Login
 $('adminLoginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const email = $('adminLoginEmail').value;
+  const email = $('adminLoginEmail').value.trim();
   const password = $('adminLoginPassword').value;
 
   try {
-    const res = await fetch('/api/auth/login', {
+    const res = await apiFetch('api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error);
+    if (!res.ok) throw new Error(data.error || 'Login failed.');
 
     if (data.user.role !== 'admin' && data.user.role !== 'superadmin') {
       throw new Error('Access denied: You do not have administrative privileges.');
@@ -676,7 +697,10 @@ $('adminLoginForm').addEventListener('submit', async (e) => {
     adminToken = data.token;
     currentAdmin = data.user;
     localStorage.setItem('fds_admin_token', adminToken);
+    localStorage.setItem('fds_user_token', adminToken);
     $('adminLoginOverlay').style.display = 'none';
+    $('adminUserDisplay').textContent = currentAdmin.email;
+    $('adminRoleBadge').textContent = currentAdmin.role.toUpperCase() + ' CONSOLE';
     initAdminSession();
     showToast('Logged in as ' + currentAdmin.role.toUpperCase());
   } catch (err) {
@@ -686,6 +710,7 @@ $('adminLoginForm').addEventListener('submit', async (e) => {
 
 $('adminLogoutBtn').addEventListener('click', () => {
   localStorage.removeItem('fds_admin_token');
+  localStorage.removeItem('fds_user_token');
   adminToken = null;
   location.reload();
 });
@@ -696,7 +721,7 @@ async function adminFetch(url, options = {}) {
     'Authorization': 'Bearer ' + adminToken,
     ...(options.headers || {})
   };
-  const res = await fetch(url, { ...options, headers });
+  const res = await apiFetch(url, { ...options, headers });
   if (res.status === 401 || res.status === 403) {
     $('adminLoginOverlay').style.display = 'flex';
   }
@@ -1049,7 +1074,7 @@ $('adminChatForm').addEventListener('submit', async (e) => {
   formData.append('message', message);
   if (fileInput.files.length) formData.append('attachment', fileInput.files[0]);
 
-  await fetch('/api/p2p/chat/' + orderId, {
+  await apiFetch('api/p2p/chat/' + orderId, {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + adminToken },
     body: formData
@@ -1060,15 +1085,37 @@ $('adminChatForm').addEventListener('submit', async (e) => {
   fetchAndRenderChat(orderId);
 });
 
-function initAdminSession() {
+async function initAdminSession() {
+  adminToken = localStorage.getItem('fds_admin_token') || localStorage.getItem('fds_user_token');
   if (!adminToken) {
     $('adminLoginOverlay').style.display = 'flex';
     return;
   }
-  $('adminLoginOverlay').style.display = 'none';
-  loadDashboardData();
-  pollNotifications();
-  setInterval(pollNotifications, 5000); // 5s notification checks
+  try {
+    const res = await apiFetch('api/auth/me', {
+      headers: { 'Authorization': 'Bearer ' + adminToken }
+    });
+    if (!res.ok) throw new Error('Session invalid');
+    const data = await res.json();
+    if (data.user && (data.user.role === 'admin' || data.user.role === 'superadmin')) {
+      currentAdmin = data.user;
+      $('adminUserDisplay').textContent = currentAdmin.email;
+      $('adminRoleBadge').textContent = currentAdmin.role.toUpperCase() + ' CONSOLE';
+      $('adminLoginOverlay').style.display = 'none';
+      loadDashboardData();
+      pollNotifications();
+      if (!window.pollIntervalStarted) {
+        window.pollIntervalStarted = true;
+        setInterval(pollNotifications, 5000); // 5s notification checks
+      }
+      return;
+    }
+    throw new Error('Not admin');
+  } catch (err) {
+    localStorage.removeItem('fds_admin_token');
+    adminToken = null;
+    $('adminLoginOverlay').style.display = 'flex';
+  }
 }
 
 // Boot check

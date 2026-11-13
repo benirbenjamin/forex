@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin Portal · ForexDoubleSniper Institutional</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<style>
+:root {
+  --bg: #0b0e14;
+  --panel: #131722;
+  --card: #181d2a;
+  --border: #242a38;
+  --gold: #d4af37;
+  --gold-bright: #ffd700;
+  --up: #00d084;
+  --dn: #f84960;
+  --text: #f0f3f8;
+  --muted: #8b95a5;
+  --accent: #2962ff;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+header {
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.brand-area { display: flex; align-items: center; gap: 12px; }
+.brand-logo { width: 36px; height: 36px; }
+.brand-name { font-weight: 800; font-size: 18px; color: #fff; letter-spacing: 0.5px; }
+.brand-badge { background: rgba(212,175,55,0.15); border: 1px solid var(--gold); color: var(--gold-bright); font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 700; }
+
+.header-actions { display: flex; align-items: center; gap: 14px; }
+.btn {
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+.btn:hover { border-color: var(--gold); }
+.btn-primary { background: linear-gradient(135deg, #d4af37, #aa8010); color: #000; border: none; font-weight: 700; }
+.btn-primary:hover { opacity: 0.9; }
+.btn-danger { background: rgba(248,73,96,0.15); border-color: var(--dn); color: var(--dn); }
+.btn-danger:hover { background: var(--dn); color: #fff; }
+.btn-success { background: rgba(0,208,132,0.15); border-color: var(--up); color: var(--up); }
+.btn-success:hover { background: var(--up); color: #000; }
+
+/* Bell Notification & Audio Alert */
+.notif-bell-btn {
+  position: relative;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.bell-badge {
+  background: var(--dn);
+  color: #fff;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: 800;
+  display: none;
+}
+.bell-badge.active { display: inline-block; animation: pulse 1s infinite; }
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
+
+/* Mute Toggle */
+.mute-btn { cursor: pointer; font-size: 18px; padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border); background: var(--card); color: var(--muted); }
+.mute-btn.active { color: var(--gold-bright); border-color: var(--gold); }
+
+/* Layout */
+.admin-container { display: flex; flex: 1; }
+.sidebar {
+  width: 240px;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  padding: 20px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.nav-tab {
+  padding: 10px 14px;
+  border-radius: 6px;
+  color: var(--muted);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s;
+}
+.nav-tab:hover { background: rgba(255,255,255,0.03); color: #fff; }
+.nav-tab.active { background: rgba(212,175,55,0.12); color: var(--gold-bright); border-left: 3px solid var(--gold); }
+
+.main-content { flex: 1; padding: 24px; overflow-y: auto; }
+.content-section { display: none; }
+.content-section.active { display: block; }
+
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.section-title { font-size: 20px; font-weight: 700; color: #fff; }
+
+.card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat-card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 18px; }
+.stat-title { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.stat-val { font-size: 24px; font-weight: 800; color: #fff; }
+
+.table-wrap { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; overflow-x: auto; margin-bottom: 24px; }
+table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+th { background: #181d2a; padding: 12px 16px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); }
+td { padding: 14px 16px; border-bottom: 1px solid var(--border); color: var(--text); }
+tr:hover { background: rgba(255,255,255,0.02); }
+
+.tag { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; display: inline-block; }
+.tag-gold { background: rgba(212,175,55,0.15); color: var(--gold-bright); border: 1px solid var(--gold); }
+.tag-up { background: rgba(0,208,132,0.15); color: var(--up); }
+.tag-dn { background: rgba(248,73,96,0.15); color: var(--dn); }
+.tag-wait { background: rgba(139,149,165,0.15); color: var(--muted); }
+
+/* Form Controls */
+.form-card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 24px; max-width: 800px; }
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #d0d7de; }
+.form-control { width: 100%; padding: 10px 14px; background: var(--card); border: 1px solid var(--border); border-radius: 6px; color: #fff; font-size: 14px; outline: none; }
+.form-control:focus { border-color: var(--gold); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+/* Login Modal */
+.login-overlay { position: fixed; inset: 0; background: rgba(11,14,20,0.95); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.login-box { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 32px; width: 400px; max-width: 90%; }
+
+/* Image Proof Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 999; }
+.modal-overlay.active { display: flex; }
+.modal-img { max-width: 90%; max-height: 85vh; border-radius: 8px; border: 2px solid var(--gold); }
+
+/* Toast */
+.toast { position: fixed; bottom: 20px; right: 20px; background: #181d2a; border: 1px solid var(--gold); color: #fff; padding: 12px 20px; border-radius: 6px; z-index: 2000; display: none; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="brand-area">
+    <img src="logo.svg" alt="FDS" class="brand-logo">
+    <div class="brand-name">ForexDoubleSniper</div>
+    <span class="brand-badge" id="adminRoleBadge">ADMIN CONSOLE</span>
+  </div>
+
+  <div class="header-actions">
+    <button class="mute-btn active" id="audioMuteBtn" title="Toggle Sound Alert (Plays on new orders/claims until opened)">🔔 Sound: ON</button>
+    <button class="notif-bell-btn" id="notifBellBtn">
+      <span>🔔 Alerts</span>
+      <span class="bell-badge" id="bellBadge">0</span>
+    </button>
+    <span id="adminUserDisplay" style="font-size: 13px; color: var(--gold);">omarrukwaya@gmail.com</span>
+    <button class="btn btn-danger" id="adminLogoutBtn">Logout</button>
+  </div>
+</header>
+
+<!-- Main Admin Layout -->
+<div class="admin-container">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="nav-tab active" data-tab="overview">📊 Overview</div>
+    <div class="nav-tab" data-tab="p2p">⚡ P2P Orders & Claims</div>
+    <div class="nav-tab" data-tab="inventory">💰 USDT Inventory & Rates</div>
+    <div class="nav-tab" data-tab="users">👥 User Management</div>
+    <div class="nav-tab" data-tab="subscriptions">💳 Plans & Subscriptions</div>
+    <div class="nav-tab" data-tab="referrals">🎁 Referrals & Payouts</div>
+    <div class="nav-tab" data-tab="chat">💬 Trader Live Chat</div>
+    <div class="nav-tab" data-tab="settings" id="superAdminSettingsTab">⚙️ Platform Settings</div>
+  </aside>
+
+  <!-- Content -->
+  <main class="main-content">
+    
+    <!-- 1. OVERVIEW TAB -->
+    <section class="content-section active" id="tab-overview">
+      <div class="section-header">
+        <h2 class="section-title">Institutional Management Dashboard</h2>
+        <button class="btn btn-primary" onclick="loadDashboardData()">↻ Refresh Live Data</button>
+      </div>
+
+      <div class="card-grid">
+        <div class="stat-card">
+          <div class="stat-title">Available P2P Inventory</div>
+          <div class="stat-val" id="statInventory" style="color: var(--gold-bright);">1,000.00 USDT</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">Active Orders & Claims</div>
+          <div class="stat-val" id="statPendingOrders" style="color: var(--dn);">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">Total Registered Traders</div>
+          <div class="stat-val" id="statUserCount">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">USD / RWF Live Rate</div>
+          <div class="stat-val" id="statExchangeRate">1,350 RWF</div>
+        </div>
+      </div>
+
+      <h3 style="margin-bottom: 12px; font-size: 16px;">Recent Unacknowledged Alerts (Continuous Sound Active)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Type</th>
+              <th>Title</th>
+              <th>Message</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="alertsTableBody">
+            <tr><td colspan="5" style="text-align:center; color:var(--muted);">No unread notifications. Audio chime is quiet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 2. P2P ORDERS & CLAIMS TAB -->
+    <section class="content-section" id="tab-p2p">
+      <div class="section-header">
+        <h2 class="section-title">P2P Orders & Dispute Resolution Queue</h2>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Type</th>
+              <th>Trader</th>
+              <th>Amount</th>
+              <th>Fiat</th>
+              <th>Trader TRC20 Wallet</th>
+              <th>AI Receipt Proof</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="p2pOrdersTableBody">
+            <tr><td colspan="9" style="text-align:center;">Loading orders...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 3. INVENTORY & RATES TAB -->
+    <section class="content-section" id="tab-inventory">
+      <div class="section-header">
+        <h2 class="section-title">P2P USDT Inventory, Pricing & Fees</h2>
+      </div>
+
+      <div class="form-card">
+        <form id="inventoryForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Available USDT Inventory (Auto-deducted on User Buy)</label>
+              <input type="number" step="0.01" class="form-control" id="invAvailable" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Total Reserve USDT Inventory</label>
+              <input type="number" step="0.01" class="form-control" id="invTotal" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Admin Selling Rate (Price per USDT in USD)</label>
+              <input type="number" step="0.0001" class="form-control" id="invSellRate" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Admin Buying Rate (Price paid per USDT in USD)</label>
+              <input type="number" step="0.0001" class="form-control" id="invBuyRate" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Transaction Fee Type</label>
+              <select class="form-control" id="invFeeType">
+                <option value="percent">Percentage (%)</option>
+                <option value="flat">Flat Amount ($)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Transaction Fee Value</label>
+              <input type="number" step="0.01" class="form-control" id="invFeeAmount" required>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Save Inventory & Rate Settings (Persistent)</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- 4. USERS MANAGEMENT TAB -->
+    <section class="content-section" id="tab-users">
+      <div class="section-header">
+        <h2 class="section-title">Trader Accounts & Device Fingerprint Audit</h2>
+        <input type="text" id="userSearchInput" class="form-control" placeholder="Search name, email, phone..." style="width: 300px;">
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Role</th>
+              <th>Ref Code</th>
+              <th>Devices</th>
+              <th>Sub Status</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="usersTableBody">
+            <tr><td colspan="9" style="text-align:center;">Loading users...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 5. SUBSCRIPTIONS & PLANS TAB -->
+    <section class="content-section" id="tab-subscriptions">
+      <div class="section-header">
+        <h2 class="section-title">Subscription Plans (Live USD/RWF Auto-Conversion)</h2>
+      </div>
+
+      <div class="form-card">
+        <h3 style="margin-bottom: 14px; font-size: 15px;">Add or Edit Subscription Plan</h3>
+        <form id="planForm">
+          <input type="hidden" id="planEditId">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Plan Name (e.g. 1 Day Pass / 1 Month)</label>
+              <input type="text" class="form-control" id="planName" placeholder="e.g. 1 Day Pass (24 Hours)" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Duration (Days)</label>
+              <input type="number" class="form-control" id="planDuration" placeholder="e.g. 1" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Price in USD ($)</label>
+              <input type="number" step="0.01" class="form-control" id="planPriceUsd" placeholder="5.00" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Price in RWF (Auto-calculated from live exchange API)</label>
+              <input type="number" step="1" class="form-control" id="planPriceRwf" placeholder="6500">
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Save Plan</button>
+        </form>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Plan Name</th>
+              <th>Duration</th>
+              <th>Price USD</th>
+              <th>Price RWF</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="plansTableBody">
+            <tr><td colspan="5" style="text-align:center;">Loading plans...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="form-card" style="margin-top: 24px;">
+        <h3 style="margin-bottom: 14px; font-size: 15px;">Manually Grant Subscription to a Trader</h3>
+        <form id="grantSubForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Trader User ID</label>
+              <input type="text" class="form-control" id="grantUserId" placeholder="Paste user UUID" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Duration (Days)</label>
+              <input type="number" class="form-control" id="grantDays" value="30" required>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-success">Grant VIP Access</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- 6. REFERRALS & PAYOUTS TAB -->
+    <section class="content-section" id="tab-referrals">
+      <div class="section-header">
+        <h2 class="section-title">Referral Program Commission & Withdrawal Payouts</h2>
+      </div>
+
+      <div class="form-card">
+        <form id="referralSettingsForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Referral Commission Rate (%)</label>
+              <input type="number" step="0.1" class="form-control" id="refCommissionRate" value="10.0" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Withdrawal Payout Fee (%)</label>
+              <input type="number" step="0.1" class="form-control" id="refWithdrawFee" value="2.0" required>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Save Referral Rules</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- 7. LIVE SUPPORT CHAT TAB -->
+    <section class="content-section" id="tab-chat">
+      <div class="section-header">
+        <h2 class="section-title">Order Support Chat (Direct Admin ↔ Trader)</h2>
+      </div>
+      <div style="display:flex; gap: 20px;">
+        <div style="width: 320px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 12px; height: 550px; overflow-y: auto;" id="chatOrderList">
+          <p style="color:var(--muted); font-size:13px;">Select an active order to chat with trader.</p>
+        </div>
+        <div style="flex:1; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; display:flex; flex-direction:column; height: 550px;">
+          <div id="chatMessagesBox" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:10px; margin-bottom:12px; padding:10px; background:var(--card); border-radius:6px;">
+            <p style="color:var(--muted); text-align:center;">No chat selected.</p>
+          </div>
+          <form id="adminChatForm" style="display:flex; gap:10px;">
+            <input type="hidden" id="activeChatOrderId">
+            <input type="text" class="form-control" id="adminChatMessage" placeholder="Type support reply...">
+            <input type="file" id="adminChatFile" style="display:none;" accept="image/*,.pdf">
+            <button type="button" class="btn" onclick="document.getElementById('adminChatFile').click()">📎</button>
+            <button type="submit" class="btn btn-primary">Send</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. PLATFORM SETTINGS TAB (SUPER ADMIN ONLY) -->
+    <section class="content-section" id="tab-settings">
+      <div class="section-header">
+        <h2 class="section-title">Super Admin Platform Infrastructure Settings</h2>
+      </div>
+
+      <div class="form-card">
+        <h3 style="color: var(--gold-bright); margin-bottom: 16px;">Flutterwave Payment Gateway Credentials</h3>
+        <form id="flutterwaveSettingsForm">
+          <div class="form-group">
+            <label class="form-label">Flutterwave Public Key</label>
+            <input type="text" class="form-control" id="flwPublicKey" placeholder="FLWPUBK-...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Flutterwave Secret Key</label>
+            <input type="password" class="form-control" id="flwSecretKey" placeholder="FLWSECK-...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Flutterwave Encryption Key</label>
+            <input type="password" class="form-control" id="flwEncryptionKey" placeholder="Encryption key">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Flutterwave Webhook Hash Secret</label>
+            <input type="password" class="form-control" id="flwWebhookHash" placeholder="Secret hash header">
+          </div>
+          <button type="submit" class="btn btn-primary">Save Flutterwave Keys</button>
+        </form>
+      </div>
+
+      <div class="form-card">
+        <h3 style="color: var(--gold-bright); margin-bottom: 16px;">Google Drive Storage Integration (OAuth2 Refresh Token)</h3>
+        <form id="gdriveSettingsForm">
+          <div class="form-group">
+            <label class="form-label">Google Client ID</label>
+            <input type="text" class="form-control" id="gdriveClientId" placeholder="apps.googleusercontent.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Google Client Secret</label>
+            <input type="password" class="form-control" id="gdriveClientSecret">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Google OAuth Refresh Token</label>
+            <input type="password" class="form-control" id="gdriveRefreshToken" placeholder="1//04...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Google Drive Target Folder ID</label>
+            <input type="text" class="form-control" id="gdriveFolderId" placeholder="1BxiMVs0XRA5nFMdKvBHKr--mB_bwWuxj">
+          </div>
+          <button type="submit" class="btn btn-primary">Save Google Drive Storage Settings</button>
+        </form>
+      </div>
+
+      <div class="form-card">
+        <h3 style="color: var(--gold-bright); margin-bottom: 16px;">Add Sub-Administrator</h3>
+        <form id="addAdminForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Admin Full Name</label>
+              <input type="text" class="form-control" id="newAdminName" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Admin Email</label>
+              <input type="email" class="form-control" id="newAdminEmail" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Phone Number</label>
+              <input type="text" class="form-control" id="newAdminPhone" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <input type="password" class="form-control" id="newAdminPass" required>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Create Administrator</button>
+        </form>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Image Proof Modal -->
+<div class="modal-overlay" id="imageModal">
+  <img src="" class="modal-img" id="modalProofImg" onclick="event.stopPropagation()">
+</div>
+
+<!-- Login Modal -->
+<div class="login-overlay" id="adminLoginOverlay">
+  <div class="login-box">
+    <div style="text-align: center; margin-bottom: 20px;">
+      <img src="logo.svg" style="width: 48px; height: 48px; margin-bottom: 8px;">
+      <h2 style="color: #fff; font-size: 20px;">Administrator Login</h2>
+      <p style="color: var(--muted); font-size: 13px;">Super Admin or Admin credentials required</p>
+    </div>
+    <form id="adminLoginForm">
+      <div class="form-group">
+        <label class="form-label">Admin Email</label>
+        <input type="email" class="form-control" id="adminLoginEmail" required placeholder="benirabok@gmail.com or omarrukwaya@gmail.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-control" id="adminLoginPassword" required>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px; font-size: 15px;">Authenticate</button>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let adminToken = localStorage.getItem('fds_admin_token') || null;
+let currentAdmin = null;
+let isAudioMuted = false;
+let audioContext = null;
+let audioInterval = null;
+
+const $ = id => document.getElementById(id);
+
+function showToast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3500);
+}
+
+// Web Audio API Continuous Notification Sound Alert
+function playChime() {
+  if (isAudioMuted) return;
+  try {
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(880, audioContext.currentTime); // A5
+    osc.frequency.exponentialRampToValueAtTime(1320, audioContext.currentTime + 0.15); // E6
+    gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    osc.start();
+    osc.stop(audioContext.currentTime + 0.4);
+  } catch(e) {}
+}
+
+function startLoopingAudio() {
+  if (audioInterval) return;
+  playChime();
+  audioInterval = setInterval(playChime, 3000); // loops every 3s until opened
+}
+
+function stopLoopingAudio() {
+  if (audioInterval) {
+    clearInterval(audioInterval);
+    audioInterval = null;
+  }
+}
+
+$('audioMuteBtn').addEventListener('click', function() {
+  isAudioMuted = !isAudioMuted;
+  if (isAudioMuted) {
+    this.textContent = '🔇 Sound: MUTED';
+    this.classList.remove('active');
+    stopLoopingAudio();
+  } else {
+    this.textContent = '🔔 Sound: ON';
+    this.classList.add('active');
+  }
+});
+
+// Navigation tabs
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+    tab.classList.add('active');
+    const target = $('tab-' + tab.dataset.tab);
+    if (target) target.classList.add('active');
+    if (tab.dataset.tab === 'chat') loadChatOrders();
+  });
+});
+
+// API routing helper supporting root and sub-path deployment
+function getApiUrl(path) {
+  var clean = path.replace(/^\/+/, '');
+  var p = window.location.pathname;
+  if (/\.[a-zA-Z0-9]+$/.test(p)) {
+    p = p.substring(0, p.lastIndexOf('/') + 1);
+  } else if (!p.endsWith('/')) {
+    p += '/';
+  }
+  return p + clean;
+}
+
+async function apiFetch(endpoint, options = {}) {
+  const primaryUrl = getApiUrl(endpoint);
+  let res = await fetch(primaryUrl, options);
+  if (res.status === 404 && primaryUrl !== ('/' + endpoint.replace(/^\/+/, ''))) {
+    res = await fetch('/' + endpoint.replace(/^\/+/, ''), options);
+  }
+  return res;
+}
+
+// Admin Login
+$('adminLoginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = $('adminLoginEmail').value.trim();
+  const password = $('adminLoginPassword').value;
+
+  try {
+    const res = await apiFetch('api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Login failed.');
+
+    if (data.user.role !== 'admin' && data.user.role !== 'superadmin') {
+      throw new Error('Access denied: You do not have administrative privileges.');
+    }
+
+    adminToken = data.token;
+    currentAdmin = data.user;
+    localStorage.setItem('fds_admin_token', adminToken);
+    localStorage.setItem('fds_user_token', adminToken);
+    $('adminLoginOverlay').style.display = 'none';
+    $('adminUserDisplay').textContent = currentAdmin.email;
+    $('adminRoleBadge').textContent = currentAdmin.role.toUpperCase() + ' CONSOLE';
+    initAdminSession();
+    showToast('Logged in as ' + currentAdmin.role.toUpperCase());
+  } catch (err) {
+    alert(err.message);
+  }
+});
+
+$('adminLogoutBtn').addEventListener('click', () => {
+  localStorage.removeItem('fds_admin_token');
+  localStorage.removeItem('fds_user_token');
+  adminToken = null;
+  location.reload();
+});
+
+// API helper
+async function adminFetch(url, options = {}) {
+  const headers = {
+    'Authorization': 'Bearer ' + adminToken,
+    ...(options.headers || {})
+  };
+  const res = await apiFetch(url, { ...options, headers });
+  if (res.status === 401 || res.status === 403) {
+    $('adminLoginOverlay').style.display = 'flex';
+  }
+  return res.json();
+}
+
+// Polling for Notifications & Audio Trigger
+async function pollNotifications() {
+  if (!adminToken) return;
+  try {
+    const data = await adminFetch('/api/admin/notifications');
+    if (data && data.notifications) {
+      $('bellBadge').textContent = data.unreadCount;
+      if (data.unreadCount > 0) {
+        $('bellBadge').classList.add('active');
+        if (data.shouldPlaySound && !isAudioMuted) {
+          startLoopingAudio();
+        }
+      } else {
+        $('bellBadge').classList.remove('active');
+        stopLoopingAudio();
+      }
+
+      // Render alerts table
+      const tbody = $('alertsTableBody');
+      tbody.innerHTML = '';
+      if (!data.notifications.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--muted);">No alerts.</td></tr>';
+      } else {
+        data.notifications.slice(0, 10).forEach(n => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${new Date(n.created_at).toLocaleTimeString()}</td>
+            <td><span class="tag tag-gold">${n.type}</span></td>
+            <td><b>${n.title}</b></td>
+            <td>${n.message}</td>
+            <td><button class="btn btn-primary" onclick="dismissNotif('${n.id}')">Acknowledge</button></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+    }
+  } catch(e) {}
+}
+
+async function dismissNotif(id) {
+  await adminFetch('/api/admin/notifications/read', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ notifId: id })
+  });
+  stopLoopingAudio();
+  pollNotifications();
+}
+
+$('notifBellBtn').addEventListener('click', () => {
+  dismissNotif('all');
+});
+
+// Load Dashboard Data
+async function loadDashboardData() {
+  const [p2pInfo, usersData, ordersData] = await Promise.all([
+    adminFetch('/api/p2p/info'),
+    adminFetch('/api/admin/users'),
+    adminFetch('/api/admin/p2p/orders')
+  ]);
+
+  if (p2pInfo) {
+    $('statInventory').textContent = p2pInfo.availableInventory + ' USDT';
+    $('statExchangeRate').textContent = p2pInfo.exchangeRateRwf + ' RWF';
+    $('invAvailable').value = p2pInfo.availableInventory;
+    $('invSellRate').value = p2pInfo.sellPriceUsd;
+    $('invBuyRate').value = p2pInfo.buyPriceUsd;
+    $('invFeeAmount').value = p2pInfo.feeConfig.amount;
+    $('invFeeType').value = p2pInfo.feeConfig.type;
+  }
+
+  if (usersData && usersData.users) {
+    $('statUserCount').textContent = usersData.users.length;
+    renderUsers(usersData.users);
+  }
+
+  if (ordersData && ordersData.orders) {
+    const pending = ordersData.orders.filter(o => o.status !== 'completed' && o.status !== 'cancelled');
+    $('statPendingOrders').textContent = pending.length;
+    renderP2POrders(ordersData.orders);
+  }
+
+  loadPlans();
+}
+
+function renderUsers(users) {
+  const tbody = $('usersTableBody');
+  tbody.innerHTML = '';
+  users.forEach(u => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><b>${u.full_name}</b></td>
+      <td>${u.email}</td>
+      <td>${u.phone}</td>
+      <td><span class="tag ${u.role === 'superadmin' ? 'tag-gold' : 'tag-wait'}">${u.role}</span></td>
+      <td><code>${u.referral_code}</code></td>
+      <td>${u.device_count || 1} Device(s)</td>
+      <td><span class="tag tag-up">${u.sub_status || 'Trial'}</span></td>
+      <td>${new Date(u.created_at).toLocaleDateString()}</td>
+      <td>
+        ${u.isProtected ? '<span class="tag tag-gold">Protected Non-Deletable</span>' : `<button class="btn btn-danger" onclick="deleteUserAccount('${u.id}')">Delete</button>`}
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function deleteUserAccount(id) {
+  if (!confirm('Are you sure you want to delete this user?')) return;
+  const res = await adminFetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+  if (res.error) alert(res.error);
+  else { showToast('User deleted.'); loadDashboardData(); }
+}
+
+function renderP2POrders(orders) {
+  const tbody = $('p2pOrdersTableBody');
+  tbody.innerHTML = '';
+  if (!orders.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">No P2P orders yet.</td></tr>';
+    return;
+  }
+
+  orders.forEach(o => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><code>#${o.id.slice(0, 8)}</code></td>
+      <td><span class="tag ${o.order_type === 'buy' ? 'tag-up' : 'tag-gold'}">${o.order_type.toUpperCase()}</span></td>
+      <td>${o.user_name || o.user_email || 'Trader'}</td>
+      <td><b>${o.crypto_amount} USDT</b></td>
+      <td>${o.total_fiat} ${o.fiat_currency}</td>
+      <td><code>${o.user_wallet_address || '–'}</code></td>
+      <td>
+        ${o.proof_screenshot_url ? `<button class="btn" onclick="viewProof('${o.proof_screenshot_url}')">🔍 View Proof</button>` : '–'}
+        ${o.proof_analysis_status === 'verified' ? '<span class="tag tag-up">AI Verified</span>' : ''}
+      </td>
+      <td><span class="tag tag-gold">${o.status}</span></td>
+      <td>
+        ${o.status === 'payment_sent' ? `<button class="btn btn-primary" onclick="confirmPayment('${o.id}')">Confirm Payment</button>` : ''}
+        ${o.status === 'payment_received' ? `<button class="btn btn-success" onclick="releaseCrypto('${o.id}')">Release Crypto</button>` : ''}
+        ${o.status === 'disputed' ? `<button class="btn btn-danger" onclick="showDisputeModal('${o.id}')">Resolve Claim</button>` : ''}
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function viewProof(url) {
+  $('modalProofImg').src = url;
+  $('imageModal').classList.add('active');
+}
+$('imageModal').addEventListener('click', () => $('imageModal').classList.remove('active'));
+
+async function confirmPayment(orderId) {
+  await adminFetch('/api/admin/p2p/confirm-payment', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ orderId })
+  });
+  showToast('Payment confirmed! Processing order.');
+  loadDashboardData();
+}
+
+async function releaseCrypto(orderId) {
+  const txHash = prompt('Enter network transaction hash (TRC20 TxID):');
+  if (!txHash) return;
+  await adminFetch('/api/admin/p2p/release-crypto', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ orderId, txHash })
+  });
+  showToast('Crypto released! Trader notified.');
+  loadDashboardData();
+}
+
+async function loadPlans() {
+  const data = await adminFetch('/api/subscriptions/plans');
+  if (data && data.plans) {
+    const tbody = $('plansTableBody');
+    tbody.innerHTML = '';
+    data.plans.forEach(p => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><b>${p.name}</b></td>
+        <td>${p.durationDays} Days</td>
+        <td>$${p.priceUsd}</td>
+        <td>${p.priceRwf} RWF</td>
+        <td><button class="btn" onclick="editPlan('${p.id}', '${p.name}', ${p.durationDays}, ${p.priceUsd}, ${p.priceRwf})">Edit</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+}
+
+function editPlan(id, name, days, usd, rwf) {
+  $('planEditId').value = id;
+  $('planName').value = name;
+  $('planDuration').value = days;
+  $('planPriceUsd').value = usd;
+  $('planPriceRwf').value = rwf;
+  window.scrollTo({ top: 300, behavior: 'smooth' });
+}
+
+$('planForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = $('planEditId').value || null;
+  const name = $('planName').value;
+  const durationDays = parseInt($('planDuration').value);
+  const priceUsd = parseFloat($('planPriceUsd').value);
+  const priceRwf = parseFloat($('planPriceRwf').value) || null;
+
+  await adminFetch('/api/admin/plans', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, name, durationDays, priceUsd, priceRwf })
+  });
+  showToast('Plan saved successfully!');
+  $('planForm').reset();
+  $('planEditId').value = '';
+  loadPlans();
+});
+
+$('inventoryForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  await adminFetch('/api/admin/p2p/inventory', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      availableInventory: parseFloat($('invAvailable').value),
+      sellPriceUsd: parseFloat($('invSellRate').value),
+      buyPriceUsd: parseFloat($('invBuyRate').value),
+      feeType: $('invFeeType').value,
+      feeAmount: parseFloat($('invFeeAmount').value)
+    })
+  });
+  showToast('P2P inventory and pricing updated permanently in database!');
+});
+
+$('flutterwaveSettingsForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  await adminFetch('/api/admin/settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      key: 'flutterwave_credentials',
+      value: {
+        public_key: $('flwPublicKey').value,
+        secret_key: $('flwSecretKey').value,
+        encryption_key: $('flwEncryptionKey').value,
+        webhook_hash: $('flwWebhookHash').value
+      }
+    })
+  });
+  showToast('Flutterwave credentials saved!');
+});
+
+$('gdriveSettingsForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  await adminFetch('/api/admin/settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      key: 'google_drive_credentials',
+      value: {
+        client_id: $('gdriveClientId').value,
+        client_secret: $('gdriveClientSecret').value,
+        refresh_token: $('gdriveRefreshToken').value,
+        folder_id: $('gdriveFolderId').value
+      }
+    })
+  });
+  showToast('Google Drive OAuth refresh token settings saved!');
+});
+
+// Live Support Chat Management
+async function loadChatOrders() {
+  const p2pData = await adminFetch('/api/admin/p2p/orders');
+  const chatList = $('chatOrderList');
+  if (!chatList) return;
+  chatList.innerHTML = '<h4 style="color:var(--gold-bright); margin-bottom:10px;">Active Trader Chats</h4>';
+  
+  const orders = (p2pData && p2pData.orders) || [];
+  if (!orders.length) {
+    chatList.innerHTML += '<p style="color:var(--muted); font-size:12px;">No active orders yet.</p>';
+    return;
+  }
+  
+  orders.forEach(o => {
+    const item = document.createElement('div');
+    item.style.cssText = 'padding:10px; margin-bottom:8px; background:var(--card); border:1px solid var(--border); border-radius:6px; cursor:pointer; font-size:13px;';
+    item.innerHTML = `
+      <div style="font-weight:700; color:#fff;">Order #${o.id.slice(0, 10)}</div>
+      <div style="color:var(--muted); font-size:11px;">Trader: ${o.user_name || o.user_id} (${o.crypto_amount} USDT)</div>
+      <div style="font-size:11px; color:var(--gold-bright);">${o.status}</div>
+    `;
+    item.onclick = () => selectChatOrder(o.id);
+    chatList.appendChild(item);
+  });
+}
+
+let activeChatPoll = null;
+async function selectChatOrder(orderId) {
+  $('activeChatOrderId').value = orderId;
+  await fetchAndRenderChat(orderId);
+  if (activeChatPoll) clearInterval(activeChatPoll);
+  activeChatPoll = setInterval(() => fetchAndRenderChat(orderId), 3000);
+}
+
+async function fetchAndRenderChat(orderId) {
+  const data = await adminFetch('/api/p2p/chat/' + orderId);
+  const box = $('chatMessagesBox');
+  if (!box) return;
+  box.innerHTML = '';
+  if (!data || !data.messages || !data.messages.length) {
+    box.innerHTML = '<p style="color:var(--muted); text-align:center; margin-top:20px;">No messages yet. Start the conversation with this trader.</p>';
+    return;
+  }
+  data.messages.forEach(m => {
+    const isMe = m.sender_role === 'admin' || m.sender_role === 'superadmin';
+    const div = document.createElement('div');
+    div.style.cssText = `max-width:75%; padding:10px 14px; border-radius:8px; font-size:13px; align-self:${isMe ? 'flex-end' : 'flex-start'}; background:${isMe ? 'rgba(212,175,55,0.2)' : 'var(--panel)'}; border:1px solid ${isMe ? 'var(--gold)' : 'var(--border)'};`;
+    let attachHtml = '';
+    if (m.attachment_url) {
+      attachHtml = `<div style="margin-top:6px;"><a href="${m.attachment_url}" target="_blank" style="color:var(--gold-bright); font-size:11px;">📎 View Attachment (${m.file_name || 'file'})</a></div>`;
+    }
+    div.innerHTML = `
+      <div style="font-size:10px; color:var(--muted); margin-bottom:2px;"><b>${m.sender_name || (isMe ? 'Admin' : 'Trader')}</b> • ${new Date(m.created_at).toLocaleTimeString()}</div>
+      <div>${m.message || ''}</div>
+      ${attachHtml}
+    `;
+    box.appendChild(div);
+  });
+  box.scrollTop = box.scrollHeight;
+}
+
+$('adminChatForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const orderId = $('activeChatOrderId').value;
+  const message = $('adminChatMessage').value.trim();
+  const fileInput = $('adminChatFile');
+  if (!orderId) { alert('Please select a chat from the left panel first.'); return; }
+  if (!message && !fileInput.files.length) return;
+
+  const formData = new FormData();
+  formData.append('message', message);
+  if (fileInput.files.length) formData.append('attachment', fileInput.files[0]);
+
+  await apiFetch('api/p2p/chat/' + orderId, {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + adminToken },
+    body: formData
+  });
+
+  $('adminChatMessage').value = '';
+  fileInput.value = '';
+  fetchAndRenderChat(orderId);
+});
+
+async function initAdminSession() {
+  adminToken = localStorage.getItem('fds_admin_token') || localStorage.getItem('fds_user_token');
+  if (!adminToken) {
+    $('adminLoginOverlay').style.display = 'flex';
+    return;
+  }
+  try {
+    const res = await apiFetch('api/auth/me', {
+      headers: { 'Authorization': 'Bearer ' + adminToken }
+    });
+    if (!res.ok) throw new Error('Session invalid');
+    const data = await res.json();
+    if (data.user && (data.user.role === 'admin' || data.user.role === 'superadmin')) {
+      currentAdmin = data.user;
+      $('adminUserDisplay').textContent = currentAdmin.email;
+      $('adminRoleBadge').textContent = currentAdmin.role.toUpperCase() + ' CONSOLE';
+      $('adminLoginOverlay').style.display = 'none';
+      loadDashboardData();
+      pollNotifications();
+      if (!window.pollIntervalStarted) {
+        window.pollIntervalStarted = true;
+        setInterval(pollNotifications, 5000); // 5s notification checks
+      }
+      return;
+    }
+    throw new Error('Not admin');
+  } catch (err) {
+    localStorage.removeItem('fds_admin_token');
+    adminToken = null;
+    $('adminLoginOverlay').style.display = 'flex';
+  }
+}
+
+// Boot check
+initAdminSession();
+</script>
+</body>
+</html>

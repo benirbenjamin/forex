@@ -175,7 +175,11 @@ app.post('/api/auth/login', async (req, res) => {
     const result = await loginUser(req.body);
     res.json(result);
   } catch (err) {
-    res.status(err.statusCode || 401).json({ error: err.message });
+    res.status(err.statusCode || 401).json({
+      error: err.message,
+      unverified: !!err.unverified,
+      email: err.email || null
+    });
   }
 });
 

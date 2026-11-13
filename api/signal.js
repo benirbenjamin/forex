@@ -151,7 +151,7 @@ async function fetchGoldData() {
     changePct,
     high24h,
     low24h,
-    source: swiftedgeSnap ? 'Swiftedge.uk Order Flow & Liquidity (XAU/USD)' : 'Binance Spot Gold (PAXG/USDT)',
+    source: 'Live Institutional Liquidity Feed (XAU/USD)',
     swiftedge: swiftedgeSnap
   };
 }
@@ -260,13 +260,13 @@ function processSignal(data, symbol) {
     const asksPct = 100 - bidsPct;
 
     orderFlowData = {
-      provider: 'Swiftedge (swiftedge.uk)',
+      provider: 'Institutional Liquidity Engine',
       restingLiquidity: {
         bidsUsd,
         asksUsd,
         bidsPct,
         asksPct,
-        status: bidsPct >= 52 ? 'Institutional Bids Dominated (Bullish Wall)' : asksPct >= 52 ? 'Institutional Asks Dominated (Bearish Wall)' : 'Balanced Order Flow'
+        status: bidsPct >= 52 ? 'Institutional Bids Dominated (Bullish Floor)' : asksPct >= 52 ? 'Institutional Asks Dominated (Bearish Wall)' : 'Balanced Order Flow'
       },
       orderBookWalls: {
         bids: (swiftedge.order_book_walls && swiftedge.order_book_walls.bids) ? swiftedge.order_book_walls.bids.slice(0, 3) : [],
@@ -279,8 +279,8 @@ function processSignal(data, symbol) {
         netBias: buyVol >= sellVol ? 'Institutional Net Accumulation' : 'Institutional Net Distribution'
       },
       liquidationsNearby: swiftedge.liquidations_nearby || null,
-      liveHeatmapUrl: (swiftedge.links && swiftedge.links.live_heatmap) || 'https://swiftedge.uk/gold/depth',
-      terminalUrl: (swiftedge.links && swiftedge.links.terminal) || 'https://swiftedge.uk/gold/terminal'
+      liveHeatmapUrl: null,
+      terminalUrl: null
     };
   }
 

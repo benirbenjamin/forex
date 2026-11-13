@@ -175,6 +175,7 @@ async function runTests() {
   console.log(`✅ Loaded ${plans.length} subscription plans: ${plans.map(p => p.name).join(', ')}`);
 
   console.log('\n🎉 ALL AUTOMATED TESTS PASSED SUCCESSFULLY! The platform is production-ready.\n');
+  process.exit(0);
 }
 
 runTests().catch(err => {

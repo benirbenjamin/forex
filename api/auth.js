@@ -95,6 +95,10 @@ module.exports = async (req, res) => {
     return res.status(404).json({ error: 'Unknown auth action: ' + action });
   } catch (err) {
     const status = err.statusCode || 400;
-    return res.status(status).json({ error: err.message });
+    return res.status(status).json({
+      error: err.message,
+      unverified: !!err.unverified,
+      email: err.email || null
+    });
   }
 };
