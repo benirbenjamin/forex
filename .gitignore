@@ -5,5 +5,7 @@ node_modules/
 eng.traineddata*
 public/uploads/*
 !public/uploads/.gitkeep
+data/*.json
+!data/.gitkeep
 .DS_Store
 Thumbs.db

@@ -447,20 +447,42 @@ tr:hover { background: rgba(255,255,255,0.02); }
 }
 .modal-close { position: absolute; top: 16px; right: 16px; background: transparent; border: none; color: var(--mut); font-size: 20px; cursor: pointer; }
 
-/* Toast */
+/* Toast Notifications */
 .toast {
   position: fixed;
   bottom: 24px;
-  left: 24px;
+  right: 24px;
   background: var(--panel-card);
   border: 1px solid var(--gold);
   color: #fff;
   padding: 14px 22px;
-  border-radius: var(--radius-sm);
-  z-index: 2000;
+  border-radius: var(--radius);
+  z-index: 99999;
   display: none;
   font-size: 13px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  font-weight: 600;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.65);
+  max-width: 440px;
+  line-height: 1.45;
+  transition: opacity 0.25s ease;
+}
+.toast.toast-error {
+  border-color: var(--dn);
+  background: #1e1316;
+  color: #ff8595;
+  box-shadow: 0 10px 30px rgba(248, 73, 96, 0.25);
+}
+.toast.toast-success {
+  border-color: var(--up);
+  background: #0f2218;
+  color: #79f2b8;
+  box-shadow: 0 10px 30px rgba(0, 208, 132, 0.25);
+}
+.toast.toast-info {
+  border-color: var(--gold);
+  background: #1e1a12;
+  color: var(--gold-bright);
+  box-shadow: 0 10px 30px rgba(212, 175, 55, 0.25);
 }
 </style>
 </head>
@@ -1119,13 +1141,28 @@ var prevPrice = null;
 var activeOrderId = null;
 window.currentUser = null;
 
-// Toast notification
-function showToast(msg) {
+// Universal Toast Notification System (Sleek non-blocking toasts for both notices and errors)
+var toastTimeout = null;
+function showToast(msg, type) {
   var t = $('toast');
-  t.textContent = msg;
+  if (!t) return;
+  type = type || 'info';
+  var icon = type === 'error' ? '⚠️ ' : type === 'success' ? '✅ ' : '⚡ ';
+  t.className = 'toast toast-' + type;
+  t.innerHTML = '<span style="margin-right:8px; font-size:15px;">' + icon + '</span><span>' + msg + '</span>';
   t.style.display = 'block';
-  setTimeout(function() { t.style.display = 'none'; }, 3500);
+  t.style.opacity = '1';
+  if (toastTimeout) clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(function() {
+    t.style.opacity = '0';
+    setTimeout(function() { t.style.display = 'none'; }, 250);
+  }, 4500);
 }
+
+// Global alert override: converts all dialog popups into sleek non-blocking toasts
+window.alert = function(msg) {
+  showToast(msg, 'error');
+};
 
 // Brand Logo: Stays in App, never redirects outside
 $('brandLogoLink').addEventListener('click', function(e) {
@@ -1742,7 +1779,7 @@ function loadPricing() {
 $('checkoutForm').addEventListener('submit', function(e) {
   e.preventDefault();
   if (!authToken) { openAuthModal('signup'); return; }
-  alert('Instructions for Flutterwave Payment:\n1. You will receive an authorization prompt or WhatsApp OTP.\n2. Confirm the payment on your mobile handset.\n3. Upon verification, your subscription activates automatically.');
+  showToast('Please confirm the authorization prompt or WhatsApp OTP on your mobile phone to complete payment.', 'info');
 });
 
 // Referrals
@@ -1818,14 +1855,14 @@ $('p2pSellForm').addEventListener('submit', function(e) {
 
 $('p2pUploadProofBtn').addEventListener('click', function() {
   var f = $('p2pScreenshotFile');
-  if (!f.files.length) { alert('Please select a receipt screenshot.'); return; }
+  if (!f.files.length) { showToast('Please select a receipt screenshot first.', 'error'); return; }
   $('p2pAiStatusBadge').textContent = '🔍 AI analyzing receipt markers...';
   setTimeout(function() {
     $('p2pAiStatusBadge').textContent = '✅ Authentic Receipt Verified!';
     $('p2pAiStatusBadge').style.color = 'var(--up)';
     $('p2pConfirmSentBtn').disabled = false;
     $('p2pConfirmSentBtn').style.opacity = '1';
-    showToast('Payment screenshot verified! You can now click "I have sent money".');
+    showToast('Payment screenshot verified! You can now click "I have sent money".', 'success');
   }, 1200);
 });
 
@@ -1949,7 +1986,7 @@ function sendUserChatMessage() {
     showToast('Message sent to VIP support!');
   })
   .catch(function(err) {
-    alert('Failed to send message: ' + err.message);
+    showToast('Failed to send message: ' + err.message, 'error');
   });
 }
 
@@ -1985,13 +2022,13 @@ $('formSignUp').addEventListener('submit', function(e) {
   var pass2 = $('signUpPassConfirm').value;
 
   if (pass !== pass2) {
-    alert('Passwords do not match.');
+    showToast('Passwords do not match.', 'error');
     return;
   }
 
   // Device Fingerprint check: deny if already registered on same device
   if (localStorage.getItem('fds_registered_device') === 'yes') {
-    alert('Login to an account you already have.');
+    showToast('Login to an account you already have on this device.', 'error');
     return;
   }
 
@@ -2011,7 +2048,7 @@ $('formSignUp').addEventListener('submit', function(e) {
   .then(function(res) {
     var data = res.data;
     if (!res.ok || data.error) {
-      alert(data.error || 'Registration failed.');
+      showToast(data.error || 'Registration failed.', 'error');
       return;
     }
     localStorage.setItem('fds_registered_device', 'yes');
@@ -2028,11 +2065,11 @@ $('formSignUp').addEventListener('submit', function(e) {
       $('otpNoticeBanner').style.display = 'block';
       $('otpNoticeBanner').innerHTML = 'A 6-digit verification code has been sent to <b>' + email + '</b>.';
     }
-    showToast('Verification code sent to ' + email);
+    showToast('Verification code sent to ' + email, 'success');
   })
   .catch(function(err) {
     console.error('Sign up error:', err);
-    alert('Unable to connect to registration server. Please check your connection.');
+    showToast('Unable to connect to registration server. Please check your connection.', 'error');
   });
 });
 
@@ -2049,7 +2086,7 @@ $('formVerifyOtp').addEventListener('submit', function(e) {
   .then(function(res) {
     var data = res.data;
     if (!res.ok || data.error) {
-      alert(data.error || 'Invalid verification code.');
+      showToast(data.error || 'Invalid verification code.', 'error');
       return;
     }
     if (data.token) {
@@ -2060,15 +2097,15 @@ $('formVerifyOtp').addEventListener('submit', function(e) {
       }
       $('authModal').classList.remove('active');
       applyAuthState();
-      showToast('Welcome! Account verified and 7-Day VIP Signals Activated.');
+      showToast('Welcome! Account verified and 7-Day VIP Signals Activated.', 'success');
     } else {
-      alert('Email successfully verified! Please sign in with your password.');
+      showToast('Email verified! Please sign in with your password.', 'success');
       openAuthModal('signin');
     }
   })
   .catch(function(err) {
     console.error('Verify error:', err);
-    alert('Verification server unreachable. Please check your connection.');
+    showToast('Verification server unreachable. Please check your connection.', 'error');
   });
 });
 
@@ -2092,7 +2129,7 @@ $('formSignIn').addEventListener('submit', function(e) {
     if (!res.ok || data.error) {
       // Check if unverified
       if (data.unverified || res.status === 403) {
-        alert(data.error || 'Your email is not verified yet. Please enter your verification code.');
+        showToast(data.error || 'Your email is not verified yet. Please enter your verification code.', 'info');
         window.registeredEmail = data.email || email;
         $('authBoxSignIn').style.display = 'none';
         $('authBoxSignUp').style.display = 'none';
@@ -2101,7 +2138,7 @@ $('formSignIn').addEventListener('submit', function(e) {
         $('otpNoticeBanner').innerHTML = 'Please enter the 6-digit verification code sent to <b>' + (window.registeredEmail) + '</b>.';
         return;
       }
-      alert(data.error || 'Invalid email or password.');
+      showToast(data.error || 'Invalid email or password.', 'error');
       return;
     }
 
@@ -2113,14 +2150,14 @@ $('formSignIn').addEventListener('submit', function(e) {
       }
       $('authModal').classList.remove('active');
       applyAuthState();
-      showToast('Logged in successfully!');
+      showToast('Logged in successfully!', 'success');
     } else {
-      alert('Login failed. Please check your credentials.');
+      showToast('Login failed. Please check your credentials.', 'error');
     }
   })
   .catch(function(err) {
     console.error('Sign in error:', err);
-    alert('Authentication server unavailable. Please check your internet connection.');
+    showToast('Authentication server unavailable. Please check your connection.', 'error');
   });
 });
 

@@ -1,4 +1,5 @@
 // Serverless handler for /api/auth/* actions
+const db = require('../lib/db');
 const {
   checkUnique,
   registerUser,
@@ -18,6 +19,9 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
+
+  // Ensure DB / in-memory store is initialized
+  await db.ensureDatabaseInitialized();
 
   // Determine action from query or url path
   let action = req.query.action;
