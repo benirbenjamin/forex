@@ -650,6 +650,7 @@ document.querySelectorAll('.nav-tab').forEach(tab => {
     tab.classList.add('active');
     const target = $('tab-' + tab.dataset.tab);
     if (target) target.classList.add('active');
+    if (tab.dataset.tab === 'chat') loadChatOrders();
   });
 });
 
@@ -973,6 +974,90 @@ $('gdriveSettingsForm').addEventListener('submit', async (e) => {
     })
   });
   showToast('Google Drive OAuth refresh token settings saved!');
+});
+
+// Live Support Chat Management
+async function loadChatOrders() {
+  const p2pData = await adminFetch('/api/admin/p2p/orders');
+  const chatList = $('chatOrderList');
+  if (!chatList) return;
+  chatList.innerHTML = '<h4 style="color:var(--gold-bright); margin-bottom:10px;">Active Trader Chats</h4>';
+  
+  const orders = (p2pData && p2pData.orders) || [];
+  if (!orders.length) {
+    chatList.innerHTML += '<p style="color:var(--muted); font-size:12px;">No active orders yet.</p>';
+    return;
+  }
+  
+  orders.forEach(o => {
+    const item = document.createElement('div');
+    item.style.cssText = 'padding:10px; margin-bottom:8px; background:var(--card); border:1px solid var(--border); border-radius:6px; cursor:pointer; font-size:13px;';
+    item.innerHTML = `
+      <div style="font-weight:700; color:#fff;">Order #${o.id.slice(0, 10)}</div>
+      <div style="color:var(--muted); font-size:11px;">Trader: ${o.user_name || o.user_id} (${o.crypto_amount} USDT)</div>
+      <div style="font-size:11px; color:var(--gold-bright);">${o.status}</div>
+    `;
+    item.onclick = () => selectChatOrder(o.id);
+    chatList.appendChild(item);
+  });
+}
+
+let activeChatPoll = null;
+async function selectChatOrder(orderId) {
+  $('activeChatOrderId').value = orderId;
+  await fetchAndRenderChat(orderId);
+  if (activeChatPoll) clearInterval(activeChatPoll);
+  activeChatPoll = setInterval(() => fetchAndRenderChat(orderId), 3000);
+}
+
+async function fetchAndRenderChat(orderId) {
+  const data = await adminFetch('/api/p2p/chat/' + orderId);
+  const box = $('chatMessagesBox');
+  if (!box) return;
+  box.innerHTML = '';
+  if (!data || !data.messages || !data.messages.length) {
+    box.innerHTML = '<p style="color:var(--muted); text-align:center; margin-top:20px;">No messages yet. Start the conversation with this trader.</p>';
+    return;
+  }
+  data.messages.forEach(m => {
+    const isMe = m.sender_role === 'admin' || m.sender_role === 'superadmin';
+    const div = document.createElement('div');
+    div.style.cssText = `max-width:75%; padding:10px 14px; border-radius:8px; font-size:13px; align-self:${isMe ? 'flex-end' : 'flex-start'}; background:${isMe ? 'rgba(212,175,55,0.2)' : 'var(--panel)'}; border:1px solid ${isMe ? 'var(--gold)' : 'var(--border)'};`;
+    let attachHtml = '';
+    if (m.attachment_url) {
+      attachHtml = `<div style="margin-top:6px;"><a href="${m.attachment_url}" target="_blank" style="color:var(--gold-bright); font-size:11px;">📎 View Attachment (${m.file_name || 'file'})</a></div>`;
+    }
+    div.innerHTML = `
+      <div style="font-size:10px; color:var(--muted); margin-bottom:2px;"><b>${m.sender_name || (isMe ? 'Admin' : 'Trader')}</b> • ${new Date(m.created_at).toLocaleTimeString()}</div>
+      <div>${m.message || ''}</div>
+      ${attachHtml}
+    `;
+    box.appendChild(div);
+  });
+  box.scrollTop = box.scrollHeight;
+}
+
+$('adminChatForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const orderId = $('activeChatOrderId').value;
+  const message = $('adminChatMessage').value.trim();
+  const fileInput = $('adminChatFile');
+  if (!orderId) { alert('Please select a chat from the left panel first.'); return; }
+  if (!message && !fileInput.files.length) return;
+
+  const formData = new FormData();
+  formData.append('message', message);
+  if (fileInput.files.length) formData.append('attachment', fileInput.files[0]);
+
+  await fetch('/api/p2p/chat/' + orderId, {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + adminToken },
+    body: formData
+  });
+
+  $('adminChatMessage').value = '';
+  fileInput.value = '';
+  fetchAndRenderChat(orderId);
 });
 
 function initAdminSession() {

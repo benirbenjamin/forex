@@ -5,6 +5,9 @@
     }
   },
   "rewrites": [
+    { "source": "/api/auth/:action", "destination": "/api/auth?action=:action" },
+    { "source": "/api/p2p/chat/:orderId", "destination": "/api/p2p?action=chat&orderId=:orderId" },
+    { "source": "/api/p2p/:action", "destination": "/api/p2p?action=:action" },
     { "source": "/admin", "destination": "/admin.html" },
     { "source": "/app", "destination": "/index.html" }
   ]
