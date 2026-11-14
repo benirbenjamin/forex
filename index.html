@@ -1151,6 +1151,10 @@ tr:hover { background: rgba(255,255,255,0.02); }
     <div id="authBoxReset" style="display:none;">
       <h2 style="font-size:20px; font-weight:800; color:#fff; margin-bottom:4px;">Set New Password</h2>
       <p style="font-size:13px; color:var(--mut); margin-bottom:18px;">Enter the 6-digit reset code sent to your email and your new password.</p>
+      
+      <!-- Notice banner if code was sent -->
+      <div id="resetNoticeBanner" style="display:none; background:rgba(212,175,55,0.15); border:1px solid var(--gold); border-radius:var(--radius); padding:10px 14px; font-size:12px; margin-bottom:16px;"></div>
+
       <form id="formReset">
         <div class="form-group">
           <label class="form-label">6-Digit Reset Code</label>
@@ -1166,8 +1170,9 @@ tr:hover { background: rgba(255,255,255,0.02); }
         </div>
         <button type="submit" class="btn btn-primary" style="width:100%; padding:12px; font-size:15px; justify-content:center; margin-bottom:12px;">Update Password</button>
       </form>
-      <div style="text-align:center; font-size:12px;">
-        <a href="#" id="resetToSignInBtn" style="color:var(--gold-bright); font-weight:700;">Back to Sign In</a>
+      <div style="text-align:center; font-size:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <a href="#" id="resendResetCodeBtn" style="color:var(--gold-bright); font-weight:700; text-decoration:none;">🔄 Resend Reset Code</a>
+        <a href="#" id="resetToSignInBtn" style="color:var(--mut); text-decoration:none;">Back to Sign In</a>
       </div>
     </div>
 
@@ -2129,11 +2134,49 @@ $('formForgot').addEventListener('submit', function(e) {
       openAuthModal('reset');
       if (data.resetCode) {
         $('resetCodeInput').value = data.resetCode;
+        $('resetNoticeBanner').style.display = 'block';
+        $('resetNoticeBanner').innerHTML = '<b>Reset Code:</b> <span style="font-size:16px; font-weight:800; color:#fff;">' + data.resetCode + '</span><br><small>Also sent via email to ' + window.resetEmail + '</small>';
+      } else {
+        $('resetNoticeBanner').style.display = 'block';
+        $('resetNoticeBanner').innerHTML = 'A 6-digit password reset code has been sent to <b>' + window.resetEmail + '</b>.';
       }
     }
   })
   .catch(function() {
     showToast('Error requesting password reset. Please try again.', 'error');
+  });
+});
+
+// Resend Password Reset Code
+$('resendResetCodeBtn').addEventListener('click', function(e) {
+  e.preventDefault();
+  var targetEmail = window.resetEmail || $('forgotEmail').value.trim();
+  if (!targetEmail) {
+    showToast('Please enter your email address.', 'error');
+    openAuthModal('forgot');
+    return;
+  }
+  showToast('Sending a new password reset code...', 'info');
+  apiFetch('api/auth/forgot-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: targetEmail })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.error) {
+      showToast(data.error, 'error');
+    } else {
+      if (data.resetCode) {
+        $('resetNoticeBanner').style.display = 'block';
+        $('resetNoticeBanner').innerHTML = '<b>New Reset Code:</b> <span style="font-size:16px; font-weight:800; color:#fff;">' + data.resetCode + '</span><br><small>Also sent via email to ' + targetEmail + '</small>';
+        $('resetCodeInput').value = data.resetCode;
+      }
+      showToast(data.message || 'New reset code sent to ' + targetEmail, 'success');
+    }
+  })
+  .catch(function() {
+    showToast('Unable to resend reset code. Please check your connection.', 'error');
   });
 });
 
@@ -2190,7 +2233,7 @@ $('formSignUp').addEventListener('submit', function(e) {
 
   // Device Fingerprint check: deny if already registered on same device
   if (localStorage.getItem('fds_registered_device') === 'yes') {
-    showToast('Login to an account you already have on this device.', 'error');
+    showToast('You cannot create another account on this device. Please log in using the account you already have, or use another device to create an account.', 'error');
     return;
   }
 

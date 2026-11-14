@@ -79,12 +79,12 @@ async function runTests() {
       deviceFingerprint: testFingerprint
     });
   } catch (err) {
-    if (err.message === 'Login to an account you already have.') {
+    if (err.message === 'You cannot create another account on this device. Please log in using the account you already have, or use another device to create an account.') {
       fingerprintBlocked = true;
     }
   }
-  assert(fingerprintBlocked, 'Second account from same device MUST be denied with "Login to an account you already have."');
-  console.log('✅ Device Fingerprint Security: Blocked duplicate account on same device with exact message: "Login to an account you already have."');
+  assert(fingerprintBlocked, 'Second account from same device MUST be denied with device fingerprint message');
+  console.log('✅ Device Fingerprint Security: Blocked duplicate account on same device with exact message.');
 
   // 4. Login & 3-Attempt Lockout Test
   console.log('\n--- TEST 4: Login & 3-Attempt 1-Hour Lockout ---');
