@@ -1,19 +1,24 @@
 const assert = require('assert');
-const { registerUser, loginUser, verifyEmail } = require('../lib/auth');
+const { registerUser, loginUser, verifyEmail, resendVerificationCode, forgotPassword, resetPassword } = require('../lib/auth');
 const db = require('../lib/db');
 
 async function testAuth() {
   console.log('🔒 Testing Authentication & Verification Security...');
   await db.initDatabase();
 
+  const runId = Date.now();
+  const testEmail = `unverified.${runId}@example.com`;
+  const testPhone = `+25078${Math.floor(1000000 + Math.random() * 9000000)}`;
+  const testFp = `fp_test_${runId}`;
+
   // 1. Register a new user (unverified by default)
   const reg = await registerUser({
     fullName: 'Test Unverified',
-    email: 'unverified.trader@example.com',
-    phone: '+250789999001',
+    email: testEmail,
+    phone: testPhone,
     password: 'Password123!',
     confirmPassword: 'Password123!',
-    deviceFingerprint: 'fp_test_unverified_99'
+    deviceFingerprint: testFp
   });
   console.log('✅ Registered unverified user:', reg.user.email);
 
@@ -21,9 +26,9 @@ async function testAuth() {
   let loginBlocked = false;
   try {
     await loginUser({
-      email: 'unverified.trader@example.com',
+      email: testEmail,
       password: 'Password123!',
-      deviceFingerprint: 'fp_test_unverified_99'
+      deviceFingerprint: testFp
     });
   } catch (err) {
     if (err.statusCode === 403 && err.unverified === true) {
@@ -37,15 +42,15 @@ async function testAuth() {
 
   // 3. Verify user with verification code
   const code = reg.verificationCode;
-  const verified = await verifyEmail('unverified.trader@example.com', code);
+  const verified = await verifyEmail(testEmail, code);
   assert(verified.verified, 'Email verification must succeed with correct code');
   console.log('✅ Email successfully verified with code:', code);
 
   // 4. Now login -> MUST SUCCEED
   const userLogin = await loginUser({
-    email: 'unverified.trader@example.com',
+    email: testEmail,
     password: 'Password123!',
-    deviceFingerprint: 'fp_test_unverified_99'
+    deviceFingerprint: testFp
   });
   assert(userLogin.token, 'Verified user must receive JWT token');
   console.log('✅ Verified user logged in successfully, role:', userLogin.user.role);
@@ -81,6 +86,37 @@ async function testAuth() {
     console.log('✅ Wrong password correctly rejected:', err.message);
   }
   assert(wrongPassCaught, 'Wrong password must be rejected');
+
+  // 8. Test Resend Verification Code
+  const reg2 = await registerUser({
+    fullName: 'Test Resender',
+    email: `resend.${runId}@example.com`,
+    phone: `+25078${Math.floor(1000000 + Math.random() * 9000000)}`,
+    password: 'Password123!',
+    confirmPassword: 'Password123!',
+    deviceFingerprint: `fp_test_resend_${runId}`
+  });
+  const resendResult = await resendVerificationCode(`resend.${runId}@example.com`);
+  assert(resendResult.success, 'Resending verification code must succeed');
+  assert(resendResult.verificationCode, 'Must return new verification code');
+  console.log('✅ Resend verification code succeeded with new code:', resendResult.verificationCode);
+
+  // 9. Test Forgot Password & Reset Password Flow
+  const forgotResult = await forgotPassword(testEmail);
+  assert(forgotResult.resetCode, 'Forgot password must return reset code');
+  console.log('✅ Forgot password dispatched reset code:', forgotResult.resetCode);
+
+  const resetResult = await resetPassword(testEmail, forgotResult.resetCode, 'NewPassword456!');
+  assert(resetResult.message, 'Reset password must succeed');
+  console.log('✅ Reset password succeeded:', resetResult.message);
+
+  const resetLogin = await loginUser({
+    email: testEmail,
+    password: 'NewPassword456!',
+    deviceFingerprint: testFp
+  });
+  assert(resetLogin.token, 'Must be able to login with new password');
+  console.log('✅ Successfully logged in with new password!');
 
   console.log('\n🎉 ALL AUTHENTICATION & SECURITY TESTS PASSED!\n');
   process.exit(0);

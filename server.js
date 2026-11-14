@@ -12,6 +12,7 @@ const {
   checkUnique,
   registerUser,
   verifyEmail,
+  resendVerificationCode,
   loginUser,
   forgotPassword,
   resetPassword,
@@ -164,6 +165,16 @@ app.post('/api/auth/verify-email', async (req, res) => {
   try {
     const { email, code } = req.body;
     const result = await verifyEmail(email, code);
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post(['/api/auth/resend-code', '/api/auth/resend-verification'], async (req, res) => {
+  try {
+    const { email } = req.body;
+    const result = await resendVerificationCode(email);
     res.json(result);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -607,8 +618,13 @@ app.post('/api/admin/add-admin', authenticateToken, requireRole('admin', 'supera
 async function startServer() {
   try {
     await db.initDatabase();
+    await db.seedAdminsOnStartup();
+    console.log('✅ Mandatory admins verified & seeded in database on startup.');
   } catch (e) {
     console.error('Database initialization encountered an error:', e.message);
+    try {
+      await db.seedAdminsOnStartup();
+    } catch (se) {}
   }
 
   server.listen(PORT, () => {

@@ -4,6 +4,7 @@ const {
   checkUnique,
   registerUser,
   verifyEmail,
+  resendVerificationCode,
   loginUser,
   forgotPassword,
   resetPassword,
@@ -56,6 +57,13 @@ module.exports = async (req, res) => {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
       const { email, code } = body;
       const result = await verifyEmail(email, code);
+      return res.status(200).json(result);
+    }
+
+    // 3b. Resend Email OTP (POST /api/auth/resend-code)
+    if ((action === 'resend-code' || action === 'resend-verification') && req.method === 'POST') {
+      const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+      const result = await resendVerificationCode(body.email);
       return res.status(200).json(result);
     }
 
