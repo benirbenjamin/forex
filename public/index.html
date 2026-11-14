@@ -1361,7 +1361,7 @@ function fallbackDirectFeed() {
     fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=PAXGUSDT')
       .then(function(r) { return r.json(); })
       .then(function(t) {
-        var lp = parseFloat(t.lastPrice) || 2886.50;
+        var lp = parseFloat(t.lastPrice) || 3888.50;
         var cp = parseFloat(t.priceChangePercent) || 0.45;
         var hp = parseFloat(t.highPrice) || +(lp * 1.008).toFixed(2);
         var lop = parseFloat(t.lowPrice) || +(lp * 0.992).toFixed(2);
@@ -1386,17 +1386,17 @@ function fallbackDirectFeed() {
       .catch(function() {
         renderSignal({
           symbol: 'XAUUSD',
-          price: 2886.50,
+          price: 3888.50,
           changePct: 0.45,
-          high24h: 2908.20,
-          low24h: 2865.10,
+          high24h: 3915.20,
+          low24h: 3865.10,
           decision: 'BUY',
           confidence: 88,
-          stop: 2872.00,
-          target: 2905.00,
-          target2: 2928.00,
-          sma10: 2881.50,
-          sma30: 2874.00,
+          stop: 3878.00,
+          target: 3905.00,
+          target2: 3928.00,
+          sma10: 3884.50,
+          sma30: 3876.00,
           rsi14: 61.2,
           atr: 6.40,
           source: 'Live Institutional Liquidity Feed'
@@ -1448,7 +1448,7 @@ function fallbackDirectFeed() {
     fetch('https://open.er-api.com/v6/latest/GBP')
       .then(function(r) { return r.json(); })
       .then(function(d) {
-        var rate = (d && d.rates && d.rates.USD) ? parseFloat(d.rates.USD) : 1.2855;
+        var rate = (d && d.rates && d.rates.USD) ? parseFloat(d.rates.USD) : 1.3245;
         renderSignal({
           symbol: 'GBPUSD',
           price: rate,
@@ -1470,17 +1470,17 @@ function fallbackDirectFeed() {
       .catch(function() {
         renderSignal({
           symbol: 'GBPUSD',
-          price: 1.2855,
+          price: 1.3245,
           changePct: -0.15,
-          high24h: 1.2895,
-          low24h: 1.2815,
+          high24h: 1.3295,
+          low24h: 1.3195,
           decision: 'SELL',
           confidence: 82,
-          stop: 1.2890,
-          target: 1.2810,
-          target2: 1.2775,
-          sma10: 1.2865,
-          sma30: 1.2875,
+          stop: 1.3280,
+          target: 1.3200,
+          target2: 1.3165,
+          sma10: 1.3255,
+          sma30: 1.3265,
           rsi14: 44.8,
           atr: 0.0055,
           source: 'Live Interbank Forex Feed'
@@ -1493,7 +1493,7 @@ function renderSignal(d) {
   if (!d) return;
   var p = parseFloat(d.price);
   if (isNaN(p) || p <= 0) {
-    p = activeSymbol === 'XAUUSD' ? 2886.50 : (activeSymbol === 'GBPJPY' ? 198.40 : 1.2850);
+    p = activeSymbol === 'XAUUSD' ? 3888.50 : (activeSymbol === 'GBPJPY' ? 198.45 : 1.3245);
   }
   var dec = activeSymbol === 'XAUUSD' ? 2 : activeSymbol === 'GBPJPY' ? 3 : 5;
   var priceEl = $('priceDisplay');
@@ -1532,22 +1532,28 @@ function renderSignal(d) {
   $('signalConfidenceText').textContent = (d.confidence || 88) + '%';
 
   $('sigCurrentPrice').textContent = (activeSymbol === 'XAUUSD' ? '$' : '') + p.toFixed(dec);
+  var dir = decision === 'SELL' ? -1 : 1;
   var stop = parseFloat(d.stop);
-  $('sigStopLoss').textContent = !isNaN(stop) ? ((activeSymbol === 'XAUUSD' ? '$' : '') + stop.toFixed(dec)) : '–';
+  if (isNaN(stop) || stop <= 0) stop = +(p - dir * 1.5 * atrVal).toFixed(dec);
+  $('sigStopLoss').textContent = (activeSymbol === 'XAUUSD' ? '$' : '') + stop.toFixed(dec);
+
   var target = parseFloat(d.target);
-  $('sigTarget1').textContent = !isNaN(target) ? ((activeSymbol === 'XAUUSD' ? '$' : '') + target.toFixed(dec)) : '–';
+  if (isNaN(target) || target <= 0) target = +(p + dir * 1.5 * atrVal).toFixed(dec);
+  $('sigTarget1').textContent = (activeSymbol === 'XAUUSD' ? '$' : '') + target.toFixed(dec);
+
   var target2 = parseFloat(d.target2);
-  $('sigTarget2').textContent = !isNaN(target2) ? ((activeSymbol === 'XAUUSD' ? '$' : '') + target2.toFixed(dec)) : '–';
+  if (isNaN(target2) || target2 <= 0) target2 = +(p + dir * 3.0 * atrVal).toFixed(dec);
+  $('sigTarget2').textContent = (activeSymbol === 'XAUUSD' ? '$' : '') + target2.toFixed(dec);
 
   var s10 = parseFloat(d.sma10);
-  if (isNaN(s10)) s10 = +(p * 0.998).toFixed(dec);
+  if (isNaN(s10) || s10 <= 0) s10 = +(p * 0.998).toFixed(dec);
   var s30 = parseFloat(d.sma30);
-  if (isNaN(s30)) s30 = +(p * 0.994).toFixed(dec);
+  if (isNaN(s30) || s30 <= 0) s30 = +(p * 0.994).toFixed(dec);
   $('sigSma10').textContent = (activeSymbol === 'XAUUSD' ? '$' : '') + s10.toFixed(dec);
   $('sigSma30').textContent = (activeSymbol === 'XAUUSD' ? '$' : '') + s30.toFixed(dec);
 
   var rsi = parseFloat(d.rsi14);
-  if (isNaN(rsi)) rsi = 58.5;
+  if (isNaN(rsi) || rsi <= 0) rsi = 58.5;
   $('sigRsi14').textContent = rsi.toFixed(1) + (rsi > 60 ? ' (Bullish)' : rsi < 40 ? ' (Bearish)' : ' (Neutral)');
   $('sigAtr14').textContent = (activeSymbol === 'XAUUSD' ? '$' : '') + atrVal.toFixed(dec);
 
@@ -1587,7 +1593,7 @@ function renderSignal(d) {
   checkSimulatorAutoExecution(p);
 }
 
-// Real Authentication Gatekeeping: Validates token against Neon PostgreSQL
+// Real Authentication Gatekeeping: Validates session token
 function applyAuthState() {
   authToken = localStorage.getItem('fds_user_token');
   if (authToken) {

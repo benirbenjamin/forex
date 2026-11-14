@@ -25,8 +25,8 @@ module.exports = async (req, res) => {
   await db.ensureDatabaseInitialized();
 
   // Determine action from query or url path
-  let action = req.query.action;
-  if (!action) {
+  let action = (req.query && req.query.action) ? req.query.action : null;
+  if (!action && req.url) {
     const parts = req.url.split('?')[0].split('/');
     action = parts[parts.length - 1];
   }

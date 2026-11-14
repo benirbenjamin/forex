@@ -715,12 +715,26 @@ function getApiUrl(path) {
 }
 
 async function apiFetch(endpoint, options = {}) {
-  const primaryUrl = getApiUrl(endpoint);
-  let res = await fetch(primaryUrl, options);
-  if (res.status === 404 && primaryUrl !== ('/' + endpoint.replace(/^\/+/, ''))) {
-    res = await fetch('/' + endpoint.replace(/^\/+/, ''), options);
+  const clean = endpoint.replace(/^\/+/, '');
+  const rootUrl = '/' + clean;
+  const subUrl = getApiUrl(endpoint);
+
+  if (window.location.pathname === '/' || window.location.pathname === '') {
+    return fetch(rootUrl, options);
   }
-  return res;
+
+  try {
+    const res = await fetch(rootUrl, options);
+    if ((res.status === 404 || res.status === 405) && subUrl !== rootUrl) {
+      return await fetch(subUrl, options);
+    }
+    return res;
+  } catch (err) {
+    if (subUrl !== rootUrl) {
+      return await fetch(subUrl, options);
+    }
+    throw err;
+  }
 }
 
 // Admin Login
