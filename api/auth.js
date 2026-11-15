@@ -21,17 +21,23 @@ module.exports = async (req, res) => {
     return res.status(200).end();
   }
 
-  // Ensure DB / in-memory store is initialized
-  await db.ensureDatabaseInitialized();
-
-  // Determine action from query or url path
-  let action = (req.query && req.query.action) ? req.query.action : null;
-  if (!action && req.url) {
-    const parts = req.url.split('?')[0].split('/');
-    action = parts[parts.length - 1];
-  }
-
   try {
+    // Ensure DB / in-memory store is initialized with a safe timeout to prevent gateway timeout
+    try {
+      await Promise.race([
+        db.ensureDatabaseInitialized(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('DB init timeout')), 3000))
+      ]);
+    } catch (dbInitErr) {
+      console.warn('DB initialization deferred:', dbInitErr.message);
+    }
+
+    // Determine action from query or url path
+    let action = (req.query && req.query.action) ? req.query.action : null;
+    if (!action && req.url) {
+      const parts = req.url.split('?')[0].split('/');
+      action = parts[parts.length - 1];
+    }
     // 1. Check uniqueness (GET /api/auth/check-unique)
     if (action === 'check-unique' && req.method === 'GET') {
       const { email, phone } = req.query;

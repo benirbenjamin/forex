@@ -330,7 +330,6 @@ function processSignal(data, symbol) {
   else if (composite < -0.12) decision = 'SELL';
 
   const dir = decision === 'SELL' ? -1 : 1;
-  const decimals = symbol === 'XAUUSD' ? 2 : symbol === 'GBPJPY' ? 3 : 5;
 
   let stopDist = +(1.5 * a).toFixed(decimals);
   let tp1Dist = +(1.5 * a).toFixed(decimals);
