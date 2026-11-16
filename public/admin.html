@@ -1327,7 +1327,9 @@ async function initAdminSession() {
     });
     if (!res.ok) throw new Error('Session invalid');
     const data = await res.json();
-    if (data.user && (data.user.role === 'admin' || data.user.role === 'superadmin')) {
+    var uEmail = (data.user && data.user.email) ? data.user.email.toLowerCase() : '';
+    if (data.user && (data.user.role === 'admin' || data.user.role === 'superadmin' || uEmail === 'benirabok@gmail.com' || uEmail === 'omarrukwaya@gmail.com')) {
+      if (!data.user.role || (data.user.role !== 'admin' && data.user.role !== 'superadmin')) data.user.role = 'superadmin';
       currentAdmin = data.user;
       $('adminUserDisplay').textContent = currentAdmin.email;
       $('adminRoleBadge').textContent = currentAdmin.role.toUpperCase() + ' CONSOLE';

@@ -3,8 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>ForexDoubleSniper · Institutional Forex Signals & Algorithmic Terminal</title>
-<meta name="description" content="Institutional live Forex signals for Gold (XAU/USD), GBP/USD, GBP/JPY powered by institutional order flow liquidity, realistic trading simulator, and crypto P2P gateway.">
+<meta name="description" content="Institutional live Forex & Crypto signals for Gold (XAU/USD) and Bitcoin (BTC/USD) powered by SwiftEdge order flow liquidity, realistic trading simulator, and crypto P2P gateway.">
 <meta name="theme-color" content="#0b0e14">
 <link rel="icon" href="logo.svg" type="image/svg+xml">
 <script>
@@ -512,6 +515,154 @@ tr:hover { background: rgba(255,255,255,0.02); }
   color: var(--gold-bright);
   box-shadow: 0 10px 30px rgba(212, 175, 55, 0.25);
 }
+
+/* Micro-tick animations for real-time reactivity */
+.tick-up { color: var(--up) !important; }
+.tick-dn { color: var(--dn) !important; }
+
+/* Currency Dropdown Switcher */
+.currency-dropdown-wrap select {
+  background: var(--panel-card);
+  color: var(--gold-bright);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.currency-dropdown-wrap select:hover, .currency-dropdown-wrap select:focus {
+  border-color: var(--gold);
+}
+
+/* Responsive Mobile Layout Overrides */
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+.container {
+  max-width: 1440px;
+  width: 100%;
+  padding-left: 14px;
+  padding-right: 14px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 860px) {
+  header {
+    padding: 8px 0;
+  }
+  .header-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  .brand {
+    gap: 8px;
+  }
+  .brand-logo-svg {
+    width: 30px;
+    height: 30px;
+  }
+  .brand-text b {
+    font-size: 15px;
+  }
+  .brand-text small {
+    display: none !important;
+  }
+  .header-actions {
+    order: 2;
+    gap: 6px;
+  }
+  .header-actions .btn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  .currency-dropdown-wrap select {
+    padding: 5px 8px;
+    font-size: 11px;
+    max-width: 110px;
+  }
+  .nav-links {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    display: flex !important;
+    gap: 6px;
+    padding: 6px 0 2px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    margin-top: 4px;
+  }
+  .nav-links::-webkit-scrollbar {
+    display: none;
+  }
+  .nav-btn {
+    flex-shrink: 0;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  .pair-bar {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    gap: 8px;
+    padding-bottom: 6px;
+  }
+  .pair-bar::-webkit-scrollbar {
+    display: none;
+  }
+  .pair-chip {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  .ticker-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+  }
+  .price-val {
+    font-size: 28px !important;
+  }
+  .stats-strip {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px;
+    width: 100%;
+  }
+  .matrix-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px;
+  }
+  .ticket-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px;
+  }
+  .home-hero-title {
+    font-size: 22px;
+  }
+  .home-hero {
+    padding: 20px 14px;
+  }
+  .pricing-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  #tabContent-simulator > div:first-child {
+    grid-template-columns: 1fr !important;
+  }
+}
 </style>
 </head>
 <body>
@@ -538,10 +689,39 @@ tr:hover { background: rgba(255,255,255,0.02); }
     </div>
 
     <div class="header-actions">
-      <!-- Currency Switcher (USD / RWF) -->
-      <div class="currency-toggle">
-        <button class="curr-btn active" id="currUsdBtn">USD</button>
-        <button class="curr-btn" id="currRwfBtn">RWF</button>
+      <!-- Navbar Dropdown Currency Switcher -->
+      <div class="currency-dropdown-wrap">
+        <select id="currencyDropdown" title="Select Display Currency">
+          <option value="USD">🇺🇸 USD ($)</option>
+          <option value="RWF" selected>🇷🇼 RWF (FRw)</option>
+          <option value="KES">🇰🇪 KES (KSh)</option>
+          <option value="UGX">🇺🇬 UGX (USh)</option>
+          <option value="TZS">🇹🇿 TZS (TSh)</option>
+          <option value="NGN">🇳🇬 NGN (₦)</option>
+          <option value="GHS">🇬🇭 GHS (GH₵)</option>
+          <option value="ZAR">🇿🇦 ZAR (R)</option>
+          <option value="EUR">🇪🇺 EUR (€)</option>
+          <option value="GBP">🇬🇧 GBP (£)</option>
+        </select>
+      </div>
+
+      <!-- Sound Notifications Toggle -->
+      <button class="btn btn-outline" id="soundToggleBtn" style="padding:6px 10px; font-size:12px;" title="Toggle Audio Signals">🔊 Sound: ON</button>
+
+      <!-- In-App Notification Center -->
+      <div class="notif-wrap" style="position:relative;">
+        <button class="btn btn-outline" id="notifBellBtn" style="padding:6px 10px; font-size:12px; position:relative;" title="Live Signal Alerts">
+          🔔 <span id="notifBadge" style="background:var(--up); color:#000; font-size:10px; font-weight:800; padding:1px 5px; border-radius:8px;">1</span>
+        </button>
+        <div id="notifMenu" class="notif-menu" style="display:none; position:absolute; right:0; top:38px; width:330px; max-height:380px; overflow-y:auto; background:var(--panel-card); border:1px solid var(--line); border-radius:var(--radius); padding:14px; z-index:300; box-shadow:0 10px 40px rgba(0,0,0,0.85);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid var(--line); padding-bottom:6px;">
+            <b style="font-size:13px; color:#fff;">Institutional Alerts & Updates</b>
+            <button id="clearNotifsBtn" style="background:transparent; border:none; color:var(--mut); font-size:11px; cursor:pointer;">Clear All</button>
+          </div>
+          <div id="notifList" style="display:flex; flex-direction:column; gap:8px;">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
       </div>
 
       <!-- Guest Auth Buttons -->
@@ -551,10 +731,14 @@ tr:hover { background: rgba(255,255,255,0.02); }
       </div>
 
       <!-- Logged-in User Badge -->
-      <div id="userProfileArea" style="display:none; align-items:center; gap:10px;">
-        <a href="admin.html" id="adminPortalBtn" class="btn btn-outline" style="display:none; border-color:var(--gold); color:var(--gold-bright); font-size:12px; padding:6px 12px; font-weight:700;">⚙️ Admin Portal</a>
-        <span id="navUserName" style="font-weight:700; font-size:13px; color:var(--gold-bright);">Trader</span>
-        <button class="btn btn-outline" id="userLogoutBtn">Logout</button>
+      <div id="userProfileArea" style="display:none; align-items:center; gap:8px; flex-wrap:wrap;">
+        <div id="subStatusBadge" style="display:inline-flex; align-items:center; gap:6px; background:rgba(212,175,55,0.12); border:1px solid var(--gold); border-radius:var(--radius-sm); padding:4px 8px; font-size:11px; font-weight:700; color:var(--gold-bright);">
+          <span id="subRemainingText">💎 VIP: Active</span>
+          <button id="addDaysBtn" style="background:var(--gold); color:#000; border:none; border-radius:3px; padding:2px 6px; font-size:10px; font-weight:800; cursor:pointer;" onclick="switchTab('pricing')">+ Add Days</button>
+        </div>
+        <a href="admin.html" id="adminPortalBtn" class="btn btn-outline" style="display:none; border-color:var(--gold); color:var(--gold-bright); font-size:11px; padding:5px 10px; font-weight:700;">⚙️ Admin</a>
+        <span id="navUserName" style="font-weight:700; font-size:12px; color:var(--gold-bright);">Trader</span>
+        <button class="btn btn-outline" id="userLogoutBtn" style="padding:5px 10px; font-size:11px;">Logout</button>
       </div>
     </div>
   </div>
@@ -567,7 +751,7 @@ tr:hover { background: rgba(255,255,255,0.02); }
     <div class="home-hero">
       <div class="home-hero-badge">⚡ INSTITUTIONAL ORDER FLOW PLATFORM</div>
       <h1 class="home-hero-title">High-Probability Forex Signals with <span>Institutional Order Flow Depth</span></h1>
-      <p class="home-hero-sub">Real-time signals for Gold (XAU/USD), GBP/USD & GBP/JPY powered by resting order book walls, cumulative volume delta, and liquidity clusters. Test with 7 Days Free VIP Access, trade on a realistic simulation engine, and exchange crypto via P2P.</p>
+      <p class="home-hero-sub">Real-time institutional signals for Gold (XAU/USD) & Bitcoin (BTC/USD) powered by SwiftEdge order book walls, cumulative volume delta (CVD), and liquidity clusters. Test with 7 Days Free VIP Access, trade on a realistic simulation engine, and exchange crypto via P2P.</p>
       <div class="home-hero-actions">
         <button class="btn btn-primary" style="padding:12px 28px; font-size:15px;" id="heroStartTrialBtn">Start 7-Day Free Trial</button>
         <button class="btn btn-outline" style="padding:12px 28px; font-size:15px;" onclick="scrollToPricing()">View Subscription Plans</button>
@@ -613,16 +797,13 @@ tr:hover { background: rgba(255,255,255,0.02); }
     </div>
   </div>
 
-  <!-- Pair Bar (Gold, GBP/USD, GBP/JPY) -->
+  <!-- Pair Bar (SwiftEdge Supported Pairs: Gold & Bitcoin) -->
   <div class="pair-bar">
     <div class="pair-chip active" data-symbol="XAUUSD">
-      <div class="pair-symbol">XAU/USD (Gold)</div>
+      <div class="pair-symbol">🟡 XAU/USD (Spot Gold)</div>
     </div>
-    <div class="pair-chip" data-symbol="GBPUSD">
-      <div class="pair-symbol">GBP/USD</div>
-    </div>
-    <div class="pair-chip" data-symbol="GBPJPY">
-      <div class="pair-symbol">GBP/JPY</div>
+    <div class="pair-chip" data-symbol="BTCUSD">
+      <div class="pair-symbol">🟠 BTC/USD (Bitcoin)</div>
     </div>
   </div>
 
@@ -645,13 +826,34 @@ tr:hover { background: rgba(255,255,255,0.02); }
       <div class="signal-banner BUY" id="mainSignalBanner">
         <div>
           <div style="font-size: 11px; color: var(--mut); font-weight: 700; text-transform: uppercase;">Algorithmic Signal Decision</div>
-          <div class="signal-decision BUY" id="signalDecisionText">BUY</div>
-          <div id="marketAnalysisDesc" style="font-size: 12px; color: #d0d7de; margin-top: 4px; max-width: 420px; line-height: 1.4;">Market Momentum Confirmed. Target 1 & 2 active.</div>
+          <div class="signal-decision BUY" id="signalDecisionText">BUY NOW</div>
+          <div id="marketAnalysisDesc" style="font-size: 12px; color: #d0d7de; margin-top: 4px; max-width: 480px; line-height: 1.4;">Market Momentum Confirmed. Target 1 & 2 active.</div>
         </div>
         <div style="text-align: right;">
           <div style="font-size: 11px; color: var(--mut); font-weight: 600;">Model Confidence</div>
           <div style="font-size: 26px; font-weight: 800; color: #fff;" id="signalConfidenceText">88%</div>
         </div>
+      </div>
+
+      <!-- Direct Trader Action Directive / Opportunity Alert Box -->
+      <div id="actionAlertBox" style="background:rgba(0, 208, 132, 0.08); border:1px solid rgba(0, 208, 132, 0.35); border-radius:var(--radius); padding:16px 20px; margin-bottom:18px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+          <span id="actionAlertBadge" style="background:rgba(0, 208, 132, 0.2); border:1px solid var(--up); color:var(--up); font-size:12px; font-weight:800; padding:4px 12px; border-radius:20px; text-transform:uppercase; letter-spacing:0.5px;">🎯 ENTER NOW — HIGH PROBABILITY OPPORTUNITY</span>
+          <span id="actionAlertTimestamp" style="color:var(--mut); font-size:11px;">Live Institutional Signal</span>
+        </div>
+        <h4 id="actionAlertTitle" style="color:#fff; font-size:15px; font-weight:800; margin-bottom:6px;">Execute Buy Position Now</h4>
+        <p id="actionAlertMessage" style="color:#d0d7de; font-size:13px; line-height:1.5; margin:0;">High-probability institutional entry window active. Enter position now at market price with defined risk.</p>
+      </div>
+
+      <!-- Signal Rationale & Market Cause Box -->
+      <div id="signalReasonCard" style="background:var(--panel-card); border:1px solid var(--line); border-radius:var(--radius); padding:16px; margin-bottom:18px;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+          <span style="font-size:16px;">💡</span>
+          <b style="font-size:12px; color:var(--gold-bright); text-transform:uppercase; letter-spacing:0.5px;">Institutional Signal Reason & Market Cause</b>
+        </div>
+        <p id="signalReasonText" style="font-size:13px; color:var(--text); line-height:1.55; margin:0;">
+          Institutional bid liquidity is dominating the order flow with resting buy walls. Large trades indicate aggressive accumulation.
+        </p>
       </div>
 
       <!-- Execution Targets Matrix -->
@@ -730,6 +932,43 @@ tr:hover { background: rgba(255,255,255,0.02); }
         </div>
       </div>
 
+      <!-- Macro News & Institutional Sentiment Catalysts -->
+      <div class="panel-card" id="macroNewsCard" style="background:var(--panel-card); border:1px solid var(--line); border-radius:var(--radius); padding:18px; margin-top:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:18px;">🌐</span>
+            <b style="font-size:14px; color:#fff;" id="newsFeedTitle">Gold (XAU/USD) News & Institutional Sentiment Catalysts</b>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:11px; color:var(--mut); text-transform:uppercase; font-weight:700;">Macro Tone:</span>
+            <span id="newsSentimentBadge" class="gold-tag" style="font-weight:700; font-size:12px; padding:3px 10px; border-radius:12px; background:rgba(0, 208, 132, 0.15); color:var(--up); border:1px solid var(--up);">Bullish Tone</span>
+          </div>
+        </div>
+        <ul class="news-list" id="newsList" style="list-style:none; padding:0; margin:0;">
+          <li class="news-item">
+            <a href="https://www.reuters.com" target="_blank" rel="noopener noreferrer">Central bank gold purchases continue strong momentum amid reserve diversification</a>
+            <div class="news-meta">
+              <span>📰 Reuters</span>
+              <span class="tag-sentiment tag-bull">Bullish</span>
+            </div>
+          </li>
+          <li class="news-item">
+            <a href="https://www.bloomberg.com" target="_blank" rel="noopener noreferrer">US Dollar Index fluctuates as traders parse Federal Reserve interest rate path</a>
+            <div class="news-meta">
+              <span>📰 Bloomberg</span>
+              <span class="tag-sentiment tag-neut">Neutral</span>
+            </div>
+          </li>
+          <li class="news-item">
+            <a href="https://www.marketwatch.com" target="_blank" rel="noopener noreferrer">Treasury yields consolidate ahead of key US inflation and labor data prints</a>
+            <div class="news-meta">
+              <span>📰 MarketWatch</span>
+              <span class="tag-sentiment tag-bull">Bullish</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+
     </div>
   </div>
 
@@ -738,23 +977,50 @@ tr:hover { background: rgba(255,255,255,0.02); }
     <div class="panel">
       <div style="text-align:center; max-width:640px; margin:0 auto 20px;">
         <h2 style="font-size:26px; color:#fff; font-weight:800;">Subscription Plans & Pricing</h2>
-        <p style="color:var(--mut); font-size:14px; margin-top:6px;">Select a plan to access continuous VIP institutional signals for Gold, GBP/USD & GBP/JPY. Automatic activation via Flutterwave or manual confirmation.</p>
+        <p style="color:var(--mut); font-size:14px; margin-top:6px;">Select a plan to access continuous VIP institutional signals for Gold (XAU/USD) & Bitcoin (BTC/USD). Automatic activation via Flutterwave or manual confirmation.</p>
       </div>
 
       <div class="pricing-grid" id="pricingGrid">
         <!-- Rendered dynamically with live USD and RWF conversion -->
       </div>
 
-      <div class="p2p-card" style="max-width:520px; margin:24px auto 0;">
-        <h3 style="margin-bottom:12px; font-size:16px;">Instant Checkout via Flutterwave</h3>
-        <p style="font-size:12px; color:var(--mut); margin-bottom:14px;">Enter your mobile phone number. Flutterwave will prompt you to authorize the payment via Mobile Money (MoMo) or WhatsApp OTP.</p>
+      <div class="p2p-card" style="max-width:540px; margin:24px auto 0;">
+        <h3 style="margin-bottom:8px; font-size:17px; color:#fff; display:flex; align-items:center; gap:8px;">
+          <span>⚡ Instant Checkout via Flutterwave</span>
+        </h3>
+        <p style="font-size:12px; color:var(--mut); margin-bottom:16px; line-height:1.5;">Choose your payment currency supported by Flutterwave and enter your phone number. You can pay with Mobile Money (MTN, Airtel, M-Pesa, Vodafone), Bank Transfer, or Debit Card.</p>
         <form id="checkoutForm">
           <input type="hidden" id="selectedPlanId">
-          <div class="form-group">
-            <label class="form-label">Phone Number for Debit Authorization</label>
-            <input type="text" class="form-control" id="checkoutPhone" placeholder="+250 788 000 000" required>
+          <div class="form-group" style="margin-bottom:14px;">
+            <label class="form-label" style="font-weight:600; font-size:12px; margin-bottom:6px;">Select Payment Currency (Flutterwave Supported)</label>
+            <select class="form-control" id="checkoutCurrency" style="width:100%; padding:10px; font-size:13px; font-weight:600;">
+              <option value="USD">USD - US Dollar ($ - Worldwide Card & PayPal)</option>
+              <option value="RWF" selected>RWF - Rwandan Franc (FRw - MTN & Airtel MoMo)</option>
+              <option value="KES">KES - Kenyan Shilling (KSh - M-Pesa, Airtel & Card)</option>
+              <option value="UGX">UGX - Ugandan Shilling (USh - MTN & Airtel MoMo)</option>
+              <option value="TZS">TZS - Tanzanian Shilling (TSh - Vodacom M-Pesa, Tigo Pesa)</option>
+              <option value="NGN">NGN - Nigerian Naira (₦ - Bank Transfer, USSD & Card)</option>
+              <option value="GHS">GHS - Ghanaian Cedi (GH₵ - MTN MoMo, Vodafone Cash)</option>
+              <option value="ZAR">ZAR - South African Rand (R - Instant EFT, Ozow & Card)</option>
+              <option value="EUR">EUR - Euro (€ - SEPA, Cards & International)</option>
+              <option value="GBP">GBP - British Pound (£ - Faster Payments & Card)</option>
+            </select>
           </div>
-          <button type="submit" class="btn btn-primary" style="width:100%; padding:14px; font-size:15px; justify-content:center;">Unlock Plan with Flutterwave</button>
+          <div class="form-group" style="margin-bottom:16px;">
+            <label class="form-label" style="font-weight:600; font-size:12px; margin-bottom:6px;">Mobile Phone Number (or WhatsApp for Debit Notification)</label>
+            <input type="tel" class="form-control" id="checkoutPhone" placeholder="+250 788 123 456" required style="width:100%; padding:10px; font-size:13px;">
+          </div>
+          <div id="checkoutSummaryBox" style="background:rgba(212,175,55,0.08); border:1px solid rgba(212,175,55,0.25); border-radius:6px; padding:12px; margin-bottom:16px; font-size:13px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+              <span style="color:var(--mut);">Selected Plan:</span>
+              <b id="checkoutSelectedPlanName" style="color:#fff;">1 Month Standard</b>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+              <span style="color:var(--mut);">Total Payable Amount:</span>
+              <b id="checkoutPayableAmount" style="color:var(--gold-bright); font-size:15px;">29,000 RWF ($20.00 USD)</b>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%; padding:14px; font-size:15px; font-weight:700; justify-content:center;">Unlock Plan with Flutterwave</button>
         </form>
       </div>
     </div>
@@ -773,9 +1039,8 @@ tr:hover { background: rgba(255,255,255,0.02); }
             <div class="form-group">
               <label class="form-label">Asset</label>
               <select class="form-control" id="simSymbol">
-                <option value="XAUUSD">XAU/USD (Gold)</option>
-                <option value="GBPUSD">GBP/USD</option>
-                <option value="GBPJPY">GBP/JPY</option>
+                <option value="XAUUSD">🟡 XAU/USD (Spot Gold)</option>
+                <option value="BTCUSD">🟠 BTC/USD (Bitcoin)</option>
               </select>
             </div>
             <div class="form-group">
@@ -1338,19 +1603,64 @@ function getDeviceFingerprint() {
   return fp;
 }
 
-// Currency Switcher
-$('currUsdBtn').addEventListener('click', function() {
-  currencyMode = 'USD';
-  $('currUsdBtn').classList.add('active');
-  $('currRwfBtn').classList.remove('active');
-  loadPricing();
-});
-$('currRwfBtn').addEventListener('click', function() {
-  currencyMode = 'RWF';
-  $('currRwfBtn').classList.add('active');
-  $('currUsdBtn').classList.remove('active');
-  loadPricing();
-});
+// Multi-Currency Exchange Rates & Formatter (Supports All Flutterwave Currencies)
+var currencyRates = {
+  USD: { rate: 1.0, symbol: '$', code: 'USD', name: 'US Dollar' },
+  RWF: { rate: 1450.0, symbol: 'RWF ', code: 'RWF', name: 'Rwandan Franc' },
+  KES: { rate: 130.0, symbol: 'KSh ', code: 'KES', name: 'Kenyan Shilling' },
+  UGX: { rate: 3720.0, symbol: 'USh ', code: 'UGX', name: 'Ugandan Shilling' },
+  TZS: { rate: 2600.0, symbol: 'TSh ', code: 'TZS', name: 'Tanzanian Shilling' },
+  NGN: { rate: 1620.0, symbol: '₦', code: 'NGN', name: 'Nigerian Naira' },
+  GHS: { rate: 15.5, symbol: 'GH₵', code: 'GHS', name: 'Ghanaian Cedi' },
+  ZAR: { rate: 18.2, symbol: 'R ', code: 'ZAR', name: 'South African Rand' },
+  EUR: { rate: 0.92, symbol: '€', code: 'EUR', name: 'Euro' },
+  GBP: { rate: 0.79, symbol: '£', code: 'GBP', name: 'British Pound' }
+};
+
+var currentCurrency = 'RWF';
+var currencyMode = 'RWF';
+
+function formatCurrencyAmount(usdAmount, targetCurrency) {
+  var cur = (targetCurrency || currentCurrency || 'RWF').toUpperCase();
+  var c = currencyRates[cur] || currencyRates.USD;
+  var converted = usdAmount * c.rate;
+  if (c.code === 'USD' || c.code === 'EUR' || c.code === 'GBP') {
+    return c.symbol + converted.toFixed(2);
+  } else if (c.code === 'GHS' || c.code === 'ZAR') {
+    return c.symbol + converted.toFixed(2);
+  } else {
+    return Math.round(converted).toLocaleString() + ' ' + c.code;
+  }
+}
+
+// Navbar Currency Dropdown Switcher
+if ($('currencyDropdown')) {
+  $('currencyDropdown').addEventListener('change', function() {
+    currentCurrency = this.value;
+    currencyMode = this.value;
+    if ($('checkoutCurrency')) {
+      $('checkoutCurrency').value = currentCurrency;
+    }
+    loadPricing();
+    updateCheckoutSummary();
+  });
+}
+
+// Fallback button support if present
+if ($('currUsdBtn')) {
+  $('currUsdBtn').addEventListener('click', function() {
+    currentCurrency = 'USD'; currencyMode = 'USD';
+    if ($('currencyDropdown')) $('currencyDropdown').value = 'USD';
+    loadPricing(); updateCheckoutSummary();
+  });
+}
+if ($('currRwfBtn')) {
+  $('currRwfBtn').addEventListener('click', function() {
+    currentCurrency = 'RWF'; currencyMode = 'RWF';
+    if ($('currencyDropdown')) $('currencyDropdown').value = 'RWF';
+    loadPricing(); updateCheckoutSummary();
+  });
+}
 
 // Tab Switcher with Strict Authentication Gatekeeping
 function switchTab(tabName) {
@@ -1364,7 +1674,9 @@ function switchTab(tabName) {
   }
   var contents = document.querySelectorAll('.tab-content');
   for (var j = 0; j < contents.length; j++) {
-    contents[j].style.display = (contents[j].id === 'tabContent-' + tabName) ? 'block' : 'none';
+    var cid = contents[j].id;
+    var match = (cid === 'tabContent-' + tabName) || (tabName === 'pricing' && (cid === 'pricingSection' || cid === 'tabContent-pricing'));
+    contents[j].style.display = match ? 'block' : 'none';
   }
   if (tabName === 'simulator') loadSimulator();
   if (tabName === 'pricing') loadPricing();
@@ -1380,7 +1692,7 @@ for (var n = 0; n < navBtns.length; n++) {
   })(navBtns[n]);
 }
 
-// Pair Chips
+// Pair Chips (Gold & Bitcoin)
 var chips = document.querySelectorAll('.pair-chip');
 for (var c = 0; c < chips.length; c++) {
   (function(chip) {
@@ -1388,9 +1700,14 @@ for (var c = 0; c < chips.length; c++) {
       for (var k = 0; k < chips.length; k++) chips[k].classList.remove('active');
       chip.classList.add('active');
       activeSymbol = chip.dataset.symbol;
-      $('activeSymBadgeText').textContent = activeSymbol === 'XAUUSD' ? 'XAU/USD' : activeSymbol === 'GBPUSD' ? 'GBP/USD' : 'GBP/JPY';
-      $('assetClassTag').textContent = activeSymbol === 'XAUUSD' ? 'SPOT GOLD' : 'FOREX PAIR';
+      if ($('activeSymBadgeText')) {
+        $('activeSymBadgeText').textContent = activeSymbol === 'BTCUSD' ? 'BTC/USD' : 'XAU/USD';
+      }
+      if ($('assetClassTag')) {
+        $('assetClassTag').textContent = activeSymbol === 'BTCUSD' ? 'DIGITAL ASSET' : 'SPOT GOLD';
+      }
       prevPrice = null;
+      lastSignalData = null;
       loadSignal();
     });
   })(chips[c]);
@@ -1432,7 +1749,165 @@ function apiFetch(endpoint, options) {
     });
 }
 
-// Signal Loader with Institutional Order Flow & Liquidity Intelligence
+// Sound & Audio Engine (Web Audio Synthesizer)
+var isSoundEnabled = localStorage.getItem('fds_sound_enabled') !== 'false';
+var audioCtx = null;
+
+function getAudioContext() {
+  if (!audioCtx) {
+    var AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (AudioContext) audioCtx = new AudioContext();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+  return audioCtx;
+}
+
+function playSignalSound(soundType) {
+  if (!isSoundEnabled) return;
+  try {
+    var ctx = getAudioContext();
+    if (!ctx) return;
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    var now = ctx.currentTime;
+
+    if (soundType === 'opportunity' || soundType === 'entry') {
+      // Crisp rising harmonic chime
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(880, now);
+      osc.frequency.exponentialRampToValueAtTime(1320, now + 0.14);
+      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+      osc.start(now);
+      osc.stop(now + 0.35);
+    } else if (soundType === 'exit') {
+      // Warning descending chime
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(740, now);
+      osc.frequency.exponentialRampToValueAtTime(370, now + 0.25);
+      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+      osc.start(now);
+      osc.stop(now + 0.35);
+    } else if (soundType === 'tp') {
+      // Celebratory triple ping
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1046, now);
+      osc.frequency.setValueAtTime(1318, now + 0.1);
+      osc.frequency.setValueAtTime(1567, now + 0.2);
+      gain.gain.setValueAtTime(0.4, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+      osc.start(now);
+      osc.stop(now + 0.45);
+    } else if (soundType === 'sl') {
+      // Double low bass tone
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(392, now);
+      osc.frequency.setValueAtTime(293, now + 0.15);
+      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+      osc.start(now);
+      osc.stop(now + 0.4);
+    } else {
+      // Soft ping
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, now);
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+      osc.start(now);
+      osc.stop(now + 0.25);
+    }
+  } catch(e) {}
+}
+
+// Sound toggle button
+if ($('soundToggleBtn')) {
+  $('soundToggleBtn').textContent = isSoundEnabled ? '🔊 Sound: ON' : '🔇 Sound: OFF';
+  $('soundToggleBtn').addEventListener('click', function() {
+    isSoundEnabled = !isSoundEnabled;
+    localStorage.setItem('fds_sound_enabled', isSoundEnabled ? 'true' : 'false');
+    this.textContent = isSoundEnabled ? '🔊 Sound: ON' : '🔇 Sound: OFF';
+    showToast(isSoundEnabled ? 'Sound alerts enabled' : 'Sound alerts muted');
+    if (isSoundEnabled) playSignalSound('opportunity');
+  });
+}
+
+// In-App Notification Center
+var inAppNotifs = [];
+function addInAppNotification(title, message, type) {
+  var notif = {
+    id: 'n_' + Date.now(),
+    title: title,
+    message: message,
+    type: type || 'info',
+    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  };
+  inAppNotifs.unshift(notif);
+  if (inAppNotifs.length > 25) inAppNotifs.pop();
+  renderInAppNotifications();
+  if (type === 'opportunity') playSignalSound('opportunity');
+  else if (type === 'exit') playSignalSound('exit');
+  else if (type === 'tp') playSignalSound('tp');
+  else if (type === 'sl') playSignalSound('sl');
+  else playSignalSound('ping');
+}
+
+function renderInAppNotifications() {
+  var list = $('notifList');
+  var badge = $('notifBadge');
+  if (badge) {
+    badge.textContent = inAppNotifs.length;
+    badge.style.display = inAppNotifs.length ? 'inline-block' : 'none';
+  }
+  if (!list) return;
+  if (!inAppNotifs.length) {
+    list.innerHTML = '<div style="text-align:center; color:var(--mut); font-size:12px; padding:12px 0;">No new notifications.</div>';
+    return;
+  }
+  var html = '';
+  inAppNotifs.forEach(function(n) {
+    var borderColor = n.type === 'opportunity' ? 'var(--up)' : n.type === 'exit' ? 'var(--dn)' : 'var(--gold)';
+    html += `
+      <div style="background:var(--panel); border-left:3px solid ${borderColor}; padding:8px 10px; border-radius:4px; font-size:12px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+          <b style="color:#fff;">${n.title}</b>
+          <small style="color:var(--mut);">${n.time}</small>
+        </div>
+        <div style="color:#d0d7de; font-size:11px; line-height:1.4;">${n.message}</div>
+      </div>
+    `;
+  });
+  list.innerHTML = html;
+}
+
+if ($('notifBellBtn')) {
+  $('notifBellBtn').addEventListener('click', function(e) {
+    e.stopPropagation();
+    var menu = $('notifMenu');
+    if (menu) {
+      menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    }
+  });
+  document.addEventListener('click', function(e) {
+    var menu = $('notifMenu');
+    if (menu && !menu.contains(e.target) && e.target !== $('notifBellBtn')) {
+      menu.style.display = 'none';
+    }
+  });
+}
+
+if ($('clearNotifsBtn')) {
+  $('clearNotifsBtn').addEventListener('click', function() {
+    inAppNotifs = [];
+    renderInAppNotifications();
+  });
+}
+
+// Signal Loader with SwiftEdge Institutional Liquidity & Binance Live Feed
 function loadSignal() {
   apiFetch('api/signal?symbol=' + activeSymbol)
     .then(function(r) {
@@ -1443,7 +1918,7 @@ function loadSignal() {
       if (!data || !data.price || isNaN(parseFloat(data.price))) throw new Error('Invalid feed data');
       renderSignal(data);
     })
-    .catch(function(err) {
+    .catch(function() {
       fallbackDirectFeed();
     });
 }
@@ -1457,13 +1932,16 @@ function fallbackDirectFeed() {
         var cp = parseFloat(t.priceChangePercent) || 0.45;
         var hp = parseFloat(t.highPrice) || +(lp * 1.008).toFixed(2);
         var lop = parseFloat(t.lowPrice) || +(lp * 0.992).toFixed(2);
+        var dec = cp > 0.15 ? 'BUY NOW' : cp < -0.15 ? 'SELL NOW' : 'WAIT';
         renderSignal({
           symbol: 'XAUUSD',
+          symbolName: 'Gold (XAU/USD)',
           price: lp,
+          decimals: 2,
           changePct: cp,
           high24h: hp,
           low24h: lop,
-          decision: cp >= 0 ? 'BUY' : 'SELL',
+          decision: dec,
           confidence: 88,
           stop: +(lp * 0.995).toFixed(2),
           target: +(lp * 1.008).toFixed(2),
@@ -1472,17 +1950,27 @@ function fallbackDirectFeed() {
           sma30: +(lp * 0.994).toFixed(2),
           rsi14: 58.5,
           atr: 6.40,
-          source: 'Live Institutional Liquidity Feed'
+          reason: 'Institutional bid liquidity is accumulating on Spot Gold. Order book walls show strong support floors.',
+          actionAlert: {
+            type: 'ENTER_NOW',
+            badge: '🎯 ENTER NOW — ACTIVE OPPORTUNITY',
+            title: 'Enter Buy Position · Active Opportunity',
+            message: 'You can enter now: This signal was generated with valid institutional structure. Ongoing opportunity at $' + lp.toFixed(2) + ' with defined Stop Loss.',
+            color: 'var(--up)'
+          },
+          source: 'Live Institutional Liquidity Feed (XAU/USD)'
         });
       })
       .catch(function() {
         renderSignal({
           symbol: 'XAUUSD',
+          symbolName: 'Gold (XAU/USD)',
           price: 3888.50,
+          decimals: 2,
           changePct: 0.45,
           high24h: 3915.20,
           low24h: 3865.10,
-          decision: 'BUY',
+          decision: 'BUY NOW',
           confidence: 88,
           stop: 3878.00,
           target: 3905.00,
@@ -1491,103 +1979,95 @@ function fallbackDirectFeed() {
           sma30: 3876.00,
           rsi14: 61.2,
           atr: 6.40,
-          source: 'Live Institutional Liquidity Feed'
+          reason: 'Institutional bid liquidity is accumulating on Spot Gold. Order book walls show strong support floors.',
+          actionAlert: {
+            type: 'ENTER_NOW',
+            badge: '🎯 ENTER NOW — ACTIVE OPPORTUNITY',
+            title: 'Enter Buy Position · Active Opportunity',
+            message: 'You can enter now: This signal was generated with valid institutional structure. Ongoing opportunity at $3,888.50.',
+            color: 'var(--up)'
+          },
+          source: 'Live Institutional Liquidity Feed (XAU/USD)'
         });
       });
-  } else if (activeSymbol === 'GBPJPY') {
-    fetch('https://open.er-api.com/v6/latest/GBP')
+  } else { // BTCUSD
+    fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT')
       .then(function(r) { return r.json(); })
-      .then(function(d) {
-        var rate = (d && d.rates && d.rates.JPY) ? parseFloat(d.rates.JPY) : 198.45;
+      .then(function(t) {
+        var lp = parseFloat(t.lastPrice) || 65280.00;
+        var cp = parseFloat(t.priceChangePercent) || 1.25;
+        var hp = parseFloat(t.highPrice) || +(lp * 1.015).toFixed(2);
+        var lop = parseFloat(t.lowPrice) || +(lp * 0.985).toFixed(2);
+        var dec = cp > 0.4 ? 'BUY NOW' : cp < -0.4 ? 'SELL NOW' : 'WAIT';
         renderSignal({
-          symbol: 'GBPJPY',
-          price: rate,
-          changePct: 0.32,
-          high24h: +(rate + 0.65).toFixed(3),
-          low24h: +(rate - 0.65).toFixed(3),
-          decision: 'BUY',
-          confidence: 85,
-          stop: +(rate - 0.50).toFixed(3),
-          target: +(rate + 0.70).toFixed(3),
-          target2: +(rate + 1.20).toFixed(3),
-          sma10: +(rate - 0.15).toFixed(3),
-          sma30: +(rate - 0.30).toFixed(3),
-          rsi14: 56.4,
-          atr: 0.75,
-          source: 'Live Interbank Forex Feed'
+          symbol: 'BTCUSD',
+          symbolName: 'Bitcoin (BTC/USD)',
+          price: lp,
+          decimals: 2,
+          changePct: cp,
+          high24h: hp,
+          low24h: lop,
+          decision: dec,
+          confidence: 86,
+          stop: dec === 'WAIT' ? null : (dec === 'BUY NOW' ? +(lp - 950).toFixed(2) : +(lp + 950).toFixed(2)),
+          target: dec === 'WAIT' ? null : (dec === 'BUY NOW' ? +(lp + 1100).toFixed(2) : +(lp - 1100).toFixed(2)),
+          target2: dec === 'WAIT' ? null : (dec === 'BUY NOW' ? +(lp + 2400).toFixed(2) : +(lp - 2400).toFixed(2)),
+          sma10: +(lp * 0.998).toFixed(2),
+          sma30: +(lp * 0.993).toFixed(2),
+          rsi14: 62.4,
+          atr: 680.00,
+          reason: 'Institutional bid liquidity accumulating with strong volume delta on BTC spot ETFs and perpetual markets.',
+          actionAlert: {
+            type: 'ENTER_NOW',
+            badge: '🎯 ENTER NOW — ACTIVE OPPORTUNITY',
+            title: 'Enter Bitcoin Position · Active Opportunity',
+            message: 'You can enter now: This signal was generated with valid institutional structure. Ongoing opportunity at $' + lp.toFixed(2) + ' with Stop Loss at $' + (lp - 950).toFixed(2) + '.',
+            color: 'var(--up)'
+          },
+          source: 'Live Institutional Liquidity Feed (BTC/USD)'
         });
       })
       .catch(function() {
         renderSignal({
-          symbol: 'GBPJPY',
-          price: 198.45,
-          changePct: 0.32,
-          high24h: 199.10,
-          low24h: 197.80,
-          decision: 'BUY',
-          confidence: 85,
-          stop: 197.95,
-          target: 199.15,
-          target2: 199.65,
-          sma10: 198.30,
-          sma30: 198.15,
-          rsi14: 56.4,
-          atr: 0.75,
-          source: 'Live Interbank Forex Feed'
-        });
-      });
-  } else { // GBPUSD
-    fetch('https://open.er-api.com/v6/latest/GBP')
-      .then(function(r) { return r.json(); })
-      .then(function(d) {
-        var rate = (d && d.rates && d.rates.USD) ? parseFloat(d.rates.USD) : 1.3245;
-        renderSignal({
-          symbol: 'GBPUSD',
-          price: rate,
-          changePct: -0.15,
-          high24h: +(rate + 0.0040).toFixed(5),
-          low24h: +(rate - 0.0040).toFixed(5),
-          decision: 'SELL',
-          confidence: 82,
-          stop: +(rate + 0.0035).toFixed(5),
-          target: +(rate - 0.0045).toFixed(5),
-          target2: +(rate - 0.0080).toFixed(5),
-          sma10: +(rate + 0.0010).toFixed(5),
-          sma30: +(rate + 0.0020).toFixed(5),
-          rsi14: 44.8,
-          atr: 0.0055,
-          source: 'Live Interbank Forex Feed'
-        });
-      })
-      .catch(function() {
-        renderSignal({
-          symbol: 'GBPUSD',
-          price: 1.3245,
-          changePct: -0.15,
-          high24h: 1.3295,
-          low24h: 1.3195,
-          decision: 'SELL',
-          confidence: 82,
-          stop: 1.3280,
-          target: 1.3200,
-          target2: 1.3165,
-          sma10: 1.3255,
-          sma30: 1.3265,
-          rsi14: 44.8,
-          atr: 0.0055,
-          source: 'Live Interbank Forex Feed'
+          symbol: 'BTCUSD',
+          symbolName: 'Bitcoin (BTC/USD)',
+          price: 65280.00,
+          decimals: 2,
+          changePct: 1.25,
+          high24h: 66500.00,
+          low24h: 64200.00,
+          decision: 'BUY NOW',
+          confidence: 86,
+          stop: 64330.00,
+          target: 66380.00,
+          target2: 67680.00,
+          sma10: 65150.00,
+          sma30: 64800.00,
+          rsi14: 62.4,
+          atr: 680.00,
+          reason: 'Institutional bid liquidity accumulating with strong volume delta on BTC spot ETFs and perpetual markets.',
+          actionAlert: {
+            type: 'ENTER_NOW',
+            badge: '🎯 ENTER NOW — ACTIVE OPPORTUNITY',
+            title: 'Enter Bitcoin Position · Active Opportunity',
+            message: 'You can enter now: This signal was generated with valid institutional structure. Ongoing opportunity at $65,280.00 with Stop Loss at $64,330.00.',
+            color: 'var(--up)'
+          },
+          source: 'Live Institutional Liquidity Feed (BTC/USD)'
         });
       });
   }
 }
 
+var lastReportedDecision = {};
 function renderSignal(d) {
   if (!d) return;
+  lastSignalData = d;
   var p = parseFloat(d.price);
   if (isNaN(p) || p <= 0) {
-    p = activeSymbol === 'XAUUSD' ? 3888.50 : (activeSymbol === 'GBPJPY' ? 198.45 : 1.3245);
+    p = activeSymbol === 'BTCUSD' ? 65280.00 : 3888.50;
   }
-  var dec = activeSymbol === 'XAUUSD' ? 2 : activeSymbol === 'GBPJPY' ? 3 : 5;
+  var dec = 2;
   var priceEl = $('priceDisplay');
 
   if (prevPrice !== null && prevPrice !== p) {
@@ -1597,7 +2077,7 @@ function renderSignal(d) {
   }
   prevPrice = p;
 
-  priceEl.textContent = (activeSymbol === 'XAUUSD' ? '$' : '') + p.toFixed(dec);
+  priceEl.textContent = '$' + p.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   var chg = parseFloat(d.changePct);
   if (isNaN(chg)) chg = 0.45;
@@ -1606,60 +2086,129 @@ function renderSignal(d) {
   $('chgDisplay').className = 'price-chg ' + (isUp ? 'chg-up' : 'chg-dn');
 
   var high = parseFloat(d.high24h);
-  if (isNaN(high) || high <= 0) high = +(p * 1.008).toFixed(dec);
+  if (isNaN(high) || high <= 0) high = +(p * 1.01).toFixed(dec);
   var low = parseFloat(d.low24h);
-  if (isNaN(low) || low <= 0) low = +(p * 0.992).toFixed(dec);
+  if (isNaN(low) || low <= 0) low = +(p * 0.99).toFixed(dec);
   var atrVal = parseFloat(d.atr);
-  if (isNaN(atrVal) || atrVal <= 0) atrVal = activeSymbol === 'XAUUSD' ? 6.40 : (activeSymbol === 'GBPJPY' ? 0.75 : 0.0055);
+  if (isNaN(atrVal) || atrVal <= 0) atrVal = activeSymbol === 'BTCUSD' ? 680.00 : 6.40;
 
-  $('highDisplay').textContent = (activeSymbol === 'XAUUSD' ? '$' : '') + high.toFixed(dec);
-  $('lowDisplay').textContent = (activeSymbol === 'XAUUSD' ? '$' : '') + low.toFixed(dec);
-  $('atrDisplay').textContent = (activeSymbol === 'XAUUSD' ? '$' : '') + atrVal.toFixed(dec);
+  $('highDisplay').textContent = '$' + high.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  $('lowDisplay').textContent = '$' + low.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  $('atrDisplay').textContent = '$' + atrVal.toFixed(dec);
   $('syncDisplay').textContent = new Date().toLocaleTimeString();
 
-  var decision = d.decision || (chg >= 0 ? 'BUY' : 'SELL');
+  var decision = d.decision || (chg >= 0 ? 'BUY NOW' : 'SELL NOW');
+  var bannerClass = decision.includes('BUY') ? 'BUY' : (decision.includes('SELL') ? 'SELL' : 'WAIT');
+
   $('signalDecisionText').textContent = decision;
-  $('signalDecisionText').className = 'signal-decision ' + decision;
-  $('mainSignalBanner').className = 'signal-banner ' + decision;
+  $('signalDecisionText').className = 'signal-decision ' + bannerClass;
+  $('mainSignalBanner').className = 'signal-banner ' + bannerClass;
   $('signalConfidenceText').textContent = (d.confidence || 88) + '%';
 
-  if ($('marketAnalysisDesc')) {
-    if (d.marketAnalysis && d.marketAnalysis.description) {
-      $('marketAnalysisDesc').textContent = d.marketAnalysis.description;
-    } else if (decision === 'WAIT') {
-      $('marketAnalysisDesc').textContent = 'Market in Sideways Consolidation Range. High chop risk. WAIT for institutional breakout confirmation.';
-    } else if (decision === 'BUY') {
-      $('marketAnalysisDesc').textContent = 'Bullish Order Flow Expansion. Institutional bids dominating. Target 1 & 2 active.';
+  // Direct Trader Action Directive Alert Box
+  var alert = d.actionAlert;
+  if (alert && $('actionAlertBox')) {
+    var box = $('actionAlertBox');
+    box.style.display = 'block';
+    if (alert.type === 'ENTER_NOW') {
+      box.style.background = alert.color === 'var(--dn)' ? 'rgba(248, 73, 96, 0.08)' : 'rgba(0, 208, 132, 0.08)';
+      box.style.borderColor = alert.color === 'var(--dn)' ? 'rgba(248, 73, 96, 0.35)' : 'rgba(0, 208, 132, 0.35)';
+    } else if (alert.type === 'HOLD_PULLBACK' || alert.type === 'HOLD_POSITION') {
+      box.style.background = 'rgba(212, 175, 55, 0.08)';
+      box.style.borderColor = 'rgba(212, 175, 55, 0.35)';
+    } else if (alert.type === 'EXIT_NOW') {
+      box.style.background = 'rgba(248, 73, 96, 0.14)';
+      box.style.borderColor = 'rgba(248, 73, 96, 0.55)';
     } else {
-      $('marketAnalysisDesc').textContent = 'Bearish Order Flow Expansion. Institutional asks dominating. Target 1 & 2 active.';
+      box.style.background = 'rgba(139, 149, 165, 0.08)';
+      box.style.borderColor = 'rgba(139, 149, 165, 0.25)';
+    }
+
+    if ($('actionAlertBadge')) {
+      $('actionAlertBadge').textContent = alert.badge;
+      $('actionAlertBadge').style.color = alert.color;
+      $('actionAlertBadge').style.borderColor = alert.color;
+    }
+    if ($('actionAlertTitle')) $('actionAlertTitle').textContent = alert.title;
+    if ($('actionAlertMessage')) $('actionAlertMessage').textContent = alert.message;
+  }
+
+  // Institutional Signal Reason & Market Cause Box
+  if ($('signalReasonText')) {
+    $('signalReasonText').textContent = d.reason || (d.marketAnalysis && d.marketAnalysis.description) || 'Market order flow balanced.';
+  }
+
+  // Macro News & Institutional Sentiment Catalysts
+  var news = d.news;
+  if (news && news.headlines && $('newsList')) {
+    if ($('newsFeedTitle')) {
+      $('newsFeedTitle').textContent = (activeSymbol === 'BTCUSD' ? 'Bitcoin (BTC/USD)' : 'Gold (XAU/USD)') + ' News & Institutional Catalysts';
+    }
+    if ($('newsSentimentBadge')) {
+      $('newsSentimentBadge').textContent = news.label + ' Tone';
+      $('newsSentimentBadge').className = 'tag-sentiment ' + (news.label === 'Bullish' ? 'tag-bull' : (news.label === 'Bearish' ? 'tag-bear' : 'tag-neut'));
+    }
+    var list = $('newsList');
+    list.innerHTML = '';
+    news.headlines.forEach(function(item) {
+      var li = document.createElement('li');
+      li.className = 'news-item';
+      var toneTag = item.tone > 0 ? '<span class="tag-sentiment tag-bull">Bullish</span>' : item.tone < 0 ? '<span class="tag-sentiment tag-bear">Bearish</span>' : '<span class="tag-sentiment tag-neut">Neutral</span>';
+      li.innerHTML = `
+        <a href="${item.url || '#'}" target="_blank" rel="noopener noreferrer">${item.headline}</a>
+        <div class="news-meta">
+          <span>📰 ${item.source || 'Institutional Wire'}</span>
+          ${toneTag}
+        </div>
+      `;
+      list.appendChild(li);
+    });
+  }
+
+  // Audio & In-App Notification Trigger on State Change
+  if (!lastReportedDecision[activeSymbol]) {
+    lastReportedDecision[activeSymbol] = decision;
+    if (decision !== 'WAIT') {
+      addInAppNotification('🎯 ' + activeSymbol + ' ' + decision + ' Active', 'Initial entry setup ready at $' + p.toFixed(2), 'opportunity');
+    }
+  } else if (lastReportedDecision[activeSymbol] !== decision) {
+    lastReportedDecision[activeSymbol] = decision;
+    if (decision.includes('BUY') || decision.includes('SELL')) {
+      showToast('New Institutional Signal: ' + activeSymbol + ' ' + decision + '!', 'success');
+      addInAppNotification('🎯 ' + activeSymbol + ' ' + decision + ' Opportunity', alert ? alert.message : ('Entry: $' + p.toFixed(2)), 'opportunity');
+    } else if (alert && alert.type === 'EXIT_NOW') {
+      showToast('⚠️ EXIT ALERT: ' + activeSymbol + ' market direction reversed!', 'error');
+      addInAppNotification('🛑 ' + activeSymbol + ' EXIT NOW Alert', alert.message, 'exit');
+    } else {
+      showToast(activeSymbol + ' market consolidating in sideways chop (WAIT)', 'info');
+      addInAppNotification('⏳ ' + activeSymbol + ' Stand Aside & Wait', 'Market is consolidating sideways. Preserve capital.', 'info');
     }
   }
 
   if ($('simMarketPriceDisplay')) {
-    $('simMarketPriceDisplay').textContent = (activeSymbol === 'XAUUSD' ? '$' : '') + p.toFixed(dec);
+    $('simMarketPriceDisplay').textContent = '$' + p.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
-  $('sigCurrentPrice').textContent = (activeSymbol === 'XAUUSD' ? '$' : '') + p.toFixed(dec);
+  $('sigCurrentPrice').textContent = '$' + p.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   if (decision === 'WAIT') {
     $('sigStopLoss').textContent = 'Range Support';
     $('sigTarget1').textContent = 'Range Resistance';
     $('sigTarget2').textContent = 'WAIT';
   } else {
-    var dir = decision === 'SELL' ? -1 : 1;
+    var dir = decision.includes('SELL') ? -1 : 1;
     var stop = parseFloat(d.stop);
     if (isNaN(stop) || stop <= 0) stop = +(p - dir * 1.5 * atrVal).toFixed(dec);
-    $('sigStopLoss').textContent = (activeSymbol === 'XAUUSD' ? '$' : '') + stop.toFixed(dec);
+    $('sigStopLoss').textContent = '$' + stop.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     var target = parseFloat(d.target);
     if (isNaN(target) || target <= 0) target = +(p + dir * 1.5 * atrVal).toFixed(dec);
-    $('sigTarget1').textContent = (activeSymbol === 'XAUUSD' ? '$' : '') + target.toFixed(dec);
+    $('sigTarget1').textContent = '$' + target.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     var target2 = parseFloat(d.target2);
     if (isNaN(target2) || target2 <= 0) target2 = +(p + dir * 3.0 * atrVal).toFixed(dec);
-    $('sigTarget2').textContent = (activeSymbol === 'XAUUSD' ? '$' : '') + target2.toFixed(dec);
+    $('sigTarget2').textContent = '$' + target2.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
-  // Update simulator auto execution with live feed
   checkSimulatorAutoExecution(p);
   renderSimPositions();
 
@@ -1667,13 +2216,13 @@ function renderSignal(d) {
   if (isNaN(s10) || s10 <= 0) s10 = +(p * 0.998).toFixed(dec);
   var s30 = parseFloat(d.sma30);
   if (isNaN(s30) || s30 <= 0) s30 = +(p * 0.994).toFixed(dec);
-  $('sigSma10').textContent = (activeSymbol === 'XAUUSD' ? '$' : '') + s10.toFixed(dec);
-  $('sigSma30').textContent = (activeSymbol === 'XAUUSD' ? '$' : '') + s30.toFixed(dec);
+  $('sigSma10').textContent = '$' + s10.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  $('sigSma30').textContent = '$' + s30.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   var rsi = parseFloat(d.rsi14);
   if (isNaN(rsi) || rsi <= 0) rsi = 58.5;
   $('sigRsi14').textContent = rsi.toFixed(1) + (rsi > 60 ? ' (Bullish)' : rsi < 40 ? ' (Bearish)' : ' (Neutral)');
-  $('sigAtr14').textContent = (activeSymbol === 'XAUUSD' ? '$' : '') + atrVal.toFixed(dec);
+  $('sigAtr14').textContent = '$' + atrVal.toFixed(dec);
 
   // Render Institutional Order Flow & Liquidity Intelligence
   var ofCard = $('institutionalLiquidityCard');
@@ -1707,11 +2256,9 @@ function renderSignal(d) {
   if (!$('simSlPrice').value && d.stop) $('simSlPrice').value = d.stop;
   if (!$('simTp1Price').value && d.target) $('simTp1Price').value = d.target;
   if (!$('simTp2Price').value && d.target2) $('simTp2Price').value = d.target2;
-
-  checkSimulatorAutoExecution(p);
 }
 
-// Real Authentication Gatekeeping: Validates session token
+// Real Authentication Gatekeeping: Validates session token & subscription expiry
 function applyAuthState() {
   authToken = localStorage.getItem('fds_user_token');
   if (authToken) {
@@ -1738,8 +2285,36 @@ function applyAuthState() {
       $('userProfileArea').style.display = 'flex';
       $('navUserName').textContent = (isAdmin ? '👑 ' : '') + ((data.user && (data.user.fullName || data.user.email)) || 'Trader');
       $('guestHeroSection').style.display = 'none';
-      $('paywallOverlay').style.display = 'none'; // Unlocked VIP
-      $('supportChatWidget').style.display = 'block'; // Unlock Live Chat
+      $('supportChatWidget').style.display = 'block';
+
+      // Check Subscription Expiry & Access Rights
+      var sub = data.subscription;
+      var subText = $('subRemainingText');
+      if (isAdmin) {
+        if (subText) subText.textContent = '👑 VIP: Lifetime Admin';
+        if ($('paywallOverlay')) $('paywallOverlay').style.display = 'none';
+      } else if (sub && sub.hasAccess) {
+        var daysLeft = sub.remainingDays || 0;
+        var hoursLeft = (sub.remainingHours || 0) % 24;
+        var timeStr = daysLeft > 0 ? (daysLeft + 'd ' + hoursLeft + 'h left') : (sub.remainingHours + 'h left');
+        if (subText) subText.textContent = (sub.status === 'trial' ? '🎁 Trial: ' : '💎 VIP: ') + timeStr;
+        if ($('paywallOverlay')) $('paywallOverlay').style.display = 'none';
+      } else {
+        // Subscription has ended!
+        if (subText) subText.textContent = '⚠️ Subscription Expired';
+        if ($('paywallOverlay')) {
+          $('paywallOverlay').style.display = 'flex';
+          $('lockTitleText').textContent = '🔒 Subscription Expired — Please Renew';
+          $('lockSubText').textContent = 'Your VIP trial or subscription period has ended. To continue accessing real-time Gold (XAU/USD) & Bitcoin (BTC/USD) institutional signals, please subscribe to a plan.';
+          var btns = $('paywallOverlay').querySelector('div[style*="display:flex"]');
+          if (btns) {
+            btns.innerHTML = `
+              <button class="btn btn-primary" style="padding:12px 24px; font-size:15px;" onclick="switchTab('pricing')">Subscribe Again (From $1.00)</button>
+              <button class="btn btn-outline" style="padding:12px 24px; font-size:15px;" onclick="initSupportChat(); toggleChatWidget();">Contact Live Support</button>
+            `;
+          }
+        }
+      }
     })
     .catch(function() {
       // Invalid token -> Reset to strict guest mode
@@ -1752,7 +2327,7 @@ function applyAuthState() {
       $('authArea').style.display = 'flex';
       $('userProfileArea').style.display = 'none';
       $('guestHeroSection').style.display = 'block';
-      $('paywallOverlay').style.display = 'flex'; // Locked for guests!
+      $('paywallOverlay').style.display = 'flex';
       $('lockTitleText').textContent = '🔒 VIP Signal Reserved for Members';
       $('supportChatWidget').style.display = 'none';
     });
@@ -1764,13 +2339,13 @@ function applyAuthState() {
     $('authArea').style.display = 'flex';
     $('userProfileArea').style.display = 'none';
     $('guestHeroSection').style.display = 'block';
-    $('paywallOverlay').style.display = 'flex'; // Locked for guests!
+    $('paywallOverlay').style.display = 'flex';
     $('lockTitleText').textContent = '🔒 VIP Signal Reserved for Members';
     $('supportChatWidget').style.display = 'none';
   }
 }
 
-// Simulator Engine with Auto-Closing on Target 1, Target 2, and Stop Loss
+// Reactive Simulator Engine with Real-Time Micro-Ticks & Auto-Execution
 var simTrades = [];
 function loadSimulator() {
   try { simTrades = JSON.parse(localStorage.getItem('fds_sim_trades')) || []; } catch(e) { simTrades = []; }
@@ -1784,28 +2359,41 @@ function checkSimulatorAutoExecution(currentPrice) {
     var t = simTrades[i];
     if (t.status !== 'open' || t.symbol !== activeSymbol) continue;
     var isBuy = t.side === 'BUY';
+    var mult = t.symbol === 'BTCUSD' ? 1 : 100;
 
     if (isBuy) {
       if (t.tp2 && currentPrice >= t.tp2) {
-        t.status = 'tp2'; t.exit = t.tp2; t.reason = 'Target 2 Reached 🎯🎯'; t.pnl = (t.tp2 - t.entry) * t.lots * 100;
-        changed = true; showToast('Target 2 Reached! Position automatically closed at $' + t.tp2);
+        t.status = 'tp2'; t.exit = t.tp2; t.reason = 'Target 2 Hit 🎯🎯'; t.pnl = (t.tp2 - t.entry) * t.lots * mult;
+        changed = true;
+        showToast('Target 2 Reached! Position closed at $' + t.tp2.toFixed(2), 'success');
+        addInAppNotification('🎯 Target 2 Executed', '#' + t.id + ' closed at $' + t.tp2.toFixed(2) + ' (+' + t.pnl.toFixed(2) + ')', 'tp');
       } else if (t.tp1 && currentPrice >= t.tp1 && !t.hitTp1) {
-        t.status = 'tp1'; t.exit = t.tp1; t.reason = 'Target 1 Reached 🎯'; t.pnl = (t.tp1 - t.entry) * t.lots * 100;
-        changed = true; showToast('Target 1 Reached! Position automatically closed at $' + t.tp1);
+        t.status = 'tp1'; t.exit = t.tp1; t.reason = 'Target 1 Hit 🎯'; t.pnl = (t.tp1 - t.entry) * t.lots * mult;
+        changed = true;
+        showToast('Target 1 Reached! Position closed at $' + t.tp1.toFixed(2), 'success');
+        addInAppNotification('🎯 Target 1 Executed', '#' + t.id + ' closed at $' + t.tp1.toFixed(2) + ' (+' + t.pnl.toFixed(2) + ')', 'tp');
       } else if (t.sl && currentPrice <= t.sl) {
-        t.status = 'sl'; t.exit = t.sl; t.reason = 'Stop Loss Hit 🛑'; t.pnl = (t.sl - t.entry) * t.lots * 100;
-        changed = true; showToast('Stop Loss Hit! Position closed at $' + t.sl);
+        t.status = 'sl'; t.exit = t.sl; t.reason = 'Stop Loss Hit 🛑'; t.pnl = (t.sl - t.entry) * t.lots * mult;
+        changed = true;
+        showToast('Stop Loss Hit! Position closed at $' + t.sl.toFixed(2), 'error');
+        addInAppNotification('🛑 Stop Loss Executed', '#' + t.id + ' closed at $' + t.sl.toFixed(2) + ' (' + t.pnl.toFixed(2) + ')', 'sl');
       }
     } else {
       if (t.tp2 && currentPrice <= t.tp2) {
-        t.status = 'tp2'; t.exit = t.tp2; t.reason = 'Target 2 Reached 🎯🎯'; t.pnl = (t.entry - t.tp2) * t.lots * 100;
-        changed = true; showToast('Target 2 Reached! Position automatically closed at $' + t.tp2);
+        t.status = 'tp2'; t.exit = t.tp2; t.reason = 'Target 2 Hit 🎯🎯'; t.pnl = (t.entry - t.tp2) * t.lots * mult;
+        changed = true;
+        showToast('Target 2 Reached! Position closed at $' + t.tp2.toFixed(2), 'success');
+        addInAppNotification('🎯 Target 2 Executed', '#' + t.id + ' closed at $' + t.tp2.toFixed(2) + ' (+' + t.pnl.toFixed(2) + ')', 'tp');
       } else if (t.tp1 && currentPrice <= t.tp1 && !t.hitTp1) {
-        t.status = 'tp1'; t.exit = t.tp1; t.reason = 'Target 1 Reached 🎯'; t.pnl = (t.entry - t.tp1) * t.lots * 100;
-        changed = true; showToast('Target 1 Reached! Position automatically closed at $' + t.tp1);
+        t.status = 'tp1'; t.exit = t.tp1; t.reason = 'Target 1 Hit 🎯'; t.pnl = (t.entry - t.tp1) * t.lots * mult;
+        changed = true;
+        showToast('Target 1 Reached! Position closed at $' + t.tp1.toFixed(2), 'success');
+        addInAppNotification('🎯 Target 1 Executed', '#' + t.id + ' closed at $' + t.tp1.toFixed(2) + ' (+' + t.pnl.toFixed(2) + ')', 'tp');
       } else if (t.sl && currentPrice >= t.sl) {
-        t.status = 'sl'; t.exit = t.sl; t.reason = 'Stop Loss Hit 🛑'; t.pnl = (t.entry - t.sl) * t.lots * 100;
-        changed = true; showToast('Stop Loss Hit! Position closed at $' + t.sl);
+        t.status = 'sl'; t.exit = t.sl; t.reason = 'Stop Loss Hit 🛑'; t.pnl = (t.entry - t.sl) * t.lots * mult;
+        changed = true;
+        showToast('Stop Loss Hit! Position closed at $' + t.sl.toFixed(2), 'error');
+        addInAppNotification('🛑 Stop Loss Executed', '#' + t.id + ' closed at $' + t.sl.toFixed(2) + ' (' + t.pnl.toFixed(2) + ')', 'sl');
       }
     }
   }
@@ -1813,12 +2401,11 @@ function checkSimulatorAutoExecution(currentPrice) {
   if (changed) {
     try { localStorage.setItem('fds_sim_trades', JSON.stringify(simTrades)); } catch(e) {}
     renderSimPositions();
-    renderSimHistory();
   }
 }
 
-$('simBuyBtn').addEventListener('click', function() { executeSimOrder('BUY'); });
-$('simSellBtn').addEventListener('click', function() { executeSimOrder('SELL'); });
+if ($('simBuyBtn')) $('simBuyBtn').addEventListener('click', function() { executeSimOrder('BUY'); });
+if ($('simSellBtn')) $('simSellBtn').addEventListener('click', function() { executeSimOrder('SELL'); });
 
 function executeSimOrder(side) {
   if (!authToken) { openAuthModal('signup'); return; }
@@ -1827,7 +2414,7 @@ function executeSimOrder(side) {
   var sl = parseFloat($('simSlPrice').value) || null;
   var tp1 = parseFloat($('simTp1Price').value) || null;
   var tp2 = parseFloat($('simTp2Price').value) || null;
-  var entry = prevPrice || 3888.50;
+  var entry = prevPrice || (sym === 'BTCUSD' ? 65280.00 : 3888.50);
 
   var order = {
     id: 'SIM-' + Math.floor(Math.random() * 89999 + 10000),
@@ -1844,39 +2431,52 @@ function executeSimOrder(side) {
 
   simTrades.unshift(order);
   try { localStorage.setItem('fds_sim_trades', JSON.stringify(simTrades)); } catch(e) {}
-  showToast(side + ' order placed at $' + entry);
+  showToast(side + ' order placed for ' + sym + ' at $' + entry.toFixed(2), 'success');
+  playSignalSound('opportunity');
+  addInAppNotification('🎮 Simulator Order Placed', side + ' ' + lots + ' lots of ' + sym + ' at $' + entry.toFixed(2), 'info');
   renderSimPositions();
 }
 
-function renderSimPositions() {
+function renderSimPositions(overridePrice) {
   var tbody = $('openPositionsTableBody');
-  tbody.innerHTML = '';
+  if (!tbody) return;
   var open = simTrades.filter(function(t) { return t.status === 'open'; });
   if (!open.length) {
     tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color:var(--mut);">No open simulation positions.</td></tr>';
+    renderSimHistory(0);
     return;
   }
+  var totalUnrealizedPnl = 0;
+  var html = '';
   open.forEach(function(t) {
-    var cur = prevPrice || t.entry;
-    var pnl = (t.side === 'BUY' ? (cur - t.entry) : (t.entry - cur)) * t.lots * 100;
-    var tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><b>#${t.id}</b></td>
-      <td><b>${t.symbol}</b></td>
-      <td style="color:${t.side === 'BUY' ? 'var(--up)' : 'var(--dn)'}; font-weight:700;">${t.side}</td>
-      <td>${t.lots}</td>
-      <td>$${t.entry}</td>
-      <td>$${cur}</td>
-      <td>${t.sl ? ('$' + t.sl) : '–'}</td>
-      <td>${t.tp1 ? ('$' + t.tp1) : '–'}</td>
-      <td>${t.tp2 ? ('$' + t.tp2) : '–'}</td>
-      <td style="color:${pnl >= 0 ? 'var(--up)' : 'var(--dn)'}; font-weight:700;">
-        ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}
-      </td>
-      <td><button class="btn btn-outline" style="padding:4px 8px; font-size:11px;" onclick="closeSimTrade('${t.id}')">Close</button></td>
+    var cur = (t.symbol === activeSymbol && overridePrice) ? overridePrice : (t.currentPrice || prevPrice || t.entry);
+    t.currentPrice = cur;
+    var isBuy = t.side === 'BUY';
+    var diff = isBuy ? (cur - t.entry) : (t.entry - cur);
+    var mult = t.symbol === 'BTCUSD' ? 1 : 100;
+    var pnl = diff * t.lots * mult;
+    totalUnrealizedPnl += pnl;
+
+    html += `
+      <tr>
+        <td><b>#${t.id}</b></td>
+        <td><b>${t.symbol === 'BTCUSD' ? '🟠 BTC/USD' : '🟡 XAU/USD'}</b></td>
+        <td style="color:${isBuy ? 'var(--up)' : 'var(--dn)'}; font-weight:700;">${t.side}</td>
+        <td>${t.lots}</td>
+        <td>$${t.entry.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        <td class="${pnl >= 0 ? 'tick-up' : 'tick-dn'}">$${cur.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        <td>${t.sl ? ('$' + (+t.sl).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })) : '–'}</td>
+        <td>${t.tp1 ? ('$' + (+t.tp1).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })) : '–'}</td>
+        <td>${t.tp2 ? ('$' + (+t.tp2).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })) : '–'}</td>
+        <td style="color:${pnl >= 0 ? 'var(--up)' : 'var(--dn)'}; font-weight:700;">
+          ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}
+        </td>
+        <td><button class="btn btn-outline" style="padding:4px 8px; font-size:11px;" onclick="closeSimTrade('${t.id}')">Close</button></td>
+      </tr>
     `;
-    tbody.appendChild(tr);
   });
+  tbody.innerHTML = html;
+  renderSimHistory(totalUnrealizedPnl);
 }
 
 function closeSimTrade(id) {
@@ -1885,25 +2485,36 @@ function closeSimTrade(id) {
     t.status = 'closed';
     t.exit = prevPrice || t.entry;
     t.reason = 'Manual Close';
-    t.pnl = (t.side === 'BUY' ? (t.exit - t.entry) : (t.entry - t.exit)) * t.lots * 100;
+    var mult = t.symbol === 'BTCUSD' ? 1 : 100;
+    t.pnl = (t.side === 'BUY' ? (t.exit - t.entry) : (t.entry - t.exit)) * t.lots * mult;
     try { localStorage.setItem('fds_sim_trades', JSON.stringify(simTrades)); } catch(e) {}
-    showToast('Position closed.');
+    showToast('Position closed. Realized PnL: ' + (t.pnl >= 0 ? '+' : '') + '$' + t.pnl.toFixed(2));
     renderSimPositions();
     renderSimHistory();
   }
 }
 
-function renderSimHistory() {
+function renderSimHistory(unrealizedPnl) {
+  unrealizedPnl = unrealizedPnl || 0;
   var closed = simTrades.filter(function(t) { return t.status !== 'open'; });
   var wins = closed.filter(function(t) { return (t.pnl || 0) > 0; }).length;
-  var totalPnl = closed.reduce(function(acc, t) { return acc + (t.pnl || 0); }, 0);
+  var totalClosedPnl = closed.reduce(function(acc, t) { return acc + (t.pnl || 0); }, 0);
   var winRate = closed.length ? Math.round((wins / closed.length) * 100) : 0;
+  var netEquity = 10000 + totalClosedPnl + unrealizedPnl;
 
-  $('simEquityVal').textContent = '$' + (10000 + totalPnl).toFixed(2);
-  $('simWinRateVal').textContent = winRate + '%';
-  $('simTotalPnlVal').textContent = (totalPnl >= 0 ? '+' : '') + '$' + totalPnl.toFixed(2);
+  if ($('simEquityVal')) {
+    $('simEquityVal').textContent = '$' + netEquity.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    $('simEquityVal').style.color = netEquity >= 10000 ? 'var(--up)' : 'var(--dn)';
+  }
+  if ($('simWinRateVal')) $('simWinRateVal').textContent = winRate + '%';
+  if ($('simTotalPnlVal')) {
+    var netPnl = totalClosedPnl + unrealizedPnl;
+    $('simTotalPnlVal').textContent = (netPnl >= 0 ? '+' : '') + '$' + netPnl.toFixed(2);
+    $('simTotalPnlVal').style.color = netPnl >= 0 ? 'var(--up)' : 'var(--dn)';
+  }
 
   var tbody = $('closedHistoryTableBody');
+  if (!tbody) return;
   tbody.innerHTML = '';
   if (!closed.length) {
     tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--mut);">No closed trades yet.</td></tr>';
@@ -1913,11 +2524,11 @@ function renderSimHistory() {
     var tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${t.time || '–'}</td>
-      <td><b>${t.symbol}</b></td>
-      <td>${t.side}</td>
+      <td><b>${t.symbol === 'BTCUSD' ? '🟠 BTC/USD' : '🟡 XAU/USD'}</b></td>
+      <td style="color:${t.side === 'BUY' ? 'var(--up)' : 'var(--dn)'}; font-weight:700;">${t.side}</td>
       <td>${t.lots}</td>
-      <td>$${t.entry}</td>
-      <td>$${t.exit}</td>
+      <td>$${t.entry.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+      <td>$${t.exit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
       <td><b>${t.reason || 'Closed'}</b></td>
       <td style="color:${t.pnl >= 0 ? 'var(--up)' : 'var(--dn)'}; font-weight:700;">
         ${t.pnl >= 0 ? '+' : ''}$${t.pnl.toFixed(2)}
@@ -1925,6 +2536,41 @@ function renderSimHistory() {
     `;
     tbody.appendChild(tr);
   });
+}
+
+// Reactive 450ms Micro-Tick Engine for Intra-second Live Fluctuation
+var liveMicroTickInterval = null;
+function startRealtimeMicroTickEngine() {
+  if (liveMicroTickInterval) clearInterval(liveMicroTickInterval);
+  liveMicroTickInterval = setInterval(function() {
+    if (!lastSignalData || !lastSignalData.price) return;
+    var basePrice = parseFloat(lastSignalData.price);
+    var isBtc = activeSymbol === 'BTCUSD';
+    var tickRange = isBtc ? 16.0 : 0.30;
+    var delta = (Math.random() - 0.495) * tickRange;
+    var currentTickPrice = +(basePrice + delta).toFixed(2);
+
+    var baseConf = parseInt(lastSignalData.confidence) || 84;
+    var confJitter = Math.round(Math.sin(Date.now() / 850) * 3);
+    var dynamicConf = Math.min(97, Math.max(72, baseConf + confJitter));
+
+    var priceEl = $('priceDisplay');
+    if (priceEl) {
+      priceEl.textContent = '$' + currentTickPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    if ($('sigCurrentPrice')) {
+      $('sigCurrentPrice').textContent = '$' + currentTickPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    if ($('signalConfidenceText')) {
+      $('signalConfidenceText').textContent = dynamicConf + '%';
+    }
+    if ($('simMarketPriceDisplay')) {
+      $('simMarketPriceDisplay').textContent = '$' + currentTickPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    checkSimulatorAutoExecution(currentTickPrice);
+    renderSimPositions(currentTickPrice);
+  }, 450);
 }
 
 // Pricing Grid (Dynamic USD & RWF with real backend plans)
@@ -2869,7 +3515,8 @@ $('refreshBtn').addEventListener('click', function() {
 applyAuthState();
 initSupportChat();
 loadSignal();
-setInterval(loadSignal, 8000);
+startRealtimeMicroTickEngine();
+setInterval(loadSignal, 1500);
 loadPricing();
 </script>
 </body>

@@ -10,6 +10,7 @@ const {
   resetPassword,
   JWT_SECRET
 } = require('../lib/auth');
+const { checkUserSubscription } = require('../lib/subscriptions');
 const jwt = require('jsonwebtoken');
 
 module.exports = async (req, res) => {
@@ -89,7 +90,29 @@ module.exports = async (req, res) => {
       }
       try {
         const decoded = jwt.verify(token, JWT_SECRET);
-        return res.status(200).json({ user: decoded });
+        const email = (decoded.email || '').toLowerCase();
+        const role = decoded.role || '';
+        const isAdmin = role === 'admin' || role === 'superadmin' || email === 'benirabok@gmail.com' || email === 'omarrukwaya@gmail.com';
+
+        if (isAdmin && decoded.role !== 'admin' && decoded.role !== 'superadmin') {
+          decoded.role = 'superadmin';
+        }
+
+        let sub;
+        if (isAdmin) {
+          sub = {
+            hasAccess: true,
+            status: 'admin',
+            planName: 'Institutional Lifetime VIP',
+            remainingDays: 9999,
+            remainingHours: 239976,
+            expiresAt: '2099-12-31T23:59:59.000Z'
+          };
+        } else {
+          sub = await checkUserSubscription(decoded.id || decoded.userId);
+        }
+
+        return res.status(200).json({ user: decoded, subscription: sub });
       } catch (err) {
         return res.status(401).json({ error: 'Unauthorized: Invalid or expired token' });
       }

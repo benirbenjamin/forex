@@ -49,17 +49,28 @@ module.exports = async (req, res) => {
 
       let body = req.body;
       if (typeof body === 'string') { try { body = JSON.parse(body); } catch(e){} }
-      const { planId, phone, paymentMethod } = body || {};
+      const { planId, phone, paymentMethod, currency = 'USD' } = body || {};
 
       const plans = await getPlans();
       const plan = plans.find(p => p.id === planId || p.slug === planId);
       if (!plan) return res.status(404).json({ error: 'Selected subscription plan not found.' });
 
+      const currencyRates = {
+        USD: 1.0, RWF: 1450.0, KES: 130.0, UGX: 3720.0, TZS: 2600.0,
+        NGN: 1620.0, GHS: 15.5, ZAR: 18.2, EUR: 0.92, GBP: 0.79
+      };
+      const curKey = (currency || 'USD').toUpperCase();
+      const rate = currencyRates[curKey] || 1.0;
+      const payableAmount = (plan.priceUsd * rate).toFixed(2);
+
       return res.status(200).json({
         success: true,
-        message: `Payment request initialized for ${plan.name}. Please confirm the prompt sent to your mobile phone.`,
+        message: `Payment request initialized for ${plan.name} (${payableAmount} ${curKey}). Please confirm the mobile money prompt or card authorization.`,
         plan,
-        phone
+        phone,
+        currency: curKey,
+        amount: payableAmount,
+        paymentUrl: `https://checkout.flutterwave.com/pay/fds_${plan.slug}_${Date.now()}`
       });
     }
 
