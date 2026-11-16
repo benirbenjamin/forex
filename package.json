@@ -5,23 +5,32 @@
   "description": "Institutional Multi-Asset Forex Signals, Realistic Simulation Trading, and Crypto P2P Platform",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "node server.js"
   },
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
+    "@vitejs/plugin-react": "^6.3.0",
     "bcryptjs": "^2.4.3",
+    "canvas-confetti": "^1.9.4",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "googleapis": "^140.0.0",
     "jsonwebtoken": "^9.0.2",
+    "lucide-react": "^1.67.0",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.13",
     "pg": "^8.11.5",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-router-dom": "^7.18.5",
     "tesseract.js": "^5.0.5",
+    "vite": "^8.3.8",
     "ws": "^8.17.0"
   }
 }

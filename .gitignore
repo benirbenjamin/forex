@@ -9,3 +9,4 @@ data/*.json
 !data/.gitkeep
 .DS_Store
 Thumbs.db
+dist/

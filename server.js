@@ -91,6 +91,12 @@ const upload = multer({
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve built React assets if dist exists, otherwise fall back to public
+const distDir = path.join(__dirname, 'dist');
+if (fs.existsSync(distDir)) {
+  app.use(express.static(distDir));
+}
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Specific Route Aliases
@@ -612,6 +618,16 @@ app.post('/api/admin/add-admin', authenticateToken, requireRole('admin', 'supera
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
+});
+
+// SPA Catch-all (serve React SPA index.html for client-side routing)
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) return next();
+  const distIndex = path.join(__dirname, 'dist/index.html');
+  if (fs.existsSync(distIndex)) {
+    return res.sendFile(distIndex);
+  }
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Boot Database & Launch Server

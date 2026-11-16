@@ -1,5 +1,7 @@
 {
   "cleanUrls": true,
+  "outputDirectory": "dist",
+  "framework": "vite",
   "functions": {
     "api/*.js": {
       "maxDuration": 15
@@ -24,8 +26,6 @@
     { "source": "/api/referrals/:action", "destination": "/api/referral?action=:action" },
     { "source": "/api/admin/:action/:sub", "destination": "/api/admin?action=:action&sub=:sub" },
     { "source": "/api/admin/:action", "destination": "/api/admin?action=:action" },
-    { "source": "/admin", "destination": "/admin.html" },
-    { "source": "/app", "destination": "/index.html" },
-    { "source": "/", "destination": "/index.html" }
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
