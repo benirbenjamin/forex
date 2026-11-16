@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Admin Portal · ForexDoubleSniper Institutional</title>
 <link rel="icon" href="logo.svg" type="image/svg+xml">
+<script>
+if (window.location.pathname.endsWith('.html')) {
+  var cleanPath = window.location.pathname.replace(/\.html$/, '');
+  window.history.replaceState(null, '', cleanPath + window.location.search);
+}
+</script>
 <style>
 :root {
   --bg: #0b0e14;
@@ -60,6 +66,45 @@ header {
 .btn-danger:hover { background: var(--dn); color: #fff; }
 .btn-success { background: rgba(0,208,132,0.15); border-color: var(--up); color: var(--up); }
 .btn-success:hover { background: var(--up); color: #000; }
+
+/* Responsive Mobile & Hamburger */
+.mobile-menu-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--gold-bright);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+@media (max-width: 860px) {
+  .mobile-menu-btn { display: inline-block !important; }
+  .sidebar {
+    position: fixed !important;
+    top: 0;
+    bottom: 0;
+    left: -280px;
+    width: 260px !important;
+    z-index: 9999;
+    transition: left 0.3s ease;
+    box-shadow: 4px 0 25px rgba(0,0,0,0.85);
+  }
+  .sidebar.open {
+    left: 0 !important;
+  }
+  .main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding: 14px !important;
+  }
+  .chat-layout {
+    flex-direction: column !important;
+  }
+  #chatOrderList {
+    width: 100% !important;
+    height: 220px !important;
+  }
+}
 
 /* Bell Notification & Audio Alert */
 .notif-bell-btn {
@@ -122,6 +167,144 @@ header {
 
 .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 .section-title { font-size: 20px; font-weight: 700; color: #fff; }
+
+.card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat-card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 18px; }
+.stat-title { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.stat-val { font-size: 24px; font-weight: 800; color: #fff; }
+
+.table-wrap { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; overflow-x: auto; margin-bottom: 24px; }
+table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+th { background: #181d2a; padding: 12px 16px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); }
+td { padding: 14px 16px; border-bottom: 1px solid var(--border); color: var(--text); }
+tr:hover { background: rgba(255,255,255,0.02); }
+
+.tag { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; display: inline-block; }
+.tag-gold { background: rgba(212,175,55,0.15); color: var(--gold-bright); border: 1px solid var(--gold); }
+.tag-up { background: rgba(0,208,132,0.15); color: var(--up); }
+.tag-dn { background: rgba(248,73,96,0.15); color: var(--dn); }
+.tag-wait { background: rgba(139,149,165,0.15); color: var(--muted); }
+
+/* Form Controls */
+.form-card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 24px; max-width: 800px; }
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #d0d7de; }
+.form-control { width: 100%; padding: 10px 14px; background: var(--card); border: 1px solid var(--border); border-radius: 6px; color: #fff; font-size: 14px; outline: none; }
+.form-control:focus { border-color: var(--gold); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+/* Login Modal */
+.login-overlay { position: fixed; inset: 0; background: rgba(11,14,20,0.95); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.login-box { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 32px; width: 400px; max-width: 90%; }
+
+/* Image Proof Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 999; }
+.modal-overlay.active { display: flex; }
+.modal-img { max-width: 90%; max-height: 85vh; border-radius: 8px; border: 2px solid var(--gold); }
+
+/* Toast Notifications */
+.toast {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #181d2a;
+  border: 1px solid var(--gold);
+  color: #fff;
+  padding: 14px 24px;
+  border-radius: 6px;
+  z-index: 99999999;
+  display: none;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.85);
+  max-width: 90vw;
+  width: max-content;
+  text-align: center;
+  line-height: 1.45;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  animation: slideDownToast 0.3s ease-out;
+}
+@keyframes slideDownToast {
+  from { opacity: 0; transform: translate(-50%, -20px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  vertical-align: middle;
+}
+.toast.toast-error {
+  border-color: var(--dn);
+  background: #1e1316;
+  color: #ff8595;
+  box-shadow: 0 10px 30px rgba(248, 73, 96, 0.25);
+}
+.toast.toast-success {
+  border-color: var(--up);
+  background: #0f2218;
+  color: #79f2b8;
+  box-shadow: 0 10px 30px rgba(0, 208, 132, 0.25);
+}
+.toast.toast-info {
+  border-color: var(--gold);
+  background: #1e1a12;
+  color: var(--gold-bright);
+  box-shadow: 0 10px 30px rgba(212, 175, 55, 0.25);
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="brand-area">
+    <button class="mobile-menu-btn" id="adminMobileMenuBtn" title="Toggle Sidebar Menu">☰</button>
+    <img src="logo.svg" alt="FDS" class="brand-logo">
+    <div class="brand-name">ForexDoubleSniper</div>
+    <span class="brand-badge" id="adminRoleBadge">ADMIN CONSOLE</span>
+  </div>
+
+  <div class="header-actions">
+    <button class="mute-btn active" id="audioMuteBtn" title="Toggle Sound Alert (Plays on new orders/claims until opened)">🔔 Sound: ON</button>
+    <button class="notif-bell-btn" id="notifBellBtn">
+      <span>🔔 Alerts</span>
+      <span class="bell-badge" id="bellBadge">0</span>
+    </button>
+    <span id="adminUserDisplay" style="font-size: 13px; color: var(--gold);">omarrukwaya@gmail.com</span>
+    <button class="btn btn-danger" id="adminLogoutBtn">Logout</button>
+  </div>
+</header>
+
+<!-- Main Admin Layout -->
+<div class="admin-container">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="nav-tab active" data-tab="overview">📊 Overview</div>
+    <div class="nav-tab" data-tab="p2p">⚡ P2P Orders & Claims</div>
+    <div class="nav-tab" data-tab="inventory">💰 USDT Inventory & Rates</div>
+    <div class="nav-tab" data-tab="users">👥 User Management</div>
+    <div class="nav-tab" data-tab="subscriptions">💳 Plans & Subscriptions</div>
+    <div class="nav-tab" data-tab="referrals">🎁 Referrals & Payouts</div>
+    <div class="nav-tab" data-tab="chat">💬 Trader Live Chat</div>
+    <div class="nav-tab" data-tab="settings" id="superAdminSettingsTab">⚙️ Platform Settings</div>
+  </aside>
+
+  <!-- Content -->
+  <main class="main-content">
+    
+    <!-- 1. OVERVIEW TAB -->
+    <section class="content-section active" id="tab-overview">
+      <div class="section-header">
+        <h2 class="section-title">Institutional Management Dashboard</h2>
 
 .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
 .stat-card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 18px; }
@@ -477,27 +660,48 @@ tr:hover { background: rgba(255,255,255,0.02); }
           <button type="submit" class="btn btn-primary">Save Referral Rules</button>
         </form>
       </div>
+
+      <h3 style="margin: 24px 0 12px; font-size: 16px;">Trader Affiliate Commission Withdrawal Requests</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Trader</th>
+              <th>Amount ($)</th>
+              <th>Net ($)</th>
+              <th>Method</th>
+              <th>Account / TRC20</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="withdrawalsTableBody">
+            <tr><td colspan="8" style="text-align:center; color:var(--muted);">Loading withdrawal requests...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </section>
 
     <!-- 7. LIVE SUPPORT CHAT TAB -->
     <section class="content-section" id="tab-chat">
       <div class="section-header">
-        <h2 class="section-title">Order Support Chat (Direct Admin ↔ Trader)</h2>
+        <h2 class="section-title">Trader Live Support & Order Chat (Real-Time)</h2>
       </div>
-      <div style="display:flex; gap: 20px;">
+      <div class="chat-layout" style="display:flex; gap: 20px;">
         <div style="width: 320px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 12px; height: 550px; overflow-y: auto;" id="chatOrderList">
-          <p style="color:var(--muted); font-size:13px;">Select an active order to chat with trader.</p>
+          <p style="color:var(--muted); font-size:13px;">Select a conversation to reply to trader.</p>
         </div>
         <div style="flex:1; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; display:flex; flex-direction:column; height: 550px;">
           <div id="chatMessagesBox" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:10px; margin-bottom:12px; padding:10px; background:var(--card); border-radius:6px;">
-            <p style="color:var(--muted); text-align:center;">No chat selected.</p>
+            <p style="color:var(--muted); text-align:center;">No chat selected. Click a trader on the left to start replying.</p>
           </div>
           <form id="adminChatForm" style="display:flex; gap:10px;">
             <input type="hidden" id="activeChatOrderId">
-            <input type="text" class="form-control" id="adminChatMessage" placeholder="Type support reply...">
+            <input type="text" class="form-control" id="adminChatMessage" placeholder="Type support reply to trader..." required>
             <input type="file" id="adminChatFile" style="display:none;" accept="image/*,.pdf">
             <button type="button" class="btn" onclick="document.getElementById('adminChatFile').click()">📎</button>
-            <button type="submit" class="btn btn-primary">Send</button>
+            <button type="submit" class="btn btn-primary" id="adminChatSendBtn">Send Reply</button>
           </form>
         </div>
       </div>
@@ -843,36 +1047,71 @@ $('notifBellBtn').addEventListener('click', () => {
   dismissNotif('all');
 });
 
+function setButtonLoading(btn, isLoading, loadingText) {
+  if (!btn) return;
+  if (isLoading) {
+    btn.dataset.originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.style.opacity = '0.7';
+    btn.style.cursor = 'not-allowed';
+    btn.innerHTML = '<span class="spinner"></span> ' + (loadingText || 'Please wait...');
+  } else {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+    if (btn.dataset.originalHtml) {
+      btn.innerHTML = btn.dataset.originalHtml;
+    }
+  }
+}
+
+// Mobile sidebar drawer
+const mobileBtn = $('adminMobileMenuBtn');
+if (mobileBtn) {
+  mobileBtn.addEventListener('click', () => {
+    document.querySelector('.sidebar').classList.toggle('open');
+  });
+}
+document.querySelectorAll('.sidebar .nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelector('.sidebar').classList.remove('open');
+  });
+});
+
 // Load Dashboard Data
 async function loadDashboardData() {
-  const [p2pInfo, usersData, ordersData] = await Promise.all([
-    adminFetch('/api/p2p/info'),
-    adminFetch('/api/admin/users'),
-    adminFetch('/api/admin/p2p/orders')
-  ]);
+  try {
+    const [p2pInfo, usersData, ordersData] = await Promise.all([
+      adminFetch('/api/p2p/info').catch(() => null),
+      adminFetch('/api/admin/users').catch(() => null),
+      adminFetch('/api/admin/p2p/orders').catch(() => null)
+    ]);
 
-  if (p2pInfo) {
-    $('statInventory').textContent = p2pInfo.availableInventory + ' USDT';
-    $('statExchangeRate').textContent = p2pInfo.exchangeRateRwf + ' RWF';
-    $('invAvailable').value = p2pInfo.availableInventory;
-    $('invSellRate').value = p2pInfo.sellPriceUsd;
-    $('invBuyRate').value = p2pInfo.buyPriceUsd;
-    $('invFeeAmount').value = p2pInfo.feeConfig.amount;
-    $('invFeeType').value = p2pInfo.feeConfig.type;
-  }
+    if (p2pInfo) {
+      $('statInventory').textContent = p2pInfo.availableInventory + ' USDT';
+      $('statExchangeRate').textContent = p2pInfo.exchangeRateRwf + ' RWF';
+      if ($('invAvailable')) $('invAvailable').value = p2pInfo.availableInventory;
+      if ($('invTotal')) $('invTotal').value = 5000;
+      if ($('invSellRate')) $('invSellRate').value = p2pInfo.sellPriceUsd;
+      if ($('invBuyRate')) $('invBuyRate').value = p2pInfo.buyPriceUsd;
+      if ($('invFeeAmount')) $('invFeeAmount').value = (p2pInfo.feeConfig && p2pInfo.feeConfig.amount) || 2.00;
+      if ($('invFeeType')) $('invFeeType').value = (p2pInfo.feeConfig && p2pInfo.feeConfig.type) || 'percent';
+    }
 
-  if (usersData && usersData.users) {
-    $('statUserCount').textContent = usersData.users.length;
-    renderUsers(usersData.users);
-  }
+    if (usersData && usersData.users) {
+      $('statUserCount').textContent = usersData.users.length;
+      renderUsers(usersData.users);
+    }
 
-  if (ordersData && ordersData.orders) {
-    const pending = ordersData.orders.filter(o => o.status !== 'completed' && o.status !== 'cancelled');
-    $('statPendingOrders').textContent = pending.length;
-    renderP2POrders(ordersData.orders);
-  }
+    if (ordersData && ordersData.orders) {
+      const pending = ordersData.orders.filter(o => o.status !== 'completed' && o.status !== 'cancelled');
+      $('statPendingOrders').textContent = pending.length;
+      renderP2POrders(ordersData.orders);
+    }
+  } catch(e) {}
 
   loadPlans();
+  loadWithdrawals();
 }
 
 function renderUsers(users) {
@@ -965,18 +1204,19 @@ async function releaseCrypto(orderId) {
 }
 
 async function loadPlans() {
-  const data = await adminFetch('/api/subscriptions/plans');
+  const data = await adminFetch('/api/admin/plans');
   if (data && data.plans) {
     const tbody = $('plansTableBody');
+    if (!tbody) return;
     tbody.innerHTML = '';
     data.plans.forEach(p => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td><b>${p.name}</b></td>
-        <td>${p.durationDays} Days</td>
-        <td>$${p.priceUsd}</td>
-        <td>${p.priceRwf} RWF</td>
-        <td><button class="btn" onclick="editPlan('${p.id}', '${p.name}', ${p.durationDays}, ${p.priceUsd}, ${p.priceRwf})">Edit</button></td>
+        <td>${p.durationDays || p.duration_days} Days</td>
+        <td>$${p.priceUsd || p.price_usd}</td>
+        <td>${p.priceRwf || p.price_rwf} RWF</td>
+        <td><button class="btn btn-primary" style="padding:4px 8px; font-size:11px;" onclick="editPlan('${p.id}', '${p.name}', ${p.durationDays || p.duration_days}, ${p.priceUsd || p.price_usd}, ${p.priceRwf || p.price_rwf})">Edit</button></td>
       `;
       tbody.appendChild(tr);
     });
@@ -994,97 +1234,127 @@ function editPlan(id, name, days, usd, rwf) {
 
 $('planForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const id = $('planEditId').value || null;
-  const name = $('planName').value;
-  const durationDays = parseInt($('planDuration').value);
-  const priceUsd = parseFloat($('planPriceUsd').value);
-  const priceRwf = parseFloat($('planPriceRwf').value) || null;
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  setButtonLoading(submitBtn, true, 'Saving Plan...');
+  try {
+    const id = $('planEditId').value || null;
+    const name = $('planName').value;
+    const durationDays = parseInt($('planDuration').value);
+    const priceUsd = parseFloat($('planPriceUsd').value);
+    const priceRwf = parseFloat($('planPriceRwf').value) || null;
 
-  await adminFetch('/api/admin/plans', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id, name, durationDays, priceUsd, priceRwf })
-  });
-  showToast('Plan saved successfully!');
-  $('planForm').reset();
-  $('planEditId').value = '';
-  loadPlans();
+    await adminFetch('/api/admin/plans', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, name, durationDays, priceUsd, priceRwf })
+    });
+    showToast('Plan saved permanently in database!', 'success');
+    $('planForm').reset();
+    $('planEditId').value = '';
+    loadPlans();
+  } catch (err) {
+    showToast('Failed to save plan: ' + err.message, 'error');
+  } finally {
+    setButtonLoading(submitBtn, false);
+  }
 });
 
 $('inventoryForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  await adminFetch('/api/admin/p2p/inventory', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      availableInventory: parseFloat($('invAvailable').value),
-      sellPriceUsd: parseFloat($('invSellRate').value),
-      buyPriceUsd: parseFloat($('invBuyRate').value),
-      feeType: $('invFeeType').value,
-      feeAmount: parseFloat($('invFeeAmount').value)
-    })
-  });
-  showToast('P2P inventory and pricing updated permanently in database!');
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  setButtonLoading(submitBtn, true, 'Saving Inventory...');
+  try {
+    await adminFetch('/api/admin/p2p/inventory', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        availableInventory: parseFloat($('invAvailable').value),
+        totalInventory: parseFloat($('invTotal').value) || 5000,
+        sellPriceUsd: parseFloat($('invSellRate').value),
+        buyPriceUsd: parseFloat($('invBuyRate').value),
+        feeType: $('invFeeType').value,
+        feeAmount: parseFloat($('invFeeAmount').value)
+      })
+    });
+    showToast('P2P inventory and pricing updated permanently in database!', 'success');
+  } catch (err) {
+    showToast('Failed to update inventory: ' + err.message, 'error');
+  } finally {
+    setButtonLoading(submitBtn, false);
+  }
 });
 
-$('flutterwaveSettingsForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  await adminFetch('/api/admin/settings', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      key: 'flutterwave_credentials',
-      value: {
-        public_key: $('flwPublicKey').value,
-        secret_key: $('flwSecretKey').value,
-        encryption_key: $('flwEncryptionKey').value,
-        webhook_hash: $('flwWebhookHash').value
-      }
-    })
+async function loadWithdrawals() {
+  const data = await adminFetch('/api/admin/withdrawals');
+  const tbody = $('withdrawalsTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  const list = (data && data.withdrawals) || [];
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--muted);">No pending commission withdrawal requests.</td></tr>';
+    return;
+  }
+  list.forEach(w => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${new Date(w.created_at).toLocaleString()}</td>
+      <td><b>${w.user_name || w.user_email || 'Trader'}</b><br><small style="color:var(--muted);">${w.user_email || ''}</small></td>
+      <td><b>$${w.amount}</b></td>
+      <td style="color:var(--gold-bright);">$${w.net_amount || (w.amount * 0.98).toFixed(2)}</td>
+      <td><span class="tag tag-gold">${w.method}</span></td>
+      <td style="font-family:monospace; font-size:11px;">${w.destination_account}</td>
+      <td><span class="tag ${w.status === 'completed' ? 'tag-up' : 'tag-wait'}">${w.status}</span></td>
+      <td>
+        ${w.status === 'pending_confirmation' ? `<button class="btn btn-primary" style="padding:4px 8px; font-size:11px;" onclick="confirmWithdrawal('${w.id}')">Confirm Payout (Fee Applied)</button>` : '<span style="color:var(--muted); font-size:11px;">Paid</span>'}
+      </td>
+    `;
+    tbody.appendChild(tr);
   });
-  showToast('Flutterwave credentials saved!');
-});
+}
 
-$('gdriveSettingsForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  await adminFetch('/api/admin/settings', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      key: 'google_drive_credentials',
-      value: {
-        client_id: $('gdriveClientId').value,
-        client_secret: $('gdriveClientSecret').value,
-        refresh_token: $('gdriveRefreshToken').value,
-        folder_id: $('gdriveFolderId').value
-      }
-    })
-  });
-  showToast('Google Drive OAuth refresh token settings saved!');
-});
+async function confirmWithdrawal(id) {
+  if (!confirm('Confirm and mark payout as completed?')) return;
+  try {
+    await adminFetch('/api/admin/withdrawals', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, status: 'completed', feeApplied: 2.0 })
+    });
+    showToast('Withdrawal marked as completed and trader credited!', 'success');
+    loadWithdrawals();
+  } catch (err) {
+    showToast('Failed to confirm payout: ' + err.message, 'error');
+  }
+}
 
 // Live Support Chat Management
 async function loadChatOrders() {
-  const p2pData = await adminFetch('/api/admin/p2p/orders');
+  const threadsData = await adminFetch('/api/p2p/threads');
   const chatList = $('chatOrderList');
   if (!chatList) return;
-  chatList.innerHTML = '<h4 style="color:var(--gold-bright); margin-bottom:10px;">Active Trader Chats</h4>';
-  
-  const orders = (p2pData && p2pData.orders) || [];
-  if (!orders.length) {
-    chatList.innerHTML += '<p style="color:var(--muted); font-size:12px;">No active orders yet.</p>';
+  chatList.innerHTML = '<h4 style="color:var(--gold-bright); margin-bottom:10px;">Active Trader Conversations</h4>';
+
+  const threads = (threadsData && threadsData.threads) || [];
+  if (!threads.length) {
+    chatList.innerHTML += '<p style="color:var(--muted); font-size:12px;">No active conversations yet.</p>';
     return;
   }
-  
-  orders.forEach(o => {
+
+  threads.forEach(t => {
+    const isSupport = t.thread_id.startsWith('support_');
+    const title = isSupport ? '💬 VIP Trader Support' : ('Order #' + t.thread_id.slice(0, 10));
+    const traderInfo = t.trader_name ? `${t.trader_name}` : (t.trader_email || t.thread_id);
     const item = document.createElement('div');
-    item.style.cssText = 'padding:10px; margin-bottom:8px; background:var(--card); border:1px solid var(--border); border-radius:6px; cursor:pointer; font-size:13px;';
+    item.style.cssText = 'padding:10px; margin-bottom:8px; background:var(--card); border:1px solid var(--border); border-radius:6px; cursor:pointer; font-size:13px; transition:border-color 0.2s;';
     item.innerHTML = `
-      <div style="font-weight:700; color:#fff;">Order #${o.id.slice(0, 10)}</div>
-      <div style="color:var(--muted); font-size:11px;">Trader: ${o.user_name || o.user_id} (${o.crypto_amount} USDT)</div>
-      <div style="font-size:11px; color:var(--gold-bright);">${o.status}</div>
+      <div style="font-weight:700; color:#fff; display:flex; justify-content:space-between;">
+        <span>${title}</span>
+        <small style="color:var(--gold-bright); font-size:10px;">${new Date(t.last_time).toLocaleTimeString()}</small>
+      </div>
+      <div style="color:var(--muted); font-size:11px; margin:2px 0;">Trader: ${traderInfo}</div>
+      <div style="font-size:11px; color:#cdd5e0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">"${t.last_message || 'Active conversation'}"</div>
     `;
-    item.onclick = () => selectChatOrder(o.id);
+    item.onclick = () => selectChatOrder(t.thread_id);
     chatList.appendChild(item);
   });
 }
@@ -1129,22 +1399,31 @@ $('adminChatForm').addEventListener('submit', async (e) => {
   const orderId = $('activeChatOrderId').value;
   const message = $('adminChatMessage').value.trim();
   const fileInput = $('adminChatFile');
-  if (!orderId) { showToast('Please select a chat from the left panel first.', 'error'); return; }
+  if (!orderId) { showToast('Please select a conversation from the left panel first.', 'error'); return; }
   if (!message && !fileInput.files.length) return;
 
-  const formData = new FormData();
-  formData.append('message', message);
-  if (fileInput.files.length) formData.append('attachment', fileInput.files[0]);
+  const btn = $('adminChatSendBtn') || e.target.querySelector('button[type="submit"]');
+  setButtonLoading(btn, true, 'Sending...');
 
-  await apiFetch('api/p2p/chat/' + orderId, {
-    method: 'POST',
-    headers: { 'Authorization': 'Bearer ' + adminToken },
-    body: formData
-  });
+  try {
+    await apiFetch('api/p2p/chat/' + orderId, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + adminToken,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ message: message })
+    });
 
-  $('adminChatMessage').value = '';
-  fileInput.value = '';
-  fetchAndRenderChat(orderId);
+    $('adminChatMessage').value = '';
+    fileInput.value = '';
+    await fetchAndRenderChat(orderId);
+    showToast('Reply dispatched to trader!', 'success');
+  } catch(err) {
+    showToast('Failed to send message: ' + err.message, 'error');
+  } finally {
+    setButtonLoading(btn, false);
+  }
 });
 
 async function initAdminSession() {

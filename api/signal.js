@@ -382,6 +382,16 @@ function processSignal(data, symbol) {
   const safeTarget1 = (!isNaN(target1Price) && target1Price > 0) ? target1Price : +(safePrice + dir * 1.5 * safeAtr).toFixed(decimals);
   const safeTarget2 = (!isNaN(target2Price) && target2Price > 0) ? target2Price : +(safePrice + dir * 3.0 * safeAtr).toFixed(decimals);
 
+  const marketAnalysis = {
+    state: decision === 'WAIT' ? 'SIDEWAYS_CONSOLIDATION' : (decision === 'BUY' ? 'BULLISH_EXPANSION' : 'BEARISH_EXPANSION'),
+    label: decision === 'WAIT' ? 'WAIT (SIDEWAYS RANGE)' : (decision === 'BUY' ? 'BUY ORDER FLOW' : 'SELL ORDER FLOW'),
+    description: decision === 'WAIT'
+      ? 'Market is moving sideways in a neutral consolidation range. Institutional volume is balanced. Action: WAIT for institutional breakout before taking positions.'
+      : (decision === 'BUY'
+          ? 'Bullish momentum confirmed. Institutional bids outweigh asks. Target 1 & 2 active.'
+          : 'Bearish pressure confirmed. Institutional ask walls overhead. Target 1 & 2 active.')
+  };
+
   return {
     symbol,
     symbolName: symbol === 'XAUUSD' ? 'Gold (XAU/USD)' : symbol === 'GBPUSD' ? 'British Pound / US Dollar' : 'British Pound / Japanese Yen',
@@ -396,6 +406,7 @@ function processSignal(data, symbol) {
     atr: +safeAtr.toFixed(decimals),
     trend: safeFast >= safeSlow ? 'Up' : 'Down',
     decision,
+    marketAnalysis,
     composite: +safeComp.toFixed(3),
     confidence: safeConfidence,
     stop: decision === 'WAIT' ? null : safeStop,

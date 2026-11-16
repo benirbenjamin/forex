@@ -1,4 +1,5 @@
 {
+  "cleanUrls": true,
   "functions": {
     "api/*.js": {
       "maxDuration": 15
@@ -7,8 +8,14 @@
   "rewrites": [
     { "source": "/api/auth/:action", "destination": "/api/auth?action=:action" },
     { "source": "/api/p2p/chat/:orderId", "destination": "/api/p2p?action=chat&orderId=:orderId" },
+    { "source": "/api/p2p/threads", "destination": "/api/p2p?action=threads" },
     { "source": "/api/p2p/:action", "destination": "/api/p2p?action=:action" },
+    { "source": "/api/subscription/:action", "destination": "/api/subscription?action=:action" },
+    { "source": "/api/referrals/:action", "destination": "/api/referral?action=:action" },
+    { "source": "/api/admin/:action/:sub", "destination": "/api/admin?action=:action&sub=:sub" },
+    { "source": "/api/admin/:action", "destination": "/api/admin?action=:action" },
     { "source": "/admin", "destination": "/admin.html" },
-    { "source": "/app", "destination": "/index.html" }
+    { "source": "/app", "destination": "/index.html" },
+    { "source": "/", "destination": "/index.html" }
   ]
 }

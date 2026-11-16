@@ -1,11 +1,17 @@
 // Serverless handler for /api/p2p/* actions
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
 const {
   getP2PInfo,
   createBuyOrder,
   createSellOrder,
+  uploadAndVerifyScreenshot,
+  confirmUserSentPayment,
+  submitDisputeClaim,
   getAdminPresence
 } = require('../lib/p2p');
-const { sendMessage, getOrderMessages } = require('../lib/chat');
+const { sendMessage, getOrderMessages, getAllChatThreads } = require('../lib/chat');
 const { JWT_SECRET } = require('../lib/auth');
 const jwt = require('jsonwebtoken');
 
@@ -60,7 +66,73 @@ module.exports = async (req, res) => {
       return res.status(201).json(result);
     }
 
-    // 4. Chat Messages (GET /api/p2p/chat/:orderId or GET /api/p2p?action=chat&orderId=...)
+    // 4. Upload & Verify Proof (POST /api/p2p/upload-proof)
+    if (action === 'upload-proof' && req.method === 'POST') {
+      const user = getUserFromReq(req);
+      if (!user) return res.status(401).json({ error: 'Please log in to upload proof.' });
+      let body = req.body;
+      if (typeof body === 'string') { try { body = JSON.parse(body); } catch(e){} }
+      const { orderId, imageBase64, filename, mimeType } = body || {};
+      if (!orderId) return res.status(400).json({ error: 'Order ID is required.' });
+      if (!imageBase64) return res.status(400).json({ error: 'Screenshot image data is required.' });
+
+      const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+      const buffer = Buffer.from(cleanBase64, 'base64');
+      const tempPath = path.join(os.tmpdir(), `receipt_${orderId}_${Date.now()}.png`);
+      fs.writeFileSync(tempPath, buffer);
+
+      try {
+        const result = await uploadAndVerifyScreenshot(
+          orderId,
+          user.id,
+          tempPath,
+          filename || 'receipt.png',
+          mimeType || 'image/png',
+          buffer.length
+        );
+        return res.status(200).json(result);
+      } finally {
+        try { if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath); } catch(e){}
+      }
+    }
+
+    // 5. Confirm Sent (POST /api/p2p/confirm-sent)
+    if (action === 'confirm-sent' && req.method === 'POST') {
+      const user = getUserFromReq(req);
+      if (!user) return res.status(401).json({ error: 'Please log in.' });
+      let body = req.body;
+      if (typeof body === 'string') { try { body = JSON.parse(body); } catch(e){} }
+      const { orderId } = body || {};
+      const result = await confirmUserSentPayment(orderId, user.id);
+      return res.status(200).json(result);
+    }
+
+    // 6. Dispute (POST /api/p2p/dispute)
+    if (action === 'dispute' && req.method === 'POST') {
+      const user = getUserFromReq(req);
+      if (!user) return res.status(401).json({ error: 'Please log in.' });
+      let body = req.body;
+      if (typeof body === 'string') { try { body = JSON.parse(body); } catch(e){} }
+      const { orderId, disputeTxId, disputeHash, disputeReason } = body || {};
+      const result = await submitDisputeClaim(orderId, user.id, {
+        disputeTxId: disputeTxId || 'MANUAL-CLAIM',
+        disputeHash: disputeHash || 'MANUAL-HASH',
+        disputeReason: disputeReason || 'User reported dispute'
+      });
+      return res.status(200).json(result);
+    }
+
+    // 4. All Chat Threads for Admin Panel (GET /api/p2p/threads)
+    if ((action === 'threads' || action === 'chat-threads') && req.method === 'GET') {
+      const user = getUserFromReq(req);
+      if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
+        return res.status(403).json({ error: 'Admin access required.' });
+      }
+      const threads = await getAllChatThreads();
+      return res.status(200).json({ threads });
+    }
+
+    // 5. Chat Messages (GET /api/p2p/chat/:orderId or GET /api/p2p?action=chat&orderId=...)
     if (action === 'chat' && req.method === 'GET') {
       const user = getUserFromReq(req);
       if (!user) return res.status(401).json({ error: 'Unauthorized: login required.' });
@@ -69,17 +141,21 @@ module.exports = async (req, res) => {
       return res.status(200).json({ messages });
     }
 
-    // 5. Send Chat Message (POST /api/p2p/chat/:orderId)
+    // 6. Send Chat Message (POST /api/p2p/chat/:orderId)
     if (action === 'chat' && req.method === 'POST') {
       const user = getUserFromReq(req);
       if (!user) return res.status(401).json({ error: 'Unauthorized: login required.' });
       const orderId = req.query.orderId || req.url.split('/').pop().split('?')[0];
-      const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+      let body = req.body;
+      if (typeof body === 'string') {
+        try { body = JSON.parse(body); } catch(e) { body = { message: body }; }
+      }
+      const text = (body && body.message) ? body.message : '';
       const msg = await sendMessage({
         orderId,
         senderId: user.id,
         senderRole: user.role || 'user',
-        message: body.message || ''
+        message: text
       });
       return res.status(201).json({ success: true, message: msg });
     }
