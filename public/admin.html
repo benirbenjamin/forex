@@ -778,20 +778,34 @@ $('audioMuteBtn').addEventListener('click', function() {
   }
 });
 
-// Navigation tabs
+// Navigation tabs with full persistence across page reloads
+function switchAdminTab(tabName) {
+  const tabBtn = document.querySelector(`.nav-tab[data-tab="${tabName}"]`);
+  const target = $('tab-' + tabName);
+  if (!target) return;
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+  if (tabBtn) tabBtn.classList.add('active');
+  target.classList.add('active');
+  localStorage.setItem('fds_admin_active_tab', tabName);
+  try {
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState(null, '', '#' + tabName);
+    }
+  } catch(e){}
+  if (tabName === 'chat') loadChatOrders();
+  if (tabName === 'subscriptions') loadPlans();
+  if (tabName === 'referrals') loadWithdrawals();
+  if (tabName === 'inventory' || tabName === 'overview') loadDashboardData();
+  if (tabName === 'settings') loadPlatformSettings();
+}
+
 document.querySelectorAll('.nav-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-    tab.classList.add('active');
-    const target = $('tab-' + tab.dataset.tab);
-    if (target) target.classList.add('active');
+  tab.addEventListener('click', (e) => {
+    e.preventDefault();
+    switchAdminTab(tab.dataset.tab);
     const sidebar = document.querySelector('.sidebar');
     if (sidebar) sidebar.classList.remove('open');
-    if (tab.dataset.tab === 'chat') loadChatOrders();
-    if (tab.dataset.tab === 'subscriptions') loadPlans();
-    if (tab.dataset.tab === 'referrals') loadWithdrawals();
-    if (tab.dataset.tab === 'inventory' || tab.dataset.tab === 'overview') loadDashboardData();
   });
 });
 
@@ -1315,6 +1329,97 @@ $('adminChatForm').addEventListener('submit', async (e) => {
   }
 });
 
+// Platform Settings Loading & Persistent Saving
+async function loadPlatformSettings() {
+  if (!adminToken) return;
+  try {
+    const res = await apiFetch('api/admin/settings', {
+      headers: { 'Authorization': 'Bearer ' + adminToken }
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    const settings = data.settings || {};
+    const flw = settings.flutterwave_keys || {};
+    if (flw.public_key && $('flwPublicKey')) $('flwPublicKey').value = flw.public_key;
+    if (flw.secret_key && $('flwSecretKey')) $('flwSecretKey').value = flw.secret_key;
+    if (flw.encryption_key && $('flwEncryptionKey')) $('flwEncryptionKey').value = flw.encryption_key;
+    if (flw.webhook_hash && $('flwWebhookHash')) $('flwWebhookHash').value = flw.webhook_hash;
+
+    const gdrive = settings.storage_config || {};
+    if (gdrive.folder_id && $('gdriveFolderId')) $('gdriveFolderId').value = gdrive.folder_id;
+    if (gdrive.client_id && $('gdriveClientId')) $('gdriveClientId').value = gdrive.client_id;
+  } catch (e) {
+    console.warn('Failed to load settings:', e);
+  }
+}
+
+if ($('flutterwaveSettingsForm')) {
+  $('flutterwaveSettingsForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const submitBtn = this.querySelector('button[type="submit"]');
+    setButtonLoading(submitBtn, true, 'Saving Keys...');
+
+    const keys = {
+      public_key: $('flwPublicKey') ? $('flwPublicKey').value.trim() : '',
+      secret_key: $('flwSecretKey') ? $('flwSecretKey').value.trim() : '',
+      encryption_key: $('flwEncryptionKey') ? $('flwEncryptionKey').value.trim() : '',
+      webhook_hash: $('flwWebhookHash') ? $('flwWebhookHash').value.trim() : ''
+    };
+
+    try {
+      const res = await apiFetch('api/admin/settings', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + adminToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          key: 'flutterwave_keys',
+          value: keys
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to save settings.');
+      showToast('Flutterwave credentials saved permanently in database!', 'success');
+    } catch(err) {
+      showToast(err.message, 'error');
+    } finally {
+      setButtonLoading(submitBtn, false);
+    }
+  });
+}
+
+if ($('gdriveSettingsForm')) {
+  $('gdriveSettingsForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const submitBtn = this.querySelector('button[type="submit"]');
+    setButtonLoading(submitBtn, true, 'Saving Storage...');
+    try {
+      const res = await apiFetch('api/admin/settings', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + adminToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          key: 'storage_config',
+          value: {
+            folder_id: $('gdriveFolderId') ? $('gdriveFolderId').value.trim() : '',
+            client_id: $('gdriveClientId') ? $('gdriveClientId').value.trim() : ''
+          }
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to save settings.');
+      showToast('Google Drive settings saved permanently!', 'success');
+    } catch(err) {
+      showToast(err.message, 'error');
+    } finally {
+      setButtonLoading(submitBtn, false);
+    }
+  });
+}
+
 async function initAdminSession() {
   adminToken = localStorage.getItem('fds_admin_token') || localStorage.getItem('fds_user_token');
   if (!adminToken) {
@@ -1342,6 +1447,8 @@ async function initAdminSession() {
         window.pollIntervalStarted = true;
         setInterval(pollNotifications, 5000); // 5s notification checks
       }
+      const initialTab = window.location.hash.replace('#', '') || localStorage.getItem('fds_admin_active_tab') || 'overview';
+      switchAdminTab(initialTab);
       return;
     }
     throw new Error('Not admin');

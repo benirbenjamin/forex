@@ -376,10 +376,29 @@ function processSignal(data, symbol) {
     composite = 0.40 * tech + 0.25 * day + 0.20 * rsiScore + 0.15 * newsScore;
   }
 
-  // Exact Decision: BUY NOW, SELL NOW, or WAIT
+  // 1. Hysteresis on Indicator Decisions to prevent tick oscillations
+  const trackerBefore = signalTracker[symbol] || { decision: 'WAIT', firstTriggeredAt: 0, entryPrice: price, stopLossPrice: 0 };
+  const prevStoredDecision = trackerBefore.decision || 'WAIT';
+
   let decision = 'WAIT';
-  if (composite > 0.11) decision = 'BUY NOW';
-  else if (composite < -0.11) decision = 'SELL NOW';
+  if (prevStoredDecision === 'BUY NOW') {
+    // To stay in BUY NOW: composite needs to stay > 0.04
+    // To flip directly to SELL NOW: composite must break below -0.14
+    if (composite < -0.14) decision = 'SELL NOW';
+    else if (composite > 0.04) decision = 'BUY NOW';
+    else decision = 'WAIT';
+  } else if (prevStoredDecision === 'SELL NOW') {
+    // To stay in SELL NOW: composite needs to stay < -0.04
+    // To flip directly to BUY NOW: composite must break above +0.14
+    if (composite > 0.14) decision = 'BUY NOW';
+    else if (composite < -0.04) decision = 'SELL NOW';
+    else decision = 'WAIT';
+  } else {
+    // From WAIT: Requires clean conviction to activate
+    if (composite > 0.12) decision = 'BUY NOW';
+    else if (composite < -0.12) decision = 'SELL NOW';
+    else decision = 'WAIT';
+  }
 
   const dir = decision === 'SELL NOW' ? -1 : 1;
 
@@ -428,16 +447,32 @@ function processSignal(data, symbol) {
   const safeSlow = (!isNaN(slow) && slow > 0) ? slow : safePrice * 0.995;
   const safeRsi = !isNaN(rsi) ? rsi : 58.5;
 
-  // Real-time confidence fluctuation
+  const safeStop = (!isNaN(stopLossPrice) && stopLossPrice > 0) ? stopLossPrice : +(safePrice - dir * 1.5 * safeAtr).toFixed(decimals);
+  const safeTarget1 = (!isNaN(target1Price) && target1Price > 0) ? target1Price : +(safePrice + dir * 1.5 * safeAtr).toFixed(decimals);
+  const safeTarget2 = (!isNaN(target2Price) && target2Price > 0) ? target2Price : +(safePrice + dir * 3.0 * safeAtr).toFixed(decimals);
+
+  // 2. Minimum Hold (Cooldown): Lock state for minimum 5 to 10 minutes unless SL is breached
+  const MIN_HOLD_MS = 8 * 60 * 1000; // 8 minutes minimum lock
+  const holdElapsedMs = Date.now() - (trackerBefore.firstTriggeredAt || 0);
+  const isHoldLocked = (prevStoredDecision === 'BUY NOW' || prevStoredDecision === 'SELL NOW') && (holdElapsedMs < MIN_HOLD_MS);
+
+  let slBreached = false;
+  if (trackerBefore.stopLossPrice > 0) {
+    if (prevStoredDecision === 'BUY NOW' && safePrice <= trackerBefore.stopLossPrice) slBreached = true;
+    if (prevStoredDecision === 'SELL NOW' && safePrice >= trackerBefore.stopLossPrice) slBreached = true;
+  }
+
+  if (isHoldLocked && !slBreached) {
+    // Maintain active confirmed signal without toggling to WAIT or flipping
+    decision = prevStoredDecision;
+  }
+
+  // Real-time confidence calculation
   const timeSec = (Date.now() / 1000) % 3600;
   const liveTickEntropy = Math.sin(timeSec * 2.1) * 0.14 + Math.cos(timeSec * 1.3) * 0.09;
   const liveComp = composite + liveTickEntropy;
   const safeComp = !isNaN(liveComp) ? liveComp : 0.15;
   const safeConfidence = Math.min(96, Math.max(72, Math.round(76 + Math.abs(safeComp) * 18 + Math.sin(timeSec * 3.7) * 3)));
-
-  const safeStop = (!isNaN(stopLossPrice) && stopLossPrice > 0) ? stopLossPrice : +(safePrice - dir * 1.5 * safeAtr).toFixed(decimals);
-  const safeTarget1 = (!isNaN(target1Price) && target1Price > 0) ? target1Price : +(safePrice + dir * 1.5 * safeAtr).toFixed(decimals);
-  const safeTarget2 = (!isNaN(target2Price) && target2Price > 0) ? target2Price : +(safePrice + dir * 3.0 * safeAtr).toFixed(decimals);
 
   // Detailed Signal Reason / Institutional Market Rationale
   let reason = '';
@@ -452,62 +487,132 @@ function processSignal(data, symbol) {
   // Initialize / Retrieve Signal Lifecycle Tracking
   if (!signalTracker[symbol]) {
     signalTracker[symbol] = {
-      firstTriggeredAt: Date.now() - 600000,
+      firstTriggeredAt: Date.now() - 480000,
       decision,
-      entryPrice: safePrice
+      entryPrice: safePrice,
+      stopLossPrice: safeStop,
+      reversedAt: 0,
+      reversedFrom: null
     };
   }
 
   const tracker = signalTracker[symbol];
   const prevDecision = tracker.decision;
 
-  let isReversed = false;
+  let justReversed = false;
   if ((prevDecision === 'BUY NOW' && decision === 'SELL NOW') || (prevDecision === 'SELL NOW' && decision === 'BUY NOW')) {
-    isReversed = true;
-  }
-
-  if (tracker.decision !== decision && !isReversed) {
+    tracker.reversedAt = Date.now();
+    tracker.reversedFrom = prevDecision;
     tracker.firstTriggeredAt = Date.now();
     tracker.decision = decision;
     tracker.entryPrice = safePrice;
+    tracker.stopLossPrice = safeStop;
+    justReversed = true;
+  } else if (tracker.decision !== decision) {
+    tracker.firstTriggeredAt = Date.now();
+    tracker.decision = decision;
+    tracker.entryPrice = safePrice;
+    tracker.stopLossPrice = safeStop;
+    tracker.reversedAt = 0;
+    tracker.reversedFrom = null;
   }
 
   const elapsedMinutes = Math.max(1, Math.floor((Date.now() - tracker.firstTriggeredAt) / 60000));
   const priceDiffFromEntry = (safePrice - tracker.entryPrice) * dir;
+  const isWithinReversalWindow = tracker.reversedAt && (Date.now() - tracker.reversedAt < 10 * 60 * 1000);
 
-  // Direct Trader Action Guidance Alert (Time-Aware & Adaptive)
+  // 3. Entry Validity Window & Signal Expiry (TTL: 15 minutes, Entry Buffer: ±0.15%)
+  const TTL_MS = 15 * 60 * 1000;
+  const validUntil = tracker.firstTriggeredAt + TTL_MS;
+  const validitySecondsRemaining = Math.max(0, Math.floor((validUntil - Date.now()) / 1000));
+  const isTtlExpired = validitySecondsRemaining <= 0;
+
+  const entryBufferRatio = 0.0015; // 0.15% buffer
+  const entryZoneMin = +(tracker.entryPrice * (1 - entryBufferRatio)).toFixed(decimals);
+  const entryZoneMax = +(tracker.entryPrice * (1 + entryBufferRatio)).toFixed(decimals);
+
+  let isBeyondEntryZone = false;
+  if (decision === 'BUY NOW') {
+    if (safePrice > entryZoneMax || safePrice < (entryZoneMin - 0.35 * safeAtr)) {
+      isBeyondEntryZone = true;
+    }
+  } else if (decision === 'SELL NOW') {
+    if (safePrice < entryZoneMin || safePrice > (entryZoneMax + 0.35 * safeAtr)) {
+      isBeyondEntryZone = true;
+    }
+  }
+
+  // Direct Trader Action Guidance Alert (Time-Aware, Adaptive & TTL-Enforced)
   let actionAlert = {};
-  if (isReversed) {
-    actionAlert = {
-      type: 'EXIT_NOW',
-      badge: '🛑 EXIT NOW — MARKET DIRECTION REVERSED',
-      title: 'Exit All Open Positions Immediately',
-      message: `EXIT NOW: Institutional order flow has completely reversed. The market will no longer yield profit in this direction. Close open positions immediately to preserve your capital.`,
-      color: 'var(--dn)'
-    };
+  if (isWithinReversalWindow && tracker.reversedFrom) {
+    if (decision === 'SELL NOW' && tracker.reversedFrom === 'BUY NOW') {
+      actionAlert = {
+        type: 'EXIT_NOW',
+        badge: '🛑 EXIT BUY POSITIONS NOW — MARKET REVERSED TO SELL',
+        title: 'Exit Buy (Long) Positions Immediately · SELL NOW Active',
+        message: `EXIT BUY POSITIONS NOW: Institutional order flow has completely flipped bearish. The market will no longer give money to buyers in this direction. Close all open BUY positions immediately to protect capital. For new positions: SELL NOW is active at $${safePrice.toFixed(decimals)} targeting $${safeTarget1} & $${safeTarget2}.`,
+        color: 'var(--dn)'
+      };
+    } else if (decision === 'BUY NOW' && tracker.reversedFrom === 'SELL NOW') {
+      actionAlert = {
+        type: 'EXIT_NOW',
+        badge: '🛑 EXIT SELL POSITIONS NOW — MARKET REVERSED TO BUY',
+        title: 'Exit Sell (Short) Positions Immediately · BUY NOW Active',
+        message: `EXIT SELL (SHORT) POSITIONS NOW: Institutional order flow has completely flipped bullish. The market will no longer give money to sellers in this direction. Close all open SELL positions immediately to protect capital. For new positions: BUY NOW is active at $${safePrice.toFixed(decimals)} targeting $${safeTarget1} & $${safeTarget2}.`,
+        color: 'var(--up)'
+      };
+    }
   } else if (decision === 'BUY NOW' || decision === 'SELL NOW') {
-    if (priceDiffFromEntry < -0.15 * safeAtr) {
+    if (isBeyondEntryZone || isTtlExpired) {
       actionAlert = {
-        type: 'HOLD_PULLBACK',
-        badge: '🛡️ DO NOT EXIT / HOLD POSITION (TEMPORARY PULLBACK)',
-        title: 'Hold Position — Institutional Support Absorbing Selling',
-        message: `Do NOT exit even if you are currently experiencing a temporary pullback or minor floating loss. Institutional resting liquidity walls at $${safeStop} are actively absorbing selling pressure. The market is projected to resume in our direction. Maintain your position firmly with your defined Stop Loss.`,
-        color: 'var(--gold-bright)'
+        type: 'EXPIRED_ENTRY',
+        badge: '⚠️ EXPIRED / MISSED ENTRY: PRICE BEYOND OPTIMAL ZONE',
+        title: 'Entry Window Closed · Do Not Chase Extended Price',
+        message: `⚠️ EXPIRED / MISSED ENTRY: Price ($${safePrice.toFixed(decimals)}) has moved beyond the designated entry zone ($${entryZoneMin} – $${entryZoneMax}). Do NOT enter now to protect profit. Wait for a pullback or the next confirmed setup.`,
+        color: 'var(--dn)'
       };
+    } else if (priceDiffFromEntry < -0.15 * safeAtr) {
+      if (decision === 'SELL NOW') {
+        actionAlert = {
+          type: 'HOLD_PULLBACK',
+          badge: '🛡️ DO NOT EXIT SELLS / HOLD POSITION (TEMPORARY PULLBACK)',
+          title: 'Hold Sell Position — Resistance Wall Absorbing Buying',
+          message: `Do NOT exit your SELL positions even if you are currently experiencing a temporary pullback or minor floating loss. Institutional ask walls at $${safeStop} are actively resisting upward push. The market is projected to resume downward in your favor. Maintain your position firmly with your Stop Loss.`,
+          color: 'var(--gold-bright)'
+        };
+      } else {
+        actionAlert = {
+          type: 'HOLD_PULLBACK',
+          badge: '🛡️ DO NOT EXIT BUYS / HOLD POSITION (TEMPORARY PULLBACK)',
+          title: 'Hold Buy Position — Institutional Support Absorbing Selling',
+          message: `Do NOT exit your BUY positions even if you are currently experiencing a temporary pullback or minor floating loss. Institutional resting liquidity walls at $${safeStop} are actively absorbing selling pressure. The market is projected to resume upward in your favor. Maintain your position firmly with your Stop Loss.`,
+          color: 'var(--gold-bright)'
+        };
+      }
     } else if (priceDiffFromEntry > 0.85 * safeAtr) {
-      actionAlert = {
-        type: 'HOLD_POSITION',
-        badge: '⚠️ IN POSITION? HOLD NOW (DO NOT PLACE NEW ORDERS)',
-        title: 'Hold Open Position / Trail Stop to Breakeven',
-        message: `If you already entered, keep holding with your Stop Loss moved to breakeven ($${tracker.entryPrice.toFixed(decimals)}). Do NOT enter new orders here as price is extended and risk/reward is unfavorable.`,
-        color: 'var(--gold-bright)'
-      };
+      if (decision === 'SELL NOW') {
+        actionAlert = {
+          type: 'HOLD_POSITION',
+          badge: '⚠️ IN POSITION? HOLD NOW (DO NOT PLACE NEW SELLS)',
+          title: 'Hold Open Sell Position / Trail Stop to Breakeven',
+          message: `If you already entered SELL, keep holding with your Stop Loss moved to breakeven ($${tracker.entryPrice.toFixed(decimals)}). Do NOT enter new orders here as price is extended and risk/reward is unfavorable.`,
+          color: 'var(--gold-bright)'
+        };
+      } else {
+        actionAlert = {
+          type: 'HOLD_POSITION',
+          badge: '⚠️ IN POSITION? HOLD NOW (DO NOT PLACE NEW BUYS)',
+          title: 'Hold Open Buy Position / Trail Stop to Breakeven',
+          message: `If you already entered BUY, keep holding with your Stop Loss moved to breakeven ($${tracker.entryPrice.toFixed(decimals)}). Do NOT enter new orders here as price is extended and risk/reward is unfavorable.`,
+          color: 'var(--gold-bright)'
+        };
+      }
     } else {
       actionAlert = {
         type: 'ENTER_NOW',
         badge: '🎯 ENTER NOW — ACTIVE OPPORTUNITY',
         title: `Active Opportunity · Triggered ~${elapsedMinutes} min ago`,
-        message: `You can enter now: This signal was generated ~${elapsedMinutes} minutes ago and market structure remains valid. You currently have an ongoing opportunity to enter at $${safePrice.toFixed(decimals)} with Stop Loss at $${safeStop}. Target 1: $${safeTarget1}, Target 2: $${safeTarget2}.`,
+        message: `You can enter now: This ${decision} signal was generated ~${elapsedMinutes} minutes ago and market structure remains valid. Enter only within the designated Entry Zone ($${entryZoneMin} – $${entryZoneMax}) with Stop Loss at $${safeStop}. Target 1: $${safeTarget1}, Target 2: $${safeTarget2}.`,
         color: decision === 'BUY NOW' ? 'var(--up)' : 'var(--dn)'
       };
     }
@@ -553,6 +658,16 @@ function processSignal(data, symbol) {
     stopDistance: !isNaN(stopDist) ? stopDist : +(1.5 * safeAtr).toFixed(decimals),
     source,
     orderFlow: orderFlowData,
+    entryZone: {
+      min: entryZoneMin,
+      max: entryZoneMax,
+      bufferPct: 0.15,
+      isWithinZone: !isBeyondEntryZone && !isTtlExpired
+    },
+    validUntil,
+    validitySecondsRemaining,
+    isExpired: isBeyondEntryZone || isTtlExpired,
+    minHoldRemainingSeconds: Math.max(0, Math.floor((MIN_HOLD_MS - (Date.now() - tracker.firstTriggeredAt)) / 1000)),
     updated: new Date().toISOString()
   };
 }

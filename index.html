@@ -16,6 +16,7 @@ if (window.location.pathname.endsWith('.html')) {
   window.history.replaceState(null, '', cleanPath + window.location.search);
 }
 </script>
+<script src="https://checkout.flutterwave.com/v3.js"></script>
 <style>
 :root {
   --bg: #0b0e14;
@@ -843,6 +844,16 @@ html, body {
         </div>
         <h4 id="actionAlertTitle" style="color:#fff; font-size:15px; font-weight:800; margin-bottom:6px;">Execute Buy Position Now</h4>
         <p id="actionAlertMessage" style="color:#d0d7de; font-size:13px; line-height:1.5; margin:0;">High-probability institutional entry window active. Enter position now at market price with defined risk.</p>
+        <div id="entryZoneContainer" style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.3); border-radius:6px; padding:10px 14px; margin-top:10px; flex-wrap:wrap; gap:10px; border:1px solid rgba(255,255,255,0.08);">
+          <div style="font-size:13px; color:#fff;">
+            🎯 <b>Designated Entry Zone:</b> <span id="entryZoneText" style="color:var(--gold-bright); font-weight:800;">$3,885.00 – $3,892.00</span>
+            <span id="entryZoneStatusBadge" style="margin-left:8px; font-size:11px; padding:2px 8px; border-radius:12px; background:rgba(0,208,132,0.2); color:var(--up); font-weight:700;">Within Zone</span>
+          </div>
+          <div style="font-size:12px; color:#d0d7de; font-weight:700; display:flex; align-items:center; gap:6px;">
+            <span>⏱️ Valid for next:</span>
+            <b id="validityCountdownText" style="color:var(--gold-bright); font-size:14px; font-family:monospace;">14m 59s</b>
+          </div>
+        </div>
       </div>
 
       <!-- Signal Rationale & Market Cause Box -->
@@ -2131,6 +2142,34 @@ function renderSignal(d) {
     }
     if ($('actionAlertTitle')) $('actionAlertTitle').textContent = alert.title;
     if ($('actionAlertMessage')) $('actionAlertMessage').textContent = alert.message;
+
+    // Entry Zone & TTL Countdown Handling
+    var ezContainer = $('entryZoneContainer');
+    if (decision === 'WAIT') {
+      if (ezContainer) ezContainer.style.display = 'none';
+    } else if (ezContainer) {
+      ezContainer.style.display = 'flex';
+      if (d.entryZone) {
+        if ($('entryZoneText')) {
+          $('entryZoneText').textContent = '$' + (+d.entryZone.min).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }) + ' – $' + (+d.entryZone.max).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+        }
+        var ezBadge = $('entryZoneStatusBadge');
+        if (ezBadge) {
+          if (d.isExpired || !d.entryZone.isWithinZone) {
+            ezBadge.textContent = '⚠️ Price Beyond Optimal Zone';
+            ezBadge.style.background = 'rgba(248, 73, 96, 0.2)';
+            ezBadge.style.color = 'var(--dn)';
+          } else {
+            ezBadge.textContent = '✅ Within Designated Entry Zone';
+            ezBadge.style.background = 'rgba(0, 208, 132, 0.2)';
+            ezBadge.style.color = 'var(--up)';
+          }
+        }
+      }
+      if (d.validUntil) {
+        window.currentSignalValidUntil = d.validUntil;
+      }
+    }
   }
 
   // Institutional Signal Reason & Market Cause Box
@@ -2173,12 +2212,12 @@ function renderSignal(d) {
     }
   } else if (lastReportedDecision[activeSymbol] !== decision) {
     lastReportedDecision[activeSymbol] = decision;
-    if (decision.includes('BUY') || decision.includes('SELL')) {
+    if (alert && alert.type === 'EXIT_NOW') {
+      showToast('⚠️ ' + alert.title, 'error');
+      addInAppNotification(alert.badge, alert.message, 'exit');
+    } else if (decision.includes('BUY') || decision.includes('SELL')) {
       showToast('New Institutional Signal: ' + activeSymbol + ' ' + decision + '!', 'success');
       addInAppNotification('🎯 ' + activeSymbol + ' ' + decision + ' Opportunity', alert ? alert.message : ('Entry: $' + p.toFixed(2)), 'opportunity');
-    } else if (alert && alert.type === 'EXIT_NOW') {
-      showToast('⚠️ EXIT ALERT: ' + activeSymbol + ' market direction reversed!', 'error');
-      addInAppNotification('🛑 ' + activeSymbol + ' EXIT NOW Alert', alert.message, 'exit');
     } else {
       showToast(activeSymbol + ' market consolidating in sideways chop (WAIT)', 'info');
       addInAppNotification('⏳ ' + activeSymbol + ' Stand Aside & Wait', 'Market is consolidating sideways. Preserve capital.', 'info');
@@ -2358,42 +2397,47 @@ function checkSimulatorAutoExecution(currentPrice) {
   for (var i = 0; i < simTrades.length; i++) {
     var t = simTrades[i];
     if (t.status !== 'open' || t.symbol !== activeSymbol) continue;
+    // Sanity filter: do not execute if currentPrice doesn't match symbol magnitude
+    if (t.symbol === 'XAUUSD' && (currentPrice > 10000 || currentPrice < 1000)) continue;
+    if (t.symbol === 'BTCUSD' && (currentPrice < 10000 || currentPrice > 300000)) continue;
+
     var isBuy = t.side === 'BUY';
     var mult = t.symbol === 'BTCUSD' ? 1 : 100;
 
     if (isBuy) {
       if (t.tp2 && currentPrice >= t.tp2) {
-        t.status = 'tp2'; t.exit = t.tp2; t.reason = 'Target 2 Hit 🎯🎯'; t.pnl = (t.tp2 - t.entry) * t.lots * mult;
+        t.status = 'tp2'; t.exit = t.tp2; t.reason = 'Target 2 Hit 🎯🎯'; t.pnl = Math.abs(t.tp2 - t.entry) * t.lots * mult;
         changed = true;
         showToast('Target 2 Reached! Position closed at $' + t.tp2.toFixed(2), 'success');
-        addInAppNotification('🎯 Target 2 Executed', '#' + t.id + ' closed at $' + t.tp2.toFixed(2) + ' (+' + t.pnl.toFixed(2) + ')', 'tp');
+        addInAppNotification('🎯 Target 2 Executed', '#' + t.id + ' closed at $' + t.tp2.toFixed(2) + ' (+$' + t.pnl.toFixed(2) + ')', 'tp');
       } else if (t.tp1 && currentPrice >= t.tp1 && !t.hitTp1) {
-        t.status = 'tp1'; t.exit = t.tp1; t.reason = 'Target 1 Hit 🎯'; t.pnl = (t.tp1 - t.entry) * t.lots * mult;
+        t.status = 'tp1'; t.exit = t.tp1; t.reason = 'Target 1 Hit 🎯'; t.pnl = Math.abs(t.tp1 - t.entry) * t.lots * mult;
         changed = true;
         showToast('Target 1 Reached! Position closed at $' + t.tp1.toFixed(2), 'success');
-        addInAppNotification('🎯 Target 1 Executed', '#' + t.id + ' closed at $' + t.tp1.toFixed(2) + ' (+' + t.pnl.toFixed(2) + ')', 'tp');
+        addInAppNotification('🎯 Target 1 Executed', '#' + t.id + ' closed at $' + t.tp1.toFixed(2) + ' (+$' + t.pnl.toFixed(2) + ')', 'tp');
       } else if (t.sl && currentPrice <= t.sl) {
-        t.status = 'sl'; t.exit = t.sl; t.reason = 'Stop Loss Hit 🛑'; t.pnl = (t.sl - t.entry) * t.lots * mult;
+        t.status = 'sl'; t.exit = t.sl; t.reason = 'Stop Loss Hit 🛑'; t.pnl = -Math.abs(t.entry - t.sl) * t.lots * mult;
         changed = true;
         showToast('Stop Loss Hit! Position closed at $' + t.sl.toFixed(2), 'error');
-        addInAppNotification('🛑 Stop Loss Executed', '#' + t.id + ' closed at $' + t.sl.toFixed(2) + ' (' + t.pnl.toFixed(2) + ')', 'sl');
+        addInAppNotification('🛑 Stop Loss Executed', '#' + t.id + ' closed at $' + t.sl.toFixed(2) + ' (-$' + Math.abs(t.pnl).toFixed(2) + ')', 'sl');
       }
     } else {
+      // SELL trade: profit is when price falls below target; loss is when price rises above SL
       if (t.tp2 && currentPrice <= t.tp2) {
-        t.status = 'tp2'; t.exit = t.tp2; t.reason = 'Target 2 Hit 🎯🎯'; t.pnl = (t.entry - t.tp2) * t.lots * mult;
+        t.status = 'tp2'; t.exit = t.tp2; t.reason = 'Target 2 Hit 🎯🎯'; t.pnl = Math.abs(t.entry - t.tp2) * t.lots * mult;
         changed = true;
         showToast('Target 2 Reached! Position closed at $' + t.tp2.toFixed(2), 'success');
-        addInAppNotification('🎯 Target 2 Executed', '#' + t.id + ' closed at $' + t.tp2.toFixed(2) + ' (+' + t.pnl.toFixed(2) + ')', 'tp');
+        addInAppNotification('🎯 Target 2 Executed', '#' + t.id + ' closed at $' + t.tp2.toFixed(2) + ' (+$' + t.pnl.toFixed(2) + ')', 'tp');
       } else if (t.tp1 && currentPrice <= t.tp1 && !t.hitTp1) {
-        t.status = 'tp1'; t.exit = t.tp1; t.reason = 'Target 1 Hit 🎯'; t.pnl = (t.entry - t.tp1) * t.lots * mult;
+        t.status = 'tp1'; t.exit = t.tp1; t.reason = 'Target 1 Hit 🎯'; t.pnl = Math.abs(t.entry - t.tp1) * t.lots * mult;
         changed = true;
         showToast('Target 1 Reached! Position closed at $' + t.tp1.toFixed(2), 'success');
-        addInAppNotification('🎯 Target 1 Executed', '#' + t.id + ' closed at $' + t.tp1.toFixed(2) + ' (+' + t.pnl.toFixed(2) + ')', 'tp');
+        addInAppNotification('🎯 Target 1 Executed', '#' + t.id + ' closed at $' + t.tp1.toFixed(2) + ' (+$' + t.pnl.toFixed(2) + ')', 'tp');
       } else if (t.sl && currentPrice >= t.sl) {
-        t.status = 'sl'; t.exit = t.sl; t.reason = 'Stop Loss Hit 🛑'; t.pnl = (t.entry - t.sl) * t.lots * mult;
+        t.status = 'sl'; t.exit = t.sl; t.reason = 'Stop Loss Hit 🛑'; t.pnl = -Math.abs(t.sl - t.entry) * t.lots * mult;
         changed = true;
         showToast('Stop Loss Hit! Position closed at $' + t.sl.toFixed(2), 'error');
-        addInAppNotification('🛑 Stop Loss Executed', '#' + t.id + ' closed at $' + t.sl.toFixed(2) + ' (' + t.pnl.toFixed(2) + ')', 'sl');
+        addInAppNotification('🛑 Stop Loss Executed', '#' + t.id + ' closed at $' + t.sl.toFixed(2) + ' (-$' + Math.abs(t.pnl).toFixed(2) + ')', 'sl');
       }
     }
   }
@@ -2407,6 +2451,16 @@ function checkSimulatorAutoExecution(currentPrice) {
 if ($('simBuyBtn')) $('simBuyBtn').addEventListener('click', function() { executeSimOrder('BUY'); });
 if ($('simSellBtn')) $('simSellBtn').addEventListener('click', function() { executeSimOrder('SELL'); });
 
+if ($('simSymbol')) {
+  $('simSymbol').addEventListener('change', function() {
+    activeSymbol = this.value;
+    if ($('simSlPrice')) $('simSlPrice').value = '';
+    if ($('simTp1Price')) $('simTp1Price').value = '';
+    if ($('simTp2Price')) $('simTp2Price').value = '';
+    loadSignal();
+  });
+}
+
 function executeSimOrder(side) {
   if (!authToken) { openAuthModal('signup'); return; }
   var sym = $('simSymbol').value;
@@ -2414,7 +2468,38 @@ function executeSimOrder(side) {
   var sl = parseFloat($('simSlPrice').value) || null;
   var tp1 = parseFloat($('simTp1Price').value) || null;
   var tp2 = parseFloat($('simTp2Price').value) || null;
-  var entry = prevPrice || (sym === 'BTCUSD' ? 65280.00 : 3888.50);
+
+  var isBtc = sym === 'BTCUSD';
+  var entry = (isBtc ? (activeSymbol === 'BTCUSD' && prevPrice > 10000 ? prevPrice : 65280.00) : (activeSymbol === 'XAUUSD' && prevPrice < 10000 ? prevPrice : 3888.50));
+
+  // Strict Validation: prevent inverted SL/TP orders
+  if (side === 'BUY') {
+    if (sl && sl >= entry) {
+      showToast('Invalid Order: For a BUY position, Stop Loss ($' + sl + ') must be BELOW entry ($' + entry.toFixed(2) + ').', 'error');
+      return;
+    }
+    if (tp1 && tp1 <= entry) {
+      showToast('Invalid Order: For a BUY position, Target 1 ($' + tp1 + ') must be ABOVE entry ($' + entry.toFixed(2) + ').', 'error');
+      return;
+    }
+    if (tp2 && tp2 <= entry) {
+      showToast('Invalid Order: For a BUY position, Target 2 ($' + tp2 + ') must be ABOVE entry ($' + entry.toFixed(2) + ').', 'error');
+      return;
+    }
+  } else {
+    if (sl && sl <= entry) {
+      showToast('Invalid Order: For a SELL position, Stop Loss ($' + sl + ') must be ABOVE entry ($' + entry.toFixed(2) + ').', 'error');
+      return;
+    }
+    if (tp1 && tp1 >= entry) {
+      showToast('Invalid Order: For a SELL position, Target 1 ($' + tp1 + ') must be BELOW entry ($' + entry.toFixed(2) + ').', 'error');
+      return;
+    }
+    if (tp2 && tp2 >= entry) {
+      showToast('Invalid Order: For a SELL position, Target 2 ($' + tp2 + ') must be BELOW entry ($' + entry.toFixed(2) + ').', 'error');
+      return;
+    }
+  }
 
   var order = {
     id: 'SIM-' + Math.floor(Math.random() * 89999 + 10000),
@@ -2568,6 +2653,23 @@ function startRealtimeMicroTickEngine() {
       $('simMarketPriceDisplay').textContent = '$' + currentTickPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
+    // Live Validity Countdown Timer
+    if (window.currentSignalValidUntil) {
+      var remainingSec = Math.max(0, Math.floor((window.currentSignalValidUntil - Date.now()) / 1000));
+      var m = Math.floor(remainingSec / 60);
+      var s = remainingSec % 60;
+      var cdEl = $('validityCountdownText');
+      if (cdEl) {
+        if (remainingSec <= 0) {
+          cdEl.textContent = 'EXPIRED (00:00)';
+          cdEl.style.color = 'var(--dn)';
+        } else {
+          cdEl.textContent = (m < 10 ? '0' + m : m) + 'm ' + (s < 10 ? '0' + s : s) + 's';
+          cdEl.style.color = remainingSec < 180 ? 'var(--dn)' : 'var(--gold-bright)';
+        }
+      }
+    }
+
     checkSimulatorAutoExecution(currentTickPrice);
     renderSimPositions(currentTickPrice);
   }, 450);
@@ -2620,12 +2722,12 @@ function loadPricing() {
     })
     .catch(function() {
       cachedPlans = [
-        { id: '1-day', name: '1 Day Pass (24 Hours)', durationDays: 1, priceUsd: 5.00, priceRwf: 6750 },
-        { id: '1-week', name: '1 Week Access', durationDays: 7, priceUsd: 25.00, priceRwf: 33750 },
-        { id: '1-month', name: '1 Month Standard', durationDays: 30, priceUsd: 70.00, priceRwf: 94500 },
-        { id: '3-months', name: '3 Months Pro', durationDays: 90, priceUsd: 180.00, priceRwf: 243000 },
-        { id: '6-months', name: '6 Months Elite', durationDays: 180, priceUsd: 320.00, priceRwf: 432000 },
-        { id: '1-year', name: '1 Year VIP Institutional', durationDays: 365, priceUsd: 550.00, priceRwf: 742500 }
+        { id: '1-day', name: '1 Day Pass (24 Hours)', durationDays: 1, priceUsd: 1.00, priceRwf: 1450 },
+        { id: '1-week', name: '1 Week Access', durationDays: 7, priceUsd: 5.00, priceRwf: 7250 },
+        { id: '1-month', name: '1 Month Standard', durationDays: 30, priceUsd: 20.00, priceRwf: 29000 },
+        { id: '3-months', name: '3 Months Pro', durationDays: 90, priceUsd: 50.00, priceRwf: 72500 },
+        { id: '6-months', name: '6 Months Elite', durationDays: 180, priceUsd: 90.00, priceRwf: 130500 },
+        { id: '1-year', name: '1 Year VIP Institutional', durationDays: 365, priceUsd: 150.00, priceRwf: 217500 }
       ];
       render(cachedPlans);
     });
@@ -2636,8 +2738,9 @@ $('checkoutForm').addEventListener('submit', function(e) {
   if (!authToken) { openAuthModal('signup'); return; }
   var planId = $('selectedPlanId').value;
   var phone = $('checkoutPhone') ? $('checkoutPhone').value.trim() : '';
+  var currency = $('checkoutCurrency') ? $('checkoutCurrency').value : 'USD';
   var submitBtn = e.target.querySelector('button[type="submit"]');
-  setButtonLoading(submitBtn, true, 'Processing Checkout...');
+  setButtonLoading(submitBtn, true, 'Opening Flutterwave...');
 
   apiFetch('api/subscription/checkout', {
     method: 'POST',
@@ -2648,6 +2751,7 @@ $('checkoutForm').addEventListener('submit', function(e) {
     body: JSON.stringify({
       planId: planId,
       phone: phone,
+      currency: currency,
       paymentMethod: 'momo'
     })
   })
@@ -2655,8 +2759,59 @@ $('checkoutForm').addEventListener('submit', function(e) {
   .then(function(data) {
     if (data.error) {
       showToast(data.error, 'error');
+      return;
+    }
+
+    var flwKey = data.publicKey || 'FLWPUBK_TEST-SANDBOX-DEMO-X';
+    var userEmail = (window.currentUser && window.currentUser.email) || 'trader@benix.space';
+    var userName = (window.currentUser && window.currentUser.fullName) || 'VIP Trader';
+
+    if (typeof FlutterwaveCheckout === 'function') {
+      FlutterwaveCheckout({
+        public_key: flwKey,
+        tx_ref: 'FDS_' + ((data.plan && data.plan.slug) ? data.plan.slug : 'sub') + '_' + Date.now(),
+        amount: parseFloat(data.amount) || (data.plan ? data.plan.priceUsd : 20.00),
+        currency: data.currency || currency,
+        customer: {
+          email: userEmail,
+          phone_number: phone,
+          name: userName
+        },
+        customizations: {
+          title: 'ForexDoubleSniper VIP Access',
+          description: ((data.plan && data.plan.name) ? data.plan.name : 'VIP Access') + ' Subscription',
+          logo: window.location.origin + '/logo.svg'
+        },
+        callback: function(paymentResponse) {
+          showToast('Payment confirmed! Activating your VIP access...', 'success');
+          apiFetch('api/subscription/activate', {
+            method: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + authToken,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              planId: planId,
+              txRef: paymentResponse.tx_ref || paymentResponse.transaction_id,
+              flwId: paymentResponse.transaction_id
+            })
+          }).then(function() {
+            showToast('🎉 VIP Subscription Activated Successfully!', 'success');
+            applyAuthState();
+            switchTab('signals');
+          }).catch(function() {
+            applyAuthState();
+          });
+        },
+        onclose: function() {
+          showToast('Payment modal closed.', 'info');
+        }
+      });
+    } else if (data.paymentUrl) {
+      window.open(data.paymentUrl, '_blank');
+      showToast('Opening Flutterwave in new window...', 'info');
     } else {
-      showToast(data.message || 'Payment prompt dispatched to your phone! Complete prompt to activate VIP.', 'success');
+      showToast(data.message || 'Payment prompt dispatched! Complete payment on your phone.', 'success');
     }
   })
   .catch(function(err) {
@@ -2791,7 +2946,8 @@ $('p2pBuyForm').addEventListener('submit', function(e) {
   e.preventDefault();
   if (!authToken) { openAuthModal('signup'); return; }
   var amt = parseFloat($('p2pBuyAmount').value);
-  var wallet = $('p2pBuyWallet').value.trim();
+  var walletEl = $('p2pUserWallet') || $('p2pBuyWallet');
+  var wallet = walletEl ? walletEl.value.trim() : '';
 
   if (!amt || amt <= 0) {
     showToast('Please enter a valid USDT amount to buy.', 'error');
@@ -2848,7 +3004,8 @@ $('p2pSellForm').addEventListener('submit', function(e) {
   e.preventDefault();
   if (!authToken) { openAuthModal('signup'); return; }
   var amt = parseFloat($('p2pSellAmount').value);
-  var details = $('p2pSellMomoNumber').value.trim();
+  var detailsEl = $('p2pPayoutDetails') || $('p2pSellMomoNumber');
+  var details = detailsEl ? detailsEl.value.trim() : '';
 
   if (!amt || amt <= 0) {
     showToast('Please enter a valid USDT amount to sell.', 'error');
