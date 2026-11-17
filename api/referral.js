@@ -33,6 +33,68 @@ module.exports = async (req, res) => {
   }
 
   try {
+    // 0. Get Real Affiliate Stats (GET /api/referrals?action=stats)
+    if (action === 'stats' && req.method === 'GET') {
+      let totalReferrals = 0;
+      let activeConversions = 0;
+      let totalEarned = 0.00;
+      let totalWithdrawn = 0.00;
+
+      if (db.isConnectedToPostgres()) {
+        try {
+          const refCountRes = await db.query(
+            'SELECT COUNT(*) as count FROM referrals WHERE referrer_id = $1',
+            [user.id]
+          );
+          totalReferrals = parseInt(refCountRes.rows[0]?.count || 0);
+
+          const activeConvRes = await db.query(
+            `SELECT COUNT(DISTINCT s.user_id) as count 
+             FROM referrals r
+             JOIN subscriptions s ON r.referee_id = s.user_id
+             WHERE r.referrer_id = $1 AND s.status = 'active' AND s.expires_at > NOW()`,
+            [user.id]
+          );
+          activeConversions = parseInt(activeConvRes.rows[0]?.count || 0);
+
+          const earnRes = await db.query(
+            'SELECT COALESCE(SUM(amount), 0) as total FROM referral_earnings WHERE referrer_id = $1',
+            [user.id]
+          );
+          totalEarned = parseFloat(earnRes.rows[0]?.total || 0);
+
+          const withRes = await db.query(
+            "SELECT COALESCE(SUM(amount_requested), 0) as total FROM referral_withdrawals WHERE user_id = $1 AND status != 'rejected'",
+            [user.id]
+          );
+          totalWithdrawn = parseFloat(withRes.rows[0]?.total || 0);
+        } catch (e) {
+          console.warn('Postgres stats query notice:', e.message);
+        }
+      } else {
+        const memRefs = (db.memoryStore.referrals || []).filter(r => r.referrer_id === user.id);
+        totalReferrals = memRefs.length;
+        const memEarns = (db.memoryStore.referral_earnings || []).filter(e => e.referrer_id === user.id);
+        totalEarned = memEarns.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+        const memWiths = (db.memoryStore.referral_withdrawals || []).filter(w => w.user_id === user.id && w.status !== 'rejected');
+        totalWithdrawn = memWiths.reduce((sum, w) => sum + (parseFloat(w.amount || w.amount_requested) || 0), 0);
+        const memSubs = db.memoryStore.subscriptions || [];
+        activeConversions = memRefs.filter(r => memSubs.some(s => s.user_id === r.referee_id && s.status === 'active')).length;
+      }
+
+      const withdrawableBalance = Math.max(0, +(totalEarned - totalWithdrawn).toFixed(2));
+
+      return res.status(200).json({
+        success: true,
+        stats: {
+          totalReferrals,
+          activeConversions,
+          totalEarned: +totalEarned.toFixed(2),
+          withdrawableBalance
+        }
+      });
+    }
+
     // 1. Submit Withdrawal Request
     if (action === 'withdraw' && req.method === 'POST') {
       let body = req.body;

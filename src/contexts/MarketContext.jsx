@@ -22,7 +22,7 @@ export function MarketProvider({ children }) {
 
   const [currentPrice, setCurrentPrice] = useState(3870.50);
   const [prevPrice, setPrevPrice] = useState(3870.50);
-  const [priceDirection, setPriceDirection] = useState('neutral'); // 'up' | 'down' | 'neutral'
+  const [priceDirection, setPriceDirection] = useState('neutral');
 
   const [signal, setSignal] = useState(null);
   const [signalLoading, setSignalLoading] = useState(true);
@@ -33,14 +33,44 @@ export function MarketProvider({ children }) {
   const audioCtxRef = useRef(null);
   const basePriceRef = useRef(3870.50);
   const lastSignalActionRef = useRef(null);
+  const audioUnlockedRef = useRef(false);
 
-  // Currency selection persistence
+  // Global browser autoplay unlock listener
+  useEffect(() => {
+    const unlockAudio = () => {
+      if (audioUnlockedRef.current) return;
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          if (!audioCtxRef.current) {
+            audioCtxRef.current = new AudioCtx();
+          }
+          if (audioCtxRef.current.state === 'suspended') {
+            audioCtxRef.current.resume();
+          }
+        }
+        audioUnlockedRef.current = true;
+      } catch (e) {
+        // ignore
+      }
+    };
+
+    window.addEventListener('click', unlockAudio, { once: true, passive: true });
+    window.addEventListener('touchstart', unlockAudio, { once: true, passive: true });
+    window.addEventListener('keydown', unlockAudio, { once: true, passive: true });
+
+    return () => {
+      window.removeEventListener('click', unlockAudio);
+      window.removeEventListener('touchstart', unlockAudio);
+      window.removeEventListener('keydown', unlockAudio);
+    };
+  }, []);
+
   const changeCurrency = useCallback((curr) => {
     setActiveCurrency(curr);
     localStorage.setItem('fds_currency', curr);
   }, []);
 
-  // Format currency helper
   const formatCurrency = useCallback((usdAmount, targetCurr = activeCurrency) => {
     const rate = rates[targetCurr] || 1;
     const converted = Number(usdAmount || 0) * rate;
@@ -63,7 +93,6 @@ export function MarketProvider({ children }) {
     return `${prefix}${Math.round(converted).toLocaleString()}`;
   }, [rates, activeCurrency]);
 
-  // Audio synthesizer via Web Audio API
   const getAudioContext = useCallback(() => {
     if (!audioCtxRef.current && typeof window !== 'undefined') {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -82,47 +111,72 @@ export function MarketProvider({ children }) {
     try {
       const ctx = getAudioContext();
       if (!ctx) return;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
       const now = ctx.currentTime;
 
       if (soundType === 'opportunity' || soundType === 'entry') {
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(880, now);
-        osc.frequency.exponentialRampToValueAtTime(1320, now + 0.15);
-        gain.gain.setValueAtTime(0.35, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
-        osc.start(now);
-        osc.stop(now + 0.35);
+        // Double rising harmonic chime
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.type = 'triangle';
+        osc1.frequency.setValueAtTime(880, now);
+        osc1.frequency.exponentialRampToValueAtTime(1320, now + 0.14);
+        gain1.gain.setValueAtTime(0.4, now);
+        gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc1.start(now);
+        osc1.stop(now + 0.3);
+
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(1320, now + 0.15);
+        osc2.frequency.exponentialRampToValueAtTime(1760, now + 0.32);
+        gain2.gain.setValueAtTime(0.35, now + 0.15);
+        gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+        osc2.start(now + 0.15);
+        osc2.stop(now + 0.45);
       } else if (soundType === 'exit' || soundType === 'loss') {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
         osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(440, now);
-        osc.frequency.exponentialRampToValueAtTime(220, now + 0.25);
-        gain.gain.setValueAtTime(0.3, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.frequency.exponentialRampToValueAtTime(220, now + 0.28);
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.32);
         osc.start(now);
-        osc.stop(now + 0.3);
+        osc.stop(now + 0.32);
       } else if (soundType === 'tp' || soundType === 'win') {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(587.33, now); // D5
-        osc.frequency.setValueAtTime(880, now + 0.1); // A5
-        osc.frequency.setValueAtTime(1174.66, now + 0.2); // D6
-        gain.gain.setValueAtTime(0.3, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+        osc.frequency.setValueAtTime(587.33, now);
+        osc.frequency.setValueAtTime(880, now + 0.1);
+        osc.frequency.setValueAtTime(1174.66, now + 0.22);
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
         osc.start(now);
-        osc.stop(now + 0.4);
+        osc.stop(now + 0.45);
       } else {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
         osc.type = 'sine';
         osc.frequency.setValueAtTime(980, now);
-        gain.gain.setValueAtTime(0.2, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
         osc.start(now);
-        osc.stop(now + 0.15);
+        osc.stop(now + 0.18);
       }
     } catch (e) {
-      // ignore audio errors
+      // ignore
     }
   }, [soundEnabled, getAudioContext]);
 
@@ -157,7 +211,6 @@ export function MarketProvider({ children }) {
     setNotifications([]);
   }, []);
 
-  // Fetch live signal from API
   const fetchSignal = useCallback(async () => {
     try {
       const res = await fetch(`/api/signal?symbol=${encodeURIComponent(activeSymbol)}`);
@@ -168,13 +221,13 @@ export function MarketProvider({ children }) {
           basePriceRef.current = Number(data.price);
         }
 
-        // Detect direction flip for sound notification
+        // When a valid BUY or SELL signal is confirmed
         if (data.action && data.action !== lastSignalActionRef.current) {
-          if (lastSignalActionRef.current && (data.action === 'BUY' || data.action === 'SELL')) {
+          if (data.action === 'BUY' || data.action === 'SELL') {
             playSound('opportunity');
             addNotification(
-              `⚡ New ${data.action} Signal`,
-              `${data.symbol} entry zone: $${data.entryZoneMin} - $${data.entryZoneMax}`,
+              `⚡ Valid ${data.action} Signal: ${data.symbol || activeSymbol}`,
+              `Entry Zone: $${data.entryZoneMin} - $${data.entryZoneMax} | TP1: $${data.takeProfit1 || '—'} | SL: $${data.stopLoss || '—'}`,
               'opportunity'
             );
           }
@@ -188,7 +241,6 @@ export function MarketProvider({ children }) {
     }
   }, [activeSymbol, playSound, addNotification]);
 
-  // Initial load & Polling for signals
   useEffect(() => {
     setSignalLoading(true);
     fetchSignal();
@@ -196,7 +248,6 @@ export function MarketProvider({ children }) {
     return () => clearInterval(interval);
   }, [fetchSignal]);
 
-  // Micro-tick engine: 450ms real-time price oscillations around server baseline
   useEffect(() => {
     const isGold = activeSymbol === 'XAUUSD';
     const tickInterval = setInterval(() => {
@@ -217,7 +268,6 @@ export function MarketProvider({ children }) {
     return () => clearInterval(tickInterval);
   }, [activeSymbol]);
 
-  // Fetch P2P exchange rates to keep rates updated
   useEffect(() => {
     fetch('/api/p2p?action=info')
       .then((r) => r.json())

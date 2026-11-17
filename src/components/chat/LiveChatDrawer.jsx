@@ -136,8 +136,10 @@ export default function LiveChatDrawer() {
               </div>
             ) : (
               messages.map((m, idx) => {
-                const isAdmin = m.senderRole === 'admin' || m.senderRole === 'superadmin';
-                const isMe = m.senderRole === (user?.role || 'user');
+                const role = m.sender_role || m.senderRole;
+                const isAdmin = role === 'admin' || role === 'superadmin';
+                const isMe = role === (user?.role || 'user');
+                const timeStr = new Date(m.created_at || m.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
                 return (
                   <div
@@ -157,7 +159,7 @@ export default function LiveChatDrawer() {
                       marginBottom: 2
                     }}>
                       <span>{isAdmin ? '🛡️ Institutional Support' : (isMe ? 'You' : 'Trader')}</span>
-                      <span>{new Date(m.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      <span>{timeStr}</span>
                     </div>
                     <div style={{
                       maxWidth: '85%',

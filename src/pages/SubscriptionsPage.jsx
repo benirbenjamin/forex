@@ -9,29 +9,35 @@ import {
   CreditCard,
   ShieldCheck,
   Clock,
-  ArrowRight
+  ArrowRight,
+  Sliders,
+  Calendar
 } from 'lucide-react';
 
-const FALLBACK_PLANS = [
-  { id: 'p_1d', slug: '1-day-pass', name: '1 Day Pass (24 Hours)', days: 1, priceUsd: 5.0, priceRwf: 7250 },
-  { id: 'p_1w', slug: '1-week-access', name: '1 Week Access', days: 7, priceUsd: 25.0, priceRwf: 36250 },
-  { id: 'p_1m', slug: '1-month-standard', name: '1 Month Standard', days: 30, priceUsd: 70.0, priceRwf: 101500 },
-  { id: 'p_3m', slug: '3-months-pro', name: '3 Months Pro', days: 90, priceUsd: 180.0, priceRwf: 261000 },
-  { id: 'p_6m', slug: '6-months-elite', name: '6 Months Elite', days: 180, priceUsd: 320.0, priceRwf: 464000 },
-  { id: 'p_1y', slug: '1-year-vip-institutional', name: '1 Year VIP Institutional', days: 365, priceUsd: 550.0, priceRwf: 797500 }
+const DEFAULT_VIP_PLANS = [
+  { id: '1', slug: '1-day', name: '1 Day Pass (24 Hours)', days: 1, priceUsd: 1.0, priceRwf: 1450 },
+  { id: '2', slug: '1-week', name: '1 Week Access', days: 7, priceUsd: 5.0, priceRwf: 7250 },
+  { id: '3', slug: '1-month', name: '1 Month Standard', days: 30, priceUsd: 20.0, priceRwf: 29000 },
+  { id: '4', slug: '3-months', name: '3 Months Pro', days: 90, priceUsd: 50.0, priceRwf: 72500 },
+  { id: '5', slug: '6-months', name: '6 Months Elite', days: 180, priceUsd: 90.0, priceRwf: 130500 },
+  { id: '6', slug: '1-year', name: '1 Year VIP Institutional', days: 365, priceUsd: 150.0, priceRwf: 217500 }
 ];
 
 export default function SubscriptionsPage() {
   const { user, subscription, token, isAuthenticated, openAuth, refreshUser } = useAuth();
-  const { activeCurrency, rates } = useMarket();
+  const { rates } = useMarket();
   const { showToast, celebrate } = useToast();
 
-  const [plans, setPlans] = useState(FALLBACK_PLANS);
-  const [selectedPlanId, setSelectedPlanId] = useState('p_1m');
+  const [plans, setPlans] = useState(DEFAULT_VIP_PLANS);
+  const [selectedPlanId, setSelectedPlanId] = useState('3');
   const [checkoutCurrency, setCheckoutCurrency] = useState('RWF');
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [statusNotice, setStatusNotice] = useState(null);
+
+  // Custom duration state
+  const [isCustomMode, setIsCustomMode] = useState(false);
+  const [customDays, setCustomDays] = useState(30);
 
   // Fetch real plans from database
   useEffect(() => {
@@ -39,19 +45,34 @@ export default function SubscriptionsPage() {
       .then((r) => r.json())
       .then((d) => {
         if (d && Array.isArray(d.plans) && d.plans.length > 0) {
-          setPlans(d.plans);
+          // Normalize priceUsd and priceRwf
+          const mapped = d.plans.map(p => ({
+            id: p.id || p.slug,
+            slug: p.slug || p.id,
+            name: p.name,
+            days: p.duration_days || p.days || 30,
+            priceUsd: Number(p.price_usd || p.priceUsd || 20),
+            priceRwf: Number(p.price_rwf || p.priceRwf || 29000)
+          }));
+          setPlans(mapped);
         }
       })
       .catch((e) => {
-        console.warn('Could not fetch DB plans, using baseline plans:', e);
+        console.warn('Could not fetch DB plans, using default calibrated plans:', e);
       });
   }, []);
 
-  const selectedPlan = plans.find((p) => p.id === selectedPlanId || p.slug === selectedPlanId) || plans[2] || plans[0];
+  const standardPlan = plans.find((p) => p.id === selectedPlanId || p.slug === selectedPlanId) || plans[2] || plans[0];
 
-  // Calculate local payable price
+  // Calculate pricing
   const rate = rates[checkoutCurrency] || (checkoutCurrency === 'RWF' ? 1450 : 1);
-  const payableAmount = Math.round(Number(selectedPlan?.priceUsd || 70) * rate);
+
+  // Custom duration calculation based on $20.00 / month ($0.67 / day)
+  const calculatedCustomUsd = Math.max(1.0, +(customDays * (20 / 30)).toFixed(2));
+  const activePlanPriceUsd = isCustomMode ? calculatedCustomUsd : standardPlan.priceUsd;
+  const activePlanName = isCustomMode ? `Custom ${customDays} Days Pass` : standardPlan.name;
+  const activePlanDays = isCustomMode ? customDays : standardPlan.days;
+  const payableAmount = Math.round(activePlanPriceUsd * rate);
 
   const handleCheckout = async (e) => {
     e.preventDefault();
@@ -71,7 +92,8 @@ export default function SubscriptionsPage() {
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          planId: selectedPlan.id || selectedPlan.slug,
+          planId: isCustomMode ? `custom_${customDays}d` : (standardPlan.id || standardPlan.slug),
+          customDays: isCustomMode ? customDays : undefined,
           phone: phone.trim(),
           currency: checkoutCurrency,
           paymentMethod: 'flutterwave'
@@ -85,13 +107,13 @@ export default function SubscriptionsPage() {
 
       setStatusNotice({
         type: 'success',
-        text: data.message || `Payment request initialized for ${selectedPlan.name}. Please confirm mobile money prompt or card authorization.`
+        text: data.message || `Payment request initialized for ${activePlanName}. Please confirm mobile money prompt or card authorization.`
       });
 
-      // TRIGGER REAL FLUTTERWAVE INLINE CHECKOUT IF SDK IS LOADED
+      // TRIGGER REAL FLUTTERWAVE INLINE CHECKOUT
       if (typeof window !== 'undefined' && window.FlutterwaveCheckout) {
         const txRef = 'fds_tx_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
-        
+
         window.FlutterwaveCheckout({
           public_key: window.fds_flw_pub || 'FLWPUBK_TEST-e08920959fd4e5d4a1fb5f52479f64e2-X',
           tx_ref: txRef,
@@ -105,11 +127,10 @@ export default function SubscriptionsPage() {
           },
           customizations: {
             title: 'ForexDoubleSniper VIP Access',
-            description: `${selectedPlan.name} (${selectedPlan.days} Days)`,
+            description: `${activePlanName} (${activePlanDays} Days)`,
             logo: `${window.location.origin}/logo.svg`
           },
           callback: async (response) => {
-            console.log('Flutterwave payment callback:', response);
             if (response.status === 'successful' || response.status === 'completed') {
               celebrate();
               showToast('Payment successful! VIP subscription activated.', 'success');
@@ -123,7 +144,10 @@ export default function SubscriptionsPage() {
                   body: JSON.stringify({
                     transaction_id: response.transaction_id,
                     tx_ref: response.tx_ref,
-                    planId: selectedPlan.id,
+                    planId: isCustomMode ? `custom_${customDays}d` : standardPlan.id,
+                    planName: activePlanName,
+                    durationDays: activePlanDays,
+                    amountPaid: activePlanPriceUsd,
                     email: user?.email
                   })
                 });
@@ -132,15 +156,14 @@ export default function SubscriptionsPage() {
                 console.error('Activation sync error:', e);
               }
             } else {
-              showToast('Payment pending or not confirmed: ' + (response.status || 'Incomplete'), 'warning');
+              showToast('Payment not completed: ' + (response.status || 'Incomplete'), 'warning');
             }
           },
           onclose: () => {
-            showToast('Flutterwave checkout window closed.', 'info');
+            showToast('Checkout window closed.', 'info');
           }
         });
       } else if (data.paymentUrl) {
-        // Fallback popup if inline script is blocked
         window.open(data.paymentUrl, '_blank');
       }
     } catch (err) {
@@ -152,7 +175,7 @@ export default function SubscriptionsPage() {
 
   return (
     <div className="container">
-      {/* Active VIP Status Banner */}
+      {/* Active VIP Status Banner (Real from DB) */}
       {subscription?.hasAccess && (
         <div style={{
           background: 'rgba(212, 175, 55, 0.12)',
@@ -208,29 +231,32 @@ export default function SubscriptionsPage() {
           Subscription Plans & VIP Access
         </h2>
         <p style={{ fontSize: 14, color: 'var(--mut)', maxWidth: 650, margin: '8px auto 0', lineHeight: 1.6 }}>
-          Select an institutional tier to unlock continuous real-time signals for Gold (XAU/USD) and Bitcoin (BTC/USD).
-          Direct instant activation via Flutterwave or manual confirmation.
+          Select an institutional tier or choose custom days. Base monthly tier is just <strong>$20.00 USD (29,000 RWF)</strong>.
+          Instant activation via Flutterwave (MTN & Airtel MoMo, M-Pesa, Bank Cards).
         </p>
       </div>
 
       {/* Pricing Cards Horizontal Grid */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
         gap: 14,
-        marginBottom: 28
+        marginBottom: 24
       }}>
         {plans.map((p) => {
-          const isSelected = (p.id === selectedPlanId || p.slug === selectedPlanId);
+          const isSelected = !isCustomMode && (p.id === selectedPlanId || p.slug === selectedPlanId);
           return (
             <div
               key={p.id || p.slug}
-              onClick={() => setSelectedPlanId(p.id || p.slug)}
+              onClick={() => {
+                setIsCustomMode(false);
+                setSelectedPlanId(p.id || p.slug);
+              }}
               style={{
                 background: isSelected ? 'rgba(212, 175, 55, 0.08)' : 'var(--panel)',
                 border: isSelected ? '2px solid var(--gold-bright)' : '1px solid var(--line)',
                 borderRadius: 'var(--radius)',
-                padding: '20px 14px',
+                padding: '18px 12px',
                 cursor: 'pointer',
                 textAlign: 'center',
                 transition: 'all 0.2s ease',
@@ -238,11 +264,11 @@ export default function SubscriptionsPage() {
                 boxShadow: isSelected ? '0 8px 24px rgba(212, 175, 55, 0.25)' : 'none'
               }}
             >
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#fff', marginBottom: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#fff', marginBottom: 6 }}>
                 {p.name}
               </div>
               <div style={{
-                fontSize: 24,
+                fontSize: 22,
                 fontWeight: 800,
                 color: isSelected ? 'var(--gold-bright)' : '#fff',
                 fontFamily: 'JetBrains Mono, monospace'
@@ -255,6 +281,77 @@ export default function SubscriptionsPage() {
             </div>
           );
         })}
+      </div>
+
+      {/* Custom Duration Selector */}
+      <div style={{
+        background: isCustomMode ? 'rgba(212, 175, 55, 0.08)' : 'var(--panel)',
+        border: isCustomMode ? '2px solid var(--gold-bright)' : '1px solid var(--line)',
+        borderRadius: 'var(--radius)',
+        maxWidth: 620,
+        margin: '0 auto 24px',
+        padding: '18px 22px',
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 16
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{
+            width: 38,
+            height: 38,
+            borderRadius: 8,
+            background: 'rgba(212, 175, 55, 0.15)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--gold-bright)'
+          }}>
+            <Sliders size={20} />
+          </div>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>
+              Custom Duration (Choose Your Own Days or Months)
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--mut)' }}>
+              Pro-rated fairly at $0.67/day ($20/month baseline).
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <input
+            type="number"
+            min="1"
+            max="730"
+            value={customDays}
+            onChange={(e) => {
+              setIsCustomMode(true);
+              setCustomDays(Math.max(1, parseInt(e.target.value) || 1));
+            }}
+            onClick={() => setIsCustomMode(true)}
+            style={{
+              width: 80,
+              padding: '8px 10px',
+              background: 'var(--panel-card)',
+              border: '1px solid var(--gold)',
+              borderRadius: 4,
+              color: 'var(--gold-bright)',
+              fontWeight: 800,
+              fontSize: 14,
+              textAlign: 'center'
+            }}
+          />
+          <span style={{ fontSize: 12, color: 'var(--mut)' }}>Days</span>
+          <button
+            onClick={() => setIsCustomMode(true)}
+            className={isCustomMode ? 'btn btn-primary' : 'btn btn-outline'}
+            style={{ padding: '6px 14px', fontSize: 12 }}
+          >
+            {isCustomMode ? 'Selected' : 'Select'}
+          </button>
+        </div>
       </div>
 
       {/* Instant Checkout Box */}
@@ -273,7 +370,7 @@ export default function SubscriptionsPage() {
               Instant Checkout via Flutterwave
             </h3>
             <p style={{ fontSize: 12, color: 'var(--mut)' }}>
-              Choose your payment currency and enter your mobile number. Supports MTN MoMo, Airtel, M-Pesa, Bank Cards.
+              Choose payment currency and enter mobile phone number.
             </p>
           </div>
         </div>
@@ -316,7 +413,7 @@ export default function SubscriptionsPage() {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Mobile Phone Number (or WhatsApp for Payment Alert)</label>
+            <label className="form-label">Mobile Phone Number (or WhatsApp for Debit Alert)</label>
             <input
               type="tel"
               className="form-control"
@@ -336,12 +433,12 @@ export default function SubscriptionsPage() {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 4 }}>
               <span style={{ color: 'var(--mut)' }}>Selected Plan:</span>
-              <strong style={{ color: '#fff' }}>{selectedPlan?.name}</strong>
+              <strong style={{ color: '#fff' }}>{activePlanName} ({activePlanDays} Days)</strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>
               <span style={{ color: 'var(--mut)' }}>Total Payable Amount:</span>
               <strong style={{ color: 'var(--gold-bright)', fontSize: 16, fontFamily: 'JetBrains Mono, monospace' }}>
-                {payableAmount.toLocaleString()} {checkoutCurrency} (${Number(selectedPlan?.priceUsd || 70).toFixed(2)} USD)
+                {payableAmount.toLocaleString()} {checkoutCurrency} (${activePlanPriceUsd.toFixed(2)} USD)
               </strong>
             </div>
           </div>

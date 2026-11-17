@@ -1,11 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
 
 const ChatContext = createContext(null);
 
 export function ChatProvider({ children }) {
-  const { user, token } = useAuth();
+  const { user, token, isAuthenticated } = useAuth();
   const { showToast } = useToast();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -14,16 +14,23 @@ export function ChatProvider({ children }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
 
+  // Default thread for authenticated user
+  useEffect(() => {
+    if (user?.id) {
+      setActiveOrderId((prev) => (prev === 'support_general' ? `support_${user.id}` : prev));
+    }
+  }, [user]);
+
   const toggleChat = useCallback(() => {
     setIsOpen((prev) => !prev);
     setUnreadCount(0);
   }, []);
 
   const openChatForOrder = useCallback((orderId) => {
-    setActiveOrderId(orderId || 'support_general');
+    setActiveOrderId(orderId || (user?.id ? `support_${user.id}` : 'support_general'));
     setIsOpen(true);
     setUnreadCount(0);
-  }, []);
+  }, [user]);
 
   const fetchMessages = useCallback(async () => {
     if (!token || !activeOrderId) return;
@@ -37,7 +44,7 @@ export function ChatProvider({ children }) {
         setMessages(nextMsgs);
       }
     } catch (e) {
-      // ignore transient polling errors
+      // ignore transient error
     }
   }, [token, activeOrderId]);
 
@@ -45,19 +52,21 @@ export function ChatProvider({ children }) {
   useEffect(() => {
     if (!token) return;
     fetchMessages();
-    const interval = setInterval(fetchMessages, isOpen ? 3000 : 12000);
+    const interval = setInterval(fetchMessages, isOpen ? 2500 : 10000);
     return () => clearInterval(interval);
   }, [isOpen, token, fetchMessages]);
 
   const sendMessage = async (text) => {
     if (!token) {
-      showToast('Please sign in to chat with support.', 'warning');
+      showToast('Please sign in to chat with trading desk.', 'warning');
       return;
     }
     if (!text || !text.trim()) return;
 
+    const threadToUse = activeOrderId || (user?.id ? `support_${user.id}` : 'support_general');
+
     try {
-      const res = await fetch(`/api/p2p?action=chat&orderId=${encodeURIComponent(activeOrderId)}`, {
+      const res = await fetch(`/api/p2p?action=chat&orderId=${encodeURIComponent(threadToUse)}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -68,15 +77,14 @@ export function ChatProvider({ children }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to send message');
 
-      // Append locally for immediate feedback
       setMessages((prev) => [
         ...prev,
         {
           id: 'temp_' + Date.now(),
-          orderId: activeOrderId,
-          senderRole: user?.role || 'user',
+          order_id: threadToUse,
+          sender_role: user?.role || 'user',
           message: text.trim(),
-          createdAt: new Date().toISOString()
+          created_at: new Date().toISOString()
         }
       ]);
       fetchMessages();

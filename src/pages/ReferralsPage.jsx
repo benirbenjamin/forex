@@ -10,7 +10,8 @@ import {
   ArrowUpRight,
   ShieldCheck,
   CreditCard,
-  Clock
+  Clock,
+  RefreshCw
 } from 'lucide-react';
 
 export default function ReferralsPage() {
@@ -19,13 +20,21 @@ export default function ReferralsPage() {
 
   const [copied, setCopied] = useState(false);
   const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
-  const [withdrawAmount, setWithdrawAmount] = useState('50');
+  const [withdrawAmount, setWithdrawAmount] = useState('20');
   const [withdrawMethod, setWithdrawMethod] = useState('momo_rwanda');
   const [destAccount, setDestAccount] = useState('');
   const [withdrawals, setWithdrawals] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [loadingStats, setLoadingStats] = useState(true);
 
-  // Referral link
+  // REAL DATA FROM DATABASE (NO DUMMY DATA!)
+  const [stats, setStats] = useState({
+    totalReferrals: 0,
+    activeConversions: 0,
+    totalEarned: 0.00,
+    withdrawableBalance: 0.00
+  });
+
   const refCode = user?.referralCode || (user?.email ? user.email.split('@')[0] : 'VIPTRADER');
   const referralUrl = typeof window !== 'undefined'
     ? `${window.location.origin}?ref=${encodeURIComponent(refCode)}`
@@ -38,6 +47,27 @@ export default function ReferralsPage() {
     setTimeout(() => setCopied(false), 2500);
   };
 
+  // Fetch real affiliate stats
+  const fetchStats = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch('/api/referrals?action=stats', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.stats) {
+          setStats(data.stats);
+        }
+      }
+    } catch (e) {
+      console.warn('Could not load affiliate stats:', e);
+    } finally {
+      setLoadingStats(false);
+    }
+  };
+
+  // Fetch real withdrawal history
   const fetchWithdrawals = async () => {
     if (!token) return;
     try {
@@ -54,6 +84,7 @@ export default function ReferralsPage() {
   };
 
   useEffect(() => {
+    fetchStats();
     fetchWithdrawals();
   }, [token]);
 
@@ -67,6 +98,10 @@ export default function ReferralsPage() {
     const amt = parseFloat(withdrawAmount);
     if (!amt || amt <= 0) {
       showToast('Please enter a valid withdrawal amount.', 'warning');
+      return;
+    }
+    if (amt > stats.withdrawableBalance) {
+      showToast(`Requested amount exceeds available balance ($${stats.withdrawableBalance.toFixed(2)}).`, 'error');
       return;
     }
     if (!destAccount || destAccount.trim().length < 5) {
@@ -98,6 +133,7 @@ export default function ReferralsPage() {
       showToast(data.message || 'Withdrawal request submitted successfully!', 'success');
       setWithdrawModalOpen(false);
       setDestAccount('');
+      fetchStats();
       fetchWithdrawals();
     } catch (err) {
       showToast(err.message, 'error');
@@ -127,7 +163,7 @@ export default function ReferralsPage() {
           Affiliate & Partner Program
         </h2>
         <p style={{ fontSize: 14, color: 'var(--mut)', maxWidth: 500, margin: '8px auto 24px', lineHeight: 1.6 }}>
-          Earn up to 25% recurring commissions on all VIP subscription referrals. Direct payouts to Mobile Money or USDT.
+          Earn recurring commissions on every VIP subscription renewal. Instant payouts to Mobile Money or USDT.
         </p>
         <button
           onClick={() => openAuth('register')}
@@ -159,47 +195,58 @@ export default function ReferralsPage() {
               </h2>
             </div>
             <p style={{ fontSize: 13, color: 'var(--mut)', marginTop: 4 }}>
-              Share your institutional link and earn 25% recurring commissions on every subscription renewal.
+              Share your institutional link and earn recurring commissions on every subscription renewal. Real live metrics from database.
             </p>
           </div>
 
-          <button
-            onClick={() => setWithdrawModalOpen(true)}
-            className="btn btn-primary"
-            style={{ padding: '10px 18px' }}
-          >
-            <DollarSign size={16} />
-            <span>Request Commission Payout</span>
-          </button>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button
+              onClick={() => { fetchStats(); fetchWithdrawals(); }}
+              className="btn btn-outline"
+              style={{ padding: '10px' }}
+              title="Refresh Stats"
+            >
+              <RefreshCw size={15} />
+            </button>
+            <button
+              onClick={() => setWithdrawModalOpen(true)}
+              className="btn btn-primary"
+              style={{ padding: '10px 18px' }}
+              disabled={stats.withdrawableBalance <= 0}
+            >
+              <DollarSign size={16} />
+              <span>Request Commission Payout</span>
+            </button>
+          </div>
         </div>
 
-        {/* Stats Grid */}
+        {/* REAL METRICS (NO DUMMY DATA!) */}
         <div className="grid-4" style={{ marginTop: 20 }}>
           <div className="panel-card">
             <div style={{ fontSize: 11, color: 'var(--mut)', fontWeight: 700 }}>TOTAL REFERRALS</div>
             <div style={{ fontSize: 22, fontWeight: 800, fontFamily: 'JetBrains Mono, monospace', color: '#fff', marginTop: 4 }}>
-              14 Traders
+              {stats.totalReferrals} {stats.totalReferrals === 1 ? 'Trader' : 'Traders'}
             </div>
           </div>
 
           <div className="panel-card">
             <div style={{ fontSize: 11, color: 'var(--mut)', fontWeight: 700 }}>ACTIVE VIP CONVERSIONS</div>
             <div style={{ fontSize: 22, fontWeight: 800, fontFamily: 'JetBrains Mono, monospace', color: 'var(--up)', marginTop: 4 }}>
-              6 Active
+              {stats.activeConversions} Active
             </div>
           </div>
 
           <div className="panel-card">
             <div style={{ fontSize: 11, color: 'var(--mut)', fontWeight: 700 }}>TOTAL EARNED</div>
             <div style={{ fontSize: 22, fontWeight: 800, fontFamily: 'JetBrains Mono, monospace', color: 'var(--gold-bright)', marginTop: 4 }}>
-              $340.00
+              ${stats.totalEarned.toFixed(2)}
             </div>
           </div>
 
           <div className="panel-card">
             <div style={{ fontSize: 11, color: 'var(--mut)', fontWeight: 700 }}>WITHDRAWABLE BALANCE</div>
             <div style={{ fontSize: 22, fontWeight: 800, fontFamily: 'JetBrains Mono, monospace', color: '#fff', marginTop: 4 }}>
-              $125.00
+              ${stats.withdrawableBalance.toFixed(2)}
             </div>
           </div>
         </div>
@@ -217,7 +264,7 @@ export default function ReferralsPage() {
           Your Exclusive Affiliate Referral Link
         </h3>
         <p style={{ fontSize: 13, color: 'var(--mut)', marginBottom: 16 }}>
-          Give your followers 7 Days Free VIP Access when they sign up with this link. All subsequent plan purchases will automatically credit your account.
+          Give your traders 7 Days Free VIP Access when they sign up with this link. All subsequent subscription renewals automatically credit your commission account.
         </p>
 
         <div style={{
@@ -227,7 +274,8 @@ export default function ReferralsPage() {
           padding: 8,
           borderRadius: 6,
           border: '1px solid var(--line-light)',
-          alignItems: 'center'
+          alignItems: 'center',
+          flexWrap: 'wrap'
         }}>
           <input
             type="text"
@@ -235,6 +283,7 @@ export default function ReferralsPage() {
             value={referralUrl}
             style={{
               flex: 1,
+              minWidth: 220,
               background: 'transparent',
               border: 'none',
               color: 'var(--gold-bright)',
@@ -263,7 +312,7 @@ export default function ReferralsPage() {
         padding: 24
       }}>
         <h3 style={{ fontSize: 16, fontWeight: 800, color: '#fff', marginBottom: 16 }}>
-          Commission Withdrawal Requests
+          Commission Withdrawal Requests ({withdrawals.length})
         </h3>
 
         <div className="table-wrap">
@@ -290,12 +339,12 @@ export default function ReferralsPage() {
                 withdrawals.map((w) => (
                   <tr key={w.id}>
                     <td style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12 }}>{w.id}</td>
-                    <td style={{ fontWeight: 800, color: '#fff' }}>${w.amount?.toFixed(2)}</td>
-                    <td style={{ fontWeight: 800, color: 'var(--gold-bright)' }}>${w.net_amount?.toFixed(2)}</td>
-                    <td style={{ textTransform: 'capitalize' }}>{w.method?.replace('_', ' ')}</td>
-                    <td style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12 }}>{w.destination_account}</td>
+                    <td style={{ fontWeight: 800, color: '#fff' }}>${(w.amount || w.amount_requested)?.toFixed(2)}</td>
+                    <td style={{ fontWeight: 800, color: 'var(--gold-bright)' }}>${(w.net_amount || (w.amount * 0.98))?.toFixed(2)}</td>
+                    <td style={{ textTransform: 'capitalize' }}>{(w.method || 'momo')?.replace('_', ' ')}</td>
+                    <td style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12 }}>{w.destination_account || w.payment_details}</td>
                     <td>
-                      <span className={w.status === 'confirmed_paid' ? 'badge-up' : 'badge-gold'}>
+                      <span className={w.status === 'confirmed_paid' || w.status === 'approved' ? 'badge-up' : 'badge-gold'}>
                         {w.status?.replace('_', ' ')}
                       </span>
                     </td>
@@ -318,7 +367,8 @@ export default function ReferralsPage() {
               Request Commission Withdrawal
             </h3>
             <p style={{ fontSize: 13, color: 'var(--mut)', marginBottom: 16 }}>
-              Withdraw your affiliate earnings directly to Mobile Money or USDT TRC20. Processed within 1 to 3 hours.
+              Available Withdrawable Balance: <strong>${stats.withdrawableBalance.toFixed(2)} USD</strong>.
+              Withdraw directly to Mobile Money or USDT TRC20.
             </p>
 
             <form onSubmit={handleWithdrawSubmit}>
@@ -340,8 +390,9 @@ export default function ReferralsPage() {
                 <label className="form-label">Withdrawal Amount ($ USD)</label>
                 <input
                   type="number"
-                  min="10"
-                  step="1"
+                  min="5"
+                  max={stats.withdrawableBalance}
+                  step="0.01"
                   className="form-control"
                   value={withdrawAmount}
                   onChange={(e) => setWithdrawAmount(e.target.value)}

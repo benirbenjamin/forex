@@ -49,10 +49,24 @@ module.exports = async (req, res) => {
 
       let body = req.body;
       if (typeof body === 'string') { try { body = JSON.parse(body); } catch(e){} }
-      const { planId, phone, paymentMethod, currency = 'USD' } = body || {};
+      const { planId, customDays, phone, paymentMethod, currency = 'USD' } = body || {};
 
       const plans = await getPlans();
-      const plan = plans.find(p => p.id === planId || p.slug === planId);
+      let plan = plans.find(p => p.id === planId || p.slug === planId);
+
+      // Support custom days pricing ($20/30 days = $0.67/day)
+      if (!plan && (customDays || (planId && planId.startsWith('custom_')))) {
+        const days = Math.max(1, parseInt(customDays || planId.replace(/[^0-9]/g, '')) || 30);
+        const priceUsd = Math.max(1.0, +(days * (20 / 30)).toFixed(2));
+        plan = {
+          id: `custom_${days}d`,
+          slug: `custom_${days}d`,
+          name: `Custom ${days} Days VIP Pass`,
+          durationDays: days,
+          priceUsd: priceUsd
+        };
+      }
+
       if (!plan) return res.status(404).json({ error: 'Selected subscription plan not found.' });
 
       const currencyRates = {
@@ -71,6 +85,33 @@ module.exports = async (req, res) => {
         currency: curKey,
         amount: payableAmount,
         paymentUrl: `https://checkout.flutterwave.com/pay/fds_${plan.slug}_${Date.now()}`
+      });
+    }
+
+    // 3. Activate Subscription (POST /api/subscription?action=activate)
+    if (action === 'activate' && req.method === 'POST') {
+      const user = getUserFromReq(req);
+      if (!user) return res.status(401).json({ error: 'Authentication required to activate.' });
+
+      let body = req.body;
+      if (typeof body === 'string') { try { body = JSON.parse(body); } catch(e){} }
+      const { planId, planName, durationDays, amountPaid, currency = 'USD', paymentMethod = 'flutterwave', txRef } = body || {};
+
+      const days = parseInt(durationDays) || 30;
+      const activatedSub = await activateSubscription(user.id, {
+        planId: planId || 'vip_standard',
+        planName: planName || `${days} Days VIP Access`,
+        durationDays: days,
+        amountPaid: parseFloat(amountPaid) || 20.0,
+        currency,
+        paymentMethod,
+        txRef
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: 'VIP Subscription successfully activated!',
+        subscription: activatedSub
       });
     }
 

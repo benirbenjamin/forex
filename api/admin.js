@@ -4,11 +4,14 @@ const {
   getAdminNotifications,
   markNotificationRead,
   getAllUsers,
+  updateUser,
   deleteUser,
   getAllP2POrders,
   updateP2PInventory,
   updateP2PConfig,
   savePlan,
+  deletePlan,
+  getAllSubscriptions,
   getReferralWithdrawals,
   processReferralWithdrawal,
   savePlatformSetting,
@@ -80,6 +83,14 @@ module.exports = async (req, res) => {
       return res.status(200).json({ users });
     }
 
+    // 2a. Update User Details / Role / VIP (POST /api/admin/users/update)
+    if (action === 'users' && (sub === 'update' || req.method === 'POST')) {
+      let body = req.body;
+      if (typeof body === 'string') { try { body = JSON.parse(body); } catch(e){} }
+      const result = await updateUser(admin.role, body || {});
+      return res.status(200).json(result);
+    }
+
     // 2b. Delete User (DELETE /api/admin/users or /api/admin/users/:id)
     if (action === 'users' && req.method === 'DELETE') {
       const targetId = sub || req.query.id;
@@ -101,7 +112,7 @@ module.exports = async (req, res) => {
       return res.status(200).json({ success: true, inventory: result });
     }
 
-    // 5. Subscription Plans (GET/POST /api/admin/plans)
+    // 5. Subscription Plans (GET/POST/DELETE /api/admin/plans)
     if (action === 'plans') {
       if (req.method === 'GET') {
         const plans = await getPlans();
@@ -113,6 +124,17 @@ module.exports = async (req, res) => {
         const result = await savePlan(body || {});
         return res.status(200).json({ success: true, plan: result });
       }
+      if (req.method === 'DELETE') {
+        const targetId = sub || req.query.id;
+        const result = await deletePlan(admin.role, targetId);
+        return res.status(200).json(result);
+      }
+    }
+
+    // 5a. Real Database Subscriptions (GET /api/admin/subscriptions)
+    if (action === 'subscriptions' && req.method === 'GET') {
+      const subscriptions = await getAllSubscriptions();
+      return res.status(200).json({ subscriptions });
     }
 
     // 5b. Affiliate Commission Withdrawals (GET/POST /api/admin/withdrawals)
