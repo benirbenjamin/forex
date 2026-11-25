@@ -332,7 +332,7 @@ export default function P2PPage() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(340px, 100%), 1fr))', gap: 20 }}>
         {/* Main P2P Order Ticket Form */}
         <div style={{
           background: 'var(--panel)',

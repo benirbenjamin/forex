@@ -990,7 +990,7 @@ export default function AdminDashboard() {
 
           {/* TAB 8: TRADER LIVE CHAT CONSOLE */}
           {activeTab === 'chat' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 16, minHeight: 520 }}>
+            <div className="admin-chat-grid" style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 16, minHeight: 520 }}>
               {/* Threads Sidebar */}
               <div style={{ background: 'var(--panel)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--mut)', paddingBottom: 6, borderBottom: '1px solid var(--line)' }}>
@@ -1082,7 +1082,7 @@ export default function AdminDashboard() {
 
           {/* TAB 9: PLATFORM SETTINGS (DATABASE FIRST, ENV FALLBACK) */}
           {activeTab === 'settings' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(360px, 100%), 1fr))', gap: 20 }}>
               {/* Flutterwave Payment Gateway */}
               <div style={{ background: 'var(--panel)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: 24 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>

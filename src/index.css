@@ -412,8 +412,50 @@ tr:hover {
   .admin-layout-grid {
     grid-template-columns: 1fr !important;
   }
+
+  /* Navbar: shrink brand and move the icon controls into the collapse menu */
+  .navbar-controls {
+    display: none !important;
+  }
+  .navbar-subtitle {
+    display: none !important;
+  }
+  .navbar-institutional-badge {
+    display: none !important;
+  }
+  .navbar-brand-text {
+    font-size: 14px !important;
+  }
+
+  /* Full-width overlays instead of off-screen fixed panels */
+  .chat-drawer {
+    right: 8px !important;
+    left: 8px !important;
+    width: auto !important;
+    max-width: none !important;
+    bottom: 76px !important;
+  }
+  .toast-container {
+    left: 12px !important;
+    right: 12px !important;
+  }
+  .toast-item {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
   .panel-card {
     padding: 12px !important;
+  }
+}
+
+/* Tablets: stack admin sidebar and admin chat threads above content */
+@media (max-width: 900px) {
+  .admin-layout-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .admin-chat-grid {
+    grid-template-columns: 1fr !important;
   }
 }
 

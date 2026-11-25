@@ -103,11 +103,11 @@ export default function Navbar() {
               <Zap size={20} strokeWidth={2.5} />
             </div>
             <div>
-              <div style={{ fontSize: 16, fontWeight: 800, letterSpacing: -0.2, color: '#fff', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div className="navbar-brand-text" style={{ fontSize: 16, fontWeight: 800, letterSpacing: -0.2, color: '#fff', display: 'flex', alignItems: 'center', gap: 6 }}>
                 ForexDoubleSniper
-                <span className="badge-gold" style={{ fontSize: 9, padding: '1px 5px' }}>INSTITUTIONAL</span>
+                <span className="badge-gold navbar-institutional-badge" style={{ fontSize: 9, padding: '1px 5px' }}>INSTITUTIONAL</span>
               </div>
-              <div style={{ fontSize: 10, color: 'var(--mut)', fontWeight: 600 }}>SWIFTEDGE ORDER FLOW CORE</div>
+              <div className="navbar-subtitle" style={{ fontSize: 10, color: 'var(--mut)', fontWeight: 600 }}>SWIFTEDGE ORDER FLOW CORE</div>
             </div>
           </Link>
         </div>
@@ -176,6 +176,7 @@ export default function Navbar() {
 
         {/* Global Controls & Auth */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="navbar-controls" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {/* Currency Selector */}
           <select
             value={activeCurrency}
@@ -299,6 +300,7 @@ export default function Navbar() {
                 </div>
               </div>
             )}
+          </div>
           </div>
 
           {/* User Auth Info (Desktop) */}
@@ -478,6 +480,51 @@ export default function Navbar() {
             <User size={16} />
             <span>Affiliate Console</span>
           </NavLink>
+
+          {/* Mobile Controls (moved from header on small screens) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderTop: '1px solid var(--line)', paddingTop: 12, marginTop: 4 }}>
+            <span style={{ fontSize: 12, color: 'var(--mut)', fontWeight: 700 }}>Currency</span>
+            <select
+              value={activeCurrency}
+              onChange={(e) => changeCurrency(e.target.value)}
+              style={{ flex: 1, background: 'var(--panel-card)', border: '1px solid var(--line)', color: 'var(--gold-bright)', borderRadius: 'var(--radius-sm)', padding: '8px 10px', fontSize: 13, fontWeight: 700, outline: 'none' }}
+            >
+              {Object.keys(rates).map((curr) => (
+                <option key={curr} value={curr}>{curr}</option>
+              ))}
+            </select>
+            <button onClick={toggleSound} className="btn btn-outline" style={{ padding: '8px 10px' }}>
+              {soundEnabled ? <Volume2 size={16} style={{ color: 'var(--up)' }} /> : <VolumeX size={16} style={{ color: 'var(--mut)' }} />}
+              <span>{soundEnabled ? 'Sound On' : 'Muted'}</span>
+            </button>
+          </div>
+
+          {/* Mobile Notifications */}
+          <div style={{ borderTop: '1px solid var(--line)', paddingTop: 12, marginTop: 4 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--mut)' }}>MARKET ALERTS ({notifications.length})</span>
+              {notifications.length > 0 && (
+                <button onClick={clearNotifications} style={{ background: 'none', border: 'none', color: 'var(--mut)', fontSize: 11, cursor: 'pointer' }}>Clear All</button>
+              )}
+            </div>
+            <div style={{ maxHeight: 220, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {notifications.length === 0 ? (
+                <div style={{ textAlign: 'center', color: 'var(--mut)', fontSize: 12, padding: '10px 0' }}>
+                  No new market alerts. Valid signals will notify here.
+                </div>
+              ) : (
+                notifications.map((n) => (
+                  <div key={n.id} style={{ background: 'var(--panel-card)', padding: '10px', borderRadius: 6, fontSize: 12, borderLeft: `3px solid ${n.type === 'opportunity' ? 'var(--up)' : n.type === 'exit' ? 'var(--dn)' : 'var(--gold)'}` }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700 }}>
+                      <span style={{ color: '#fff' }}>{n.title}</span>
+                      <span style={{ color: 'var(--mut)', fontSize: 10 }}>{n.time}</span>
+                    </div>
+                    <div style={{ color: '#d1d5db', fontSize: 11, marginTop: 3, lineHeight: 1.4 }}>{n.message}</div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
 
           {/* Mobile Auth Actions */}
           <div style={{ borderTop: '1px solid var(--line)', paddingTop: 12, marginTop: 4 }}>
