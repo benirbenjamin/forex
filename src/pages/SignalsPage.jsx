@@ -20,6 +20,7 @@ import {
   HelpCircle,
   Check
 } from 'lucide-react';
+import TradingViewChart from '../components/TradingViewChart';
 
 export default function SignalsPage() {
   const { activeSymbol, setActiveSymbol, currentPrice, priceDirection, signal, formatCurrency } = useMarket();
@@ -620,6 +621,82 @@ export default function SignalsPage() {
           </p>
         </div>
       </div>
+
+      {/* LIVE INSTITUTIONAL CHART */}
+      <div style={{
+        background: 'var(--panel)',
+        border: '1px solid var(--line)',
+        borderRadius: 'var(--radius)',
+        padding: 16,
+        marginBottom: 24
+      }}>
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 10,
+          marginBottom: 12
+        }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Activity size={16} style={{ color: 'var(--gold-bright)' }} />
+            LIVE INSTITUTIONAL CHART — {isGold ? 'XAU / USD' : 'BTC / USD'}
+          </div>
+          <span className="badge-gold">15M · SwiftEdge Feed</span>
+        </div>
+        <TradingViewChart symbol={activeSymbol} interval="15" height={480} />
+      </div>
+
+      {/* NEWS & SENTIMENT */}
+      {signal?.news && (
+        <div style={{
+          background: 'var(--panel)',
+          border: '1px solid var(--line)',
+          borderRadius: 'var(--radius)',
+          padding: 16,
+          marginBottom: 24
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 12 }}>
+            <div style={{ fontSize: 14, fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Info size={16} style={{ color: 'var(--gold-bright)' }} />
+              {isGold ? 'GOLD' : 'CRYPTO'} NEWS &amp; SENTIMENT
+            </div>
+            <span className="badge-gold">
+              {signal.news.label || 'Neutral'} ({(Number(signal.news.score) || 0) >= 0 ? '+' : ''}{Number(signal.news.score || 0).toFixed(2)})
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+            <span style={{ fontSize: 11, color: 'var(--dn)', fontWeight: 700, whiteSpace: 'nowrap' }}>Bearish</span>
+            <div style={{ flex: 1, height: 8, borderRadius: 4, background: 'linear-gradient(90deg, var(--dn), #8a8f98, var(--up))', position: 'relative' }}>
+              <div style={{
+                position: 'absolute',
+                top: -3,
+                left: `${Math.min(100, Math.max(0, ((Number(signal.news.score) || 0) + 1) / 2 * 100))}%`,
+                width: 4,
+                height: 14,
+                borderRadius: 2,
+                background: '#fff',
+                transform: 'translateX(-50%)',
+                boxShadow: '0 0 8px rgba(255,255,255,0.6)'
+              }} />
+            </div>
+            <span style={{ fontSize: 11, color: 'var(--up)', fontWeight: 700, whiteSpace: 'nowrap' }}>Bullish</span>
+          </div>
+
+          {Array.isArray(signal.news.headlines) && signal.news.headlines.slice(0, 4).map((h, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '8px 0', borderTop: i === 0 ? 'none' : '1px solid var(--line)' }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', marginTop: 6, flexShrink: 0, background: h.tone === 'Bullish' ? 'var(--up)' : h.tone === 'Bearish' ? 'var(--dn)' : 'var(--mut)' }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 12, color: '#e5e7eb', lineHeight: 1.4 }}>{h.headline}</div>
+                <div style={{ fontSize: 10, color: 'var(--mut)', marginTop: 2 }}>
+                  {h.source}{h.tone ? ` · ${h.tone}` : ''}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -645,9 +645,15 @@ function processSignal(data, symbol) {
     rsi14: +safeRsi.toFixed(1),
     atr: +safeAtr.toFixed(decimals),
     trend: safeFast >= safeSlow ? 'Up' : 'Down',
+    indicators: {
+      trend: safeFast >= safeSlow ? 'Up' : 'Down',
+      rsi: +safeRsi.toFixed(1),
+      atr: +safeAtr.toFixed(decimals)
+    },
     decision,
     action: decision === 'WAIT' ? 'WAIT' : (decision.indexOf('BUY') === 0 ? 'BUY' : 'SELL'),
     reason,
+    rationale: reason,
     actionAlert,
     marketAnalysis,
     news: newsData,
@@ -674,6 +680,7 @@ function processSignal(data, symbol) {
     validUntil,
     validitySecondsRemaining,
     isExpired: isBeyondEntryZone || isTtlExpired,
+    cooldownRemainingSeconds: Math.max(0, Math.floor((MIN_HOLD_MS - (Date.now() - tracker.firstTriggeredAt)) / 1000)),
     minHoldRemainingSeconds: Math.max(0, Math.floor((MIN_HOLD_MS - (Date.now() - tracker.firstTriggeredAt)) / 1000)),
     updated: new Date().toISOString()
   };

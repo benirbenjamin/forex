@@ -35,7 +35,7 @@ export function ChatProvider({ children }) {
   const fetchMessages = useCallback(async () => {
     if (!token || !activeOrderId) return;
     try {
-      const res = await fetch(`/api/p2p?action=chat&orderId=${encodeURIComponent(activeOrderId)}`, {
+      const res = await fetch(`/api/p2p/chat/${encodeURIComponent(activeOrderId)}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -66,7 +66,7 @@ export function ChatProvider({ children }) {
     const threadToUse = activeOrderId || (user?.id ? `support_${user.id}` : 'support_general');
 
     try {
-      const res = await fetch(`/api/p2p?action=chat&orderId=${encodeURIComponent(threadToUse)}`, {
+      const res = await fetch(`/api/p2p/chat/${encodeURIComponent(threadToUse)}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -50,7 +50,7 @@ const {
   submitDisputeClaim,
   createSellOrder
 } = require('./lib/p2p');
-const { sendMessage, getOrderMessages } = require('./lib/chat');
+const { sendMessage, getOrderMessages, getAllChatThreads } = require('./lib/chat');
 const {
   getAdminNotifications,
   markNotificationRead,
@@ -495,6 +495,16 @@ app.post('/api/p2p/chat/:orderId', authenticateToken, upload.single('attachment'
   }
 });
 
+// Admin: list all support chat threads (path form used by the admin panel)
+app.get('/api/p2p/threads', authenticateToken, requireRole('admin', 'superadmin'), async (req, res) => {
+  try {
+    const threads = await getAllChatThreads();
+    res.json({ threads });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ==========================================
 // 7. ADMIN & SUPER ADMIN PORTAL API
 // ==========================================
@@ -618,6 +628,15 @@ app.post('/api/admin/add-admin', authenticateToken, requireRole('admin', 'supera
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
+});
+
+// Fallback: support query-style API calls (/api/p2p?action=...) by delegating to
+// the same serverless handler Vercel uses, so the Node server behaves identically.
+const p2pServerlessHandler = require('./api/p2p');
+app.all('/api/p2p', (req, res) => {
+  Promise.resolve(p2pServerlessHandler(req, res)).catch((e) => {
+    if (!res.headersSent) res.status(500).json({ error: e.message });
+  });
 });
 
 // SPA Catch-all (serve React SPA index.html for client-side routing)

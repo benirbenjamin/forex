@@ -33,6 +33,7 @@ export function MarketProvider({ children }) {
   const audioCtxRef = useRef(null);
   const basePriceRef = useRef(3870.50);
   const lastSignalActionRef = useRef(null);
+  const lastNotifiedRef = useRef({ key: null, at: 0 });
   const audioUnlockedRef = useRef(false);
 
   // Global browser autoplay unlock listener
@@ -221,13 +222,27 @@ export function MarketProvider({ children }) {
           basePriceRef.current = Number(data.price);
         }
 
-        // When a valid BUY or SELL signal is confirmed
+        // Only alert on a genuine, high-conviction BUY/SELL trigger, once per
+        // symbol+direction with an 8-minute cooldown so the trader is not spammed.
         if (data.action && data.action !== lastSignalActionRef.current) {
-          if (data.action === 'BUY' || data.action === 'SELL') {
+          const isActionable = data.action === 'BUY' || data.action === 'SELL';
+          const conf = Number(data.confidence || 0);
+          const comp = Number(data.composite);
+          const strongEnough =
+            isActionable &&
+            conf >= 65 &&
+            (Number.isNaN(comp) || Math.abs(comp) >= 0.06);
+
+          const key = `${data.symbol || activeSymbol}|${data.action}`;
+          const now = Date.now();
+          const minutesSince = (now - (lastNotifiedRef.current.at || 0)) / 60000;
+
+          if (strongEnough && lastNotifiedRef.current.key !== key && minutesSince >= 8) {
+            lastNotifiedRef.current = { key, at: now };
             playSound('opportunity');
             addNotification(
-              `⚡ Valid ${data.action} Signal: ${data.symbol || activeSymbol}`,
-              `Entry Zone: $${data.entryZoneMin} - $${data.entryZoneMax} | TP1: $${data.takeProfit1 || '—'} | SL: $${data.stopLoss || '—'}`,
+              `⚡ ${data.action} Signal Triggered: ${data.symbol || activeSymbol}`,
+              `${data.action === 'BUY' ? 'Long' : 'Short'} · Confidence ${conf || '—'}% · Entry $${data.entryZoneMin ?? '—'}–$${data.entryZoneMax ?? '—'} · TP1 $${data.takeProfit1 ?? '—'} · SL $${data.stopLoss ?? '—'}`,
               'opportunity'
             );
           }
@@ -269,7 +284,7 @@ export function MarketProvider({ children }) {
   }, [activeSymbol]);
 
   useEffect(() => {
-    fetch('/api/p2p?action=info')
+    fetch('/api/p2p/info')
       .then((r) => r.json())
       .then((d) => {
         if (d && d.exchangeRate) {

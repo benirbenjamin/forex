@@ -97,7 +97,7 @@ module.exports = async (req, res) => {
     }
 
     // 5. Confirm Sent (POST /api/p2p/confirm-sent)
-    if (action === 'confirm-sent' && req.method === 'POST') {
+    if ((action === 'confirm-sent' || action === 'confirm-payment') && req.method === 'POST') {
       const user = getUserFromReq(req);
       if (!user) return res.status(401).json({ error: 'Please log in.' });
       let body = req.body;
