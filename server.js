@@ -32,10 +32,7 @@ const {
   getUserPaymentHistory,
   activateSubscription
 } = require('./lib/subscriptions');
-const {
-  initializePayment,
-  verifyFlutterwavePayment
-} = require('./lib/flutterwave');
+// Subscription payments are collected exclusively via UMVA Pay (lib/umva.js + api/subscription).
 const {
   getUserReferralStats,
   requestWithdrawal
@@ -265,7 +262,7 @@ app.get('/api/simulator/history', authenticateToken, async (req, res) => {
 });
 
 // ==========================================
-// 4. SUBSCRIPTIONS, PAYWALL & FLUTTERWAVE
+// 4. SUBSCRIPTIONS, PAYWALL & UMVA PAY
 // ==========================================
 app.get('/api/subscriptions/plans', async (req, res) => {
   try {
@@ -288,44 +285,8 @@ app.get('/api/subscriptions/status', optionalAuthenticateToken, async (req, res)
   }
 });
 
-app.post('/api/payments/flutterwave/initialize', authenticateToken, async (req, res) => {
-  try {
-    const { planId, currency, phone } = req.body;
-    const plans = await getPlans();
-    const plan = plans.find(p => p.id === planId || p.slug === planId);
-    if (!plan) throw new Error('Selected plan not found.');
-
-    const curr = (currency || 'USD').toUpperCase();
-    const amount = curr === 'RWF' ? plan.priceRwf : plan.priceUsd;
-
-    const result = await initializePayment({
-      userId: req.user.id,
-      plan,
-      amount,
-      currency: curr,
-      email: req.user.email,
-      phone: phone || req.user.phone || '+250780000000',
-      fullName: req.user.fullName || 'Trader',
-      redirectUrl: `${req.protocol}://${req.get('host')}/app?payment=verify`
-    });
-
-    res.json(result);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
-app.get('/api/payments/flutterwave/verify', async (req, res) => {
-  try {
-    const { transaction_id, tx_ref } = req.query;
-    if (!transaction_id) throw new Error('Transaction ID is required.');
-
-    const verification = await verifyFlutterwavePayment(transaction_id, tx_ref);
-    res.json(verification);
-  } catch (err) {
-    res.status(400).json({ error: err.message, accessGranted: false });
-  }
-});
+// (Flutterwave card/mobile-money checkout has been removed — all payment
+// collection is handled through UMVA Pay via the /api/subscription handler.)
 
 app.post('/api/payments/manual/submit', authenticateToken, upload.single('receipt'), async (req, res) => {
   try {
@@ -635,6 +596,24 @@ app.post('/api/admin/add-admin', authenticateToken, requireRole('admin', 'supera
 const p2pServerlessHandler = require('./api/p2p');
 app.all('/api/p2p', (req, res) => {
   Promise.resolve(p2pServerlessHandler(req, res)).catch((e) => {
+    if (!res.headersSent) res.status(500).json({ error: e.message });
+  });
+});
+
+// Mount the subscription handler so query-style calls (/api/subscription?action=...)
+// work identically on the Node server and on Vercel.
+const subscriptionServerlessHandler = require('./api/subscription');
+app.all('/api/subscription', (req, res) => {
+  Promise.resolve(subscriptionServerlessHandler(req, res)).catch((e) => {
+    if (!res.headersSent) res.status(500).json({ error: e.message });
+  });
+});
+
+// Mount the admin handler so query-style admin calls (/api/admin?action=...)
+// work on the Node server too.
+const adminServerlessHandler = require('./api/admin');
+app.all('/api/admin', (req, res) => {
+  Promise.resolve(adminServerlessHandler(req, res)).catch((e) => {
     if (!res.headersSent) res.status(500).json({ error: e.message });
   });
 });

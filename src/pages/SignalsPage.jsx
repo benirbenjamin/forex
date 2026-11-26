@@ -27,6 +27,14 @@ export default function SignalsPage() {
   const { isAuthenticated, subscription, openAuth } = useAuth();
   const navigate = useNavigate();
 
+  const [brokers, setBrokers] = useState([]);
+  useEffect(() => {
+    fetch('/api/p2p/info')
+      .then((r) => r.json())
+      .then((d) => { if (d && Array.isArray(d.recommendedBrokers)) setBrokers(d.recommendedBrokers); })
+      .catch(() => {});
+  }, []);
+
   const [countdownSeconds, setCountdownSeconds] = useState(900);
 
   useEffect(() => {
@@ -695,6 +703,24 @@ export default function SignalsPage() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Recommended Brokers (admin-configured) */}
+      {brokers.length > 0 && (
+        <div style={{ background: 'var(--panel)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: 16 }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: '#fff', marginBottom: 12 }}>⚡ RECOMMENDED BROKERS</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: 12 }}>
+            {brokers.map((b, i) => (
+              <div key={i} style={{ background: 'var(--panel-card)', border: '1px solid var(--line)', borderRadius: 8, padding: 14 }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: '#fff' }}>{b.name}</div>
+                {b.description && <div style={{ fontSize: 12, color: 'var(--mut)', marginTop: 4 }}>{b.description}</div>}
+                {b.url && (
+                  <a href={b.url} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ marginTop: 10, width: '100%', display: 'inline-flex', textDecoration: 'none' }}>Open Account</a>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

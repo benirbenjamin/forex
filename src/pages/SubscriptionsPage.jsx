@@ -38,6 +38,8 @@ export default function SubscriptionsPage() {
   // Custom duration state
   const [isCustomMode, setIsCustomMode] = useState(false);
   const [customDays, setCustomDays] = useState(30);
+  const [umvaCharge, setUmvaCharge] = useState(null);
+  const [cryptoCoin, setCryptoCoin] = useState('USDT.TRC20');
 
   // Fetch real plans from database
   useEffect(() => {
@@ -94,84 +96,52 @@ export default function SubscriptionsPage() {
         body: JSON.stringify({
           planId: isCustomMode ? `custom_${customDays}d` : (standardPlan.id || standardPlan.slug),
           customDays: isCustomMode ? customDays : undefined,
-          phone: phone.trim(),
-          currency: checkoutCurrency,
-          paymentMethod: 'flutterwave'
+          cryptoCoin
         })
       });
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to initiate checkout');
+        throw new Error(data.error || 'Failed to create crypto charge');
       }
 
+      setUmvaCharge(data);
       setStatusNotice({
         type: 'success',
-        text: data.message || `Payment request initialized for ${activePlanName}. Please confirm mobile money prompt or card authorization.`
+        text: data.message || 'Crypto charge created. Send the exact amount to the address shown below.'
       });
-
-      // TRIGGER REAL FLUTTERWAVE INLINE CHECKOUT
-      if (typeof window !== 'undefined' && window.FlutterwaveCheckout) {
-        const txRef = 'fds_tx_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
-
-        window.FlutterwaveCheckout({
-          public_key: window.fds_flw_pub || 'FLWPUBK_TEST-e08920959fd4e5d4a1fb5f52479f64e2-X',
-          tx_ref: txRef,
-          amount: payableAmount,
-          currency: checkoutCurrency,
-          payment_options: 'card,mobilemoneyrwanda,mobilemoneykenya,ussd,banktransfer',
-          customer: {
-            email: user?.email || 'trader@domain.com',
-            phone_number: phone || user?.phone || '',
-            name: user?.name || user?.email || 'Institutional Trader'
-          },
-          customizations: {
-            title: 'ForexDoubleSniper VIP Access',
-            description: `${activePlanName} (${activePlanDays} Days)`,
-            logo: `${window.location.origin}/logo.svg`
-          },
-          callback: async (response) => {
-            if (response.status === 'successful' || response.status === 'completed') {
-              celebrate();
-              showToast('Payment successful! VIP subscription activated.', 'success');
-              try {
-                await fetch('/api/subscription?action=activate', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                  },
-                  body: JSON.stringify({
-                    transaction_id: response.transaction_id,
-                    tx_ref: response.tx_ref,
-                    planId: isCustomMode ? `custom_${customDays}d` : standardPlan.id,
-                    planName: activePlanName,
-                    durationDays: activePlanDays,
-                    amountPaid: activePlanPriceUsd,
-                    email: user?.email
-                  })
-                });
-                refreshUser();
-              } catch (e) {
-                console.error('Activation sync error:', e);
-              }
-            } else {
-              showToast('Payment not completed: ' + (response.status || 'Incomplete'), 'warning');
-            }
-          },
-          onclose: () => {
-            showToast('Checkout window closed.', 'info');
-          }
-        });
-      } else if (data.paymentUrl) {
-        window.open(data.paymentUrl, '_blank');
-      }
     } catch (err) {
       showToast(err.message, 'error');
     } finally {
       setLoading(false);
     }
   };
+
+  // After a UMVA charge is created, poll status. UMVA's IPN activates the
+  // subscription on-chain, so we just watch for hasAccess becoming true.
+  useEffect(() => {
+    if (!umvaCharge || !token) return;
+    let cancelled = false;
+    const poll = async () => {
+      try {
+        const r = await fetch('/api/subscription?action=status', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!r.ok) return;
+        const s = await r.json();
+        if (!cancelled && s && s.hasAccess) {
+          celebrate();
+          showToast('Payment confirmed! VIP access activated.', 'success');
+          setUmvaCharge(null);
+          setStatusNotice({ type: 'success', text: 'Payment confirmed. Your VIP access is now active!' });
+          refreshUser();
+        }
+      } catch (e) {}
+    };
+    const id = setInterval(poll, 5000);
+    poll();
+    return () => { cancelled = true; clearInterval(id); };
+  }, [umvaCharge, token, celebrate, showToast, refreshUser]);
 
   return (
     <div className="container">
@@ -231,8 +201,8 @@ export default function SubscriptionsPage() {
           Subscription Plans & VIP Access
         </h2>
         <p style={{ fontSize: 14, color: 'var(--mut)', maxWidth: 650, margin: '8px auto 0', lineHeight: 1.6 }}>
-          Select an institutional tier or choose custom days. Base monthly tier is just <strong>$20.00 USD (29,000 RWF)</strong>.
-          Instant activation via Flutterwave (MTN & Airtel MoMo, M-Pesa, Bank Cards).
+          Select an institutional tier or choose custom days. Base monthly tier is just <strong>$20.00 USD</strong>.
+          Instant activation via UMVA Pay — pay with USDT, BTC, ETH, or 50+ cryptocurrencies.
         </p>
       </div>
 
@@ -367,10 +337,10 @@ export default function SubscriptionsPage() {
           <Zap size={22} style={{ color: 'var(--gold)' }} />
           <div>
             <h3 style={{ fontSize: 17, fontWeight: 800, color: '#fff' }}>
-              Instant Checkout via Flutterwave
+              Instant Checkout via UMVA Pay (Crypto)
             </h3>
             <p style={{ fontSize: 12, color: 'var(--mut)' }}>
-              Choose payment currency and enter mobile phone number.
+              Pay with USDT, BTC, ETH or 50+ cryptocurrencies. On-chain confirmation is instant.
             </p>
           </div>
         </div>
@@ -395,33 +365,19 @@ export default function SubscriptionsPage() {
 
         <form onSubmit={handleCheckout}>
           <div className="form-group">
-            <label className="form-label">Select Payment Currency</label>
+            <label className="form-label">Pay with Cryptocurrency</label>
             <select
               className="form-control"
-              value={checkoutCurrency}
-              onChange={(e) => setCheckoutCurrency(e.target.value)}
+              value={cryptoCoin}
+              onChange={(e) => setCryptoCoin(e.target.value)}
             >
-              <option value="RWF">RWF - Rwandan Franc (FRw - MTN & Airtel MoMo)</option>
-              <option value="KES">KES - Kenyan Shilling (KSh - M-Pesa, Airtel & Card)</option>
-              <option value="USD">USD - US Dollar (International Debit / Credit Cards)</option>
-              <option value="UGX">UGX - Ugandan Shilling (MTN & Airtel MoMo)</option>
-              <option value="TZS">TZS - Tanzanian Shilling (Vodacom M-Pesa & Tigo)</option>
-              <option value="NGN">NGN - Nigerian Naira (Bank Transfer & Card)</option>
-              <option value="GHS">GHS - Ghanaian Cedi (MTN MoMo & Vodafone)</option>
-              <option value="ZAR">ZAR - South African Rand (EFT & Card)</option>
+              <option value="USDT.TRC20">USDT - TRC20 (Tron) — lowest fees</option>
+              <option value="USDT.ERC20">USDT - ERC20 (Ethereum)</option>
+              <option value="USDT.BEP20">USDT - BEP20 (BNB Chain)</option>
+              <option value="BTC">BTC - Bitcoin</option>
+              <option value="ETH">ETH - Ethereum</option>
+              <option value="LTC">LTC - Litecoin</option>
             </select>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Mobile Phone Number (or WhatsApp for Debit Alert)</label>
-            <input
-              type="tel"
-              className="form-control"
-              placeholder="+250 788 123 456"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              required
-            />
           </div>
 
           <div style={{
@@ -438,7 +394,7 @@ export default function SubscriptionsPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>
               <span style={{ color: 'var(--mut)' }}>Total Payable Amount:</span>
               <strong style={{ color: 'var(--gold-bright)', fontSize: 16, fontFamily: 'JetBrains Mono, monospace' }}>
-                {payableAmount.toLocaleString()} {checkoutCurrency} (${activePlanPriceUsd.toFixed(2)} USD)
+                ${activePlanPriceUsd.toFixed(2)} USD
               </strong>
             </div>
           </div>
@@ -449,9 +405,50 @@ export default function SubscriptionsPage() {
             disabled={loading}
             style={{ width: '100%', padding: '14px', fontSize: 15, fontWeight: 800 }}
           >
-            {loading ? 'Initializing Gateway...' : 'Unlock Plan with Flutterwave'}
+            {loading ? 'Creating crypto charge...' : 'Pay with Crypto (UMVA Pay)'}
           </button>
         </form>
+
+        {umvaCharge && (
+          <div style={{ marginTop: 20, padding: 18, background: 'var(--panel-card)', border: '1px solid var(--gold)', borderRadius: 8 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--gold-bright)', marginBottom: 10, textTransform: 'uppercase' }}>
+              Send Payment — {umvaCharge.plan?.name || 'VIP Plan'}
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--mut)' }}>Amount to send</div>
+            <div style={{ fontSize: 22, fontWeight: 800, fontFamily: 'JetBrains Mono, monospace', color: '#fff', marginBottom: 10 }}>
+              {umvaCharge.cryptoAmount} {umvaCharge.cryptoCoin}
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--mut)' }}>Wallet address ({umvaCharge.network || 'crypto'})</div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4, marginBottom: 12 }}>
+              <code style={{ flex: 1, fontSize: 12, color: '#fff', wordBreak: 'break-all', background: 'var(--panel)', padding: '8px 10px', borderRadius: 4, border: '1px solid var(--line)' }}>
+                {umvaCharge.walletAddress}
+              </code>
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={() => {
+                  if (navigator.clipboard && umvaCharge.walletAddress) {
+                    navigator.clipboard.writeText(umvaCharge.walletAddress);
+                    showToast('Wallet address copied.', 'success');
+                  }
+                }}
+              >
+                Copy
+              </button>
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--amber)' }}>
+              ⏳ Waiting for on-chain confirmation via UMVA Pay. This page updates automatically once payment is detected.
+            </div>
+            <button
+              type="button"
+              className="btn btn-outline"
+              style={{ marginTop: 12, width: '100%' }}
+              onClick={() => { setUmvaCharge(null); setStatusNotice(null); }}
+            >
+              Start Over
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

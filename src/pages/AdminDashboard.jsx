@@ -73,11 +73,14 @@ export default function AdminDashboard() {
   const [planPriceUsd, setPlanPriceUsd] = useState(20);
   const [planPriceRwf, setPlanPriceRwf] = useState(29000);
 
-  // Platform Settings State
-  const [flutterwavePublic, setFlutterwavePublic] = useState('');
-  const [flutterwaveSecret, setFlutterwaveSecret] = useState('');
-  const [flutterwaveEncryption, setFlutterwaveEncryption] = useState('');
-  const [flutterwaveWebhook, setFlutterwaveWebhook] = useState('');
+  // Platform Settings State (UMVA Pay + P2P deposit + recommended brokers)
+  const [umvaPublicKey, setUmvaPublicKey] = useState('');
+  const [umvaSecretKey, setUmvaSecretKey] = useState('');
+  const [depMomo, setDepMomo] = useState('');
+  const [depAirtel, setDepAirtel] = useState('');
+  const [depBank, setDepBank] = useState('');
+  const [depTrc20, setDepTrc20] = useState('');
+  const [brokers, setBrokers] = useState([]);
   const [gdriveClientId, setGdriveClientId] = useState('');
   const [gdriveClientSecret, setGdriveClientSecret] = useState('');
   const [gdriveRefreshToken, setGdriveRefreshToken] = useState('');
@@ -134,11 +137,18 @@ export default function AdminDashboard() {
       if (stRes.ok) {
         const stData = await stRes.json();
         const cfg = stData.settings || {};
-        if (cfg.flutterwave) {
-          setFlutterwavePublic(cfg.flutterwave.publicKey || '');
-          setFlutterwaveSecret(cfg.flutterwave.secretKey || '');
-          setFlutterwaveEncryption(cfg.flutterwave.encryptionKey || '');
-          setFlutterwaveWebhook(cfg.flutterwave.webhookSecret || '');
+        if (cfg.umva) {
+          setUmvaPublicKey(cfg.umva.publicKey || '');
+          setUmvaSecretKey(cfg.umva.secretKey || '');
+        }
+        if (cfg.p2pDeposit) {
+          setDepMomo(cfg.p2pDeposit.momo || '');
+          setDepAirtel(cfg.p2pDeposit.airtel || '');
+          setDepBank(cfg.p2pDeposit.bank || '');
+          setDepTrc20(cfg.p2pDeposit.trc20 || '');
+        }
+        if (Array.isArray(cfg.recommendedBrokers)) {
+          setBrokers(cfg.recommendedBrokers);
         }
         if (cfg.gdrive) {
           setGdriveClientId(cfg.gdrive.clientId || '');
@@ -174,8 +184,7 @@ export default function AdminDashboard() {
   }, [token, isAdmin]);
 
   // Save Settings via AJAX (Writes to DB so DB overrides ENV!)
-  const handleSaveFlutterwaveKeys = async (e) => {
-    e.preventDefault();
+  const saveSetting = async (key, value, successMsg) => {
     setSavingSettings(true);
     try {
       const res = await fetch('/api/admin?action=settings', {
@@ -184,25 +193,35 @@ export default function AdminDashboard() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({
-          key: 'flutterwave',
-          value: {
-            publicKey: flutterwavePublic.trim(),
-            secretKey: flutterwaveSecret.trim(),
-            encryptionKey: flutterwaveEncryption.trim(),
-            webhookSecret: flutterwaveWebhook.trim()
-          }
-        })
+        body: JSON.stringify({ key, value })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to save settings');
-      showToast('Flutterwave keys saved to Database! (Overrides environment variables)', 'success');
+      showToast(successMsg, 'success');
       setSettingsOrigin('Database (Active)');
     } catch (err) {
       showToast(err.message, 'error');
     } finally {
       setSavingSettings(false);
     }
+  };
+
+  const handleSaveUmvaKeys = async (e) => {
+    e.preventDefault();
+    await saveSetting('umva', { publicKey: umvaPublicKey.trim(), secretKey: umvaSecretKey.trim() }, 'UMVA Pay keys saved to database!');
+  };
+
+  const handleSaveP2PDeposit = async (e) => {
+    e.preventDefault();
+    await saveSetting('p2p_deposit', { momo: depMomo.trim(), airtel: depAirtel.trim(), bank: depBank.trim(), trc20: depTrc20.trim() }, 'P2P deposit details saved!');
+  };
+
+  const handleSaveBrokers = async (e) => {
+    e.preventDefault();
+    const clean = brokers
+      .map(b => ({ name: (b.name || '').trim(), description: (b.description || '').trim(), url: (b.url || '').trim() }))
+      .filter(b => b.name || b.url);
+    await saveSetting('recommended_brokers', clean, 'Recommended brokers saved!');
   };
 
   const handleSaveGdriveKeys = async (e) => {
@@ -1083,34 +1102,87 @@ export default function AdminDashboard() {
           {/* TAB 9: PLATFORM SETTINGS (DATABASE FIRST, ENV FALLBACK) */}
           {activeTab === 'settings' && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(360px, 100%), 1fr))', gap: 20 }}>
-              {/* Flutterwave Payment Gateway */}
+              {/* UMVA Pay Crypto Gateway */}
               <div style={{ background: 'var(--panel)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: 24 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                   <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--gold-bright)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Key size={18} /> Flutterwave Payment Gateway
+                    <Key size={18} /> UMVA Pay (Crypto Gateway)
                   </h3>
                   <span className="badge-gold" style={{ fontSize: 10 }}>{settingsOrigin}</span>
                 </div>
 
-                <form onSubmit={handleSaveFlutterwaveKeys}>
+                <form onSubmit={handleSaveUmvaKeys}>
                   <div className="form-group">
-                    <label className="form-label">Flutterwave Public Key</label>
-                    <input type="text" className="form-control" value={flutterwavePublic} onChange={(e) => setFlutterwavePublic(e.target.value)} placeholder="FLWPUBK_TEST-..." required />
+                    <label className="form-label">UMVA Public Key</label>
+                    <input type="text" className="form-control" value={umvaPublicKey} onChange={(e) => setUmvaPublicKey(e.target.value)} placeholder="PUB-LIVE-..." />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Flutterwave Secret Key</label>
-                    <input type="password" className="form-control" value={flutterwaveSecret} onChange={(e) => setFlutterwaveSecret(e.target.value)} placeholder="FLWSECK_TEST-..." required />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Encryption Key</label>
-                    <input type="text" className="form-control" value={flutterwaveEncryption} onChange={(e) => setFlutterwaveEncryption(e.target.value)} placeholder="Optional" />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Webhook Hash Secret</label>
-                    <input type="text" className="form-control" value={flutterwaveWebhook} onChange={(e) => setFlutterwaveWebhook(e.target.value)} placeholder="Secret hash" />
+                    <label className="form-label">UMVA Secret Key</label>
+                    <input type="password" className="form-control" value={umvaSecretKey} onChange={(e) => setUmvaSecretKey(e.target.value)} placeholder="Secret key (optional)" />
                   </div>
                   <button type="submit" className="btn btn-primary" disabled={savingSettings} style={{ width: '100%', padding: '12px', fontWeight: 800 }}>
-                    <Save size={15} /> Save to Database (Permanent Override)
+                    <Save size={15} /> Save Keys to Database
+                  </button>
+                </form>
+              </div>
+
+              {/* P2P Deposit Accounts */}
+              <div style={{ background: 'var(--panel)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: 24 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--gold-bright)', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                  <Database size={18} /> P2P Deposit Accounts (shown to users)
+                </h3>
+                <form onSubmit={handleSaveP2PDeposit}>
+                  <div className="form-group">
+                    <label className="form-label">MTN Mobile Money (MoMo)</label>
+                    <input type="text" className="form-control" value={depMomo} onChange={(e) => setDepMomo(e.target.value)} placeholder="0788 123 456 (ForexDoubleSniper Desk)" />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Airtel Money</label>
+                    <input type="text" className="form-control" value={depAirtel} onChange={(e) => setDepAirtel(e.target.value)} placeholder="0738 123 456 (ForexDoubleSniper Desk)" />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Bank Account</label>
+                    <input type="text" className="form-control" value={depBank} onChange={(e) => setDepBank(e.target.value)} placeholder="Bank name / Account number / Holder" />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">USDT TRC20 Deposit Address</label>
+                    <input type="text" className="form-control" value={depTrc20} onChange={(e) => setDepTrc20(e.target.value)} placeholder="T..." />
+                  </div>
+                  <button type="submit" className="btn btn-primary" disabled={savingSettings} style={{ width: '100%', padding: '12px', fontWeight: 800 }}>
+                    <Save size={15} /> Save Deposit Details
+                  </button>
+                </form>
+              </div>
+
+              {/* Recommended Brokers */}
+              <div style={{ background: 'var(--panel)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: 24 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--gold-bright)', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                  <Sparkles size={18} /> Recommended Brokers (shown to users)
+                </h3>
+                <form onSubmit={handleSaveBrokers}>
+                  {brokers.length === 0 && (
+                    <div style={{ fontSize: 12, color: 'var(--mut)', marginBottom: 12 }}>No brokers yet. Add one below.</div>
+                  )}
+                  {brokers.map((b, i) => (
+                    <div key={i} style={{ border: '1px solid var(--line)', borderRadius: 6, padding: 12, marginBottom: 10 }}>
+                      <div className="form-group">
+                        <label className="form-label">Broker Name</label>
+                        <input type="text" className="form-control" value={b.name || ''} onChange={(e) => { const n = [...brokers]; n[i] = { ...n[i], name: e.target.value }; setBrokers(n); }} placeholder="e.g. XM Broker" />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Short Description</label>
+                        <input type="text" className="form-control" value={b.description || ''} onChange={(e) => { const n = [...brokers]; n[i] = { ...n[i], description: e.target.value }; setBrokers(n); }} placeholder="e.g. Ultra-low XAU/USD spreads" />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Sign-up URL</label>
+                        <input type="text" className="form-control" value={b.url || ''} onChange={(e) => { const n = [...brokers]; n[i] = { ...n[i], url: e.target.value }; setBrokers(n); }} placeholder="https://..." />
+                      </div>
+                      <button type="button" className="btn btn-outline" style={{ fontSize: 12 }} onClick={() => setBrokers(brokers.filter((_, idx) => idx !== i))}>Remove</button>
+                    </div>
+                  ))}
+                  <button type="button" className="btn btn-outline" style={{ width: '100%', marginBottom: 12 }} onClick={() => setBrokers([...brokers, { name: '', description: '', url: '' }])}>+ Add Broker</button>
+                  <button type="submit" className="btn btn-primary" disabled={savingSettings} style={{ width: '100%', padding: '12px', fontWeight: 800 }}>
+                    <Save size={15} /> Save Brokers
                   </button>
                 </form>
               </div>

@@ -458,6 +458,11 @@ export default function P2PPage() {
                   {info.adminPaymentDetails?.trc20 || 'TQ9xK87f6h4AdminDepositWalletTRC20'}
                 </div>
               </div>
+
+              <div style={{ background: 'var(--panel-card)', padding: 12, borderRadius: 6, border: '1px solid var(--line)' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--gold-bright)' }}>BANK TRANSFER (OFFICIAL)</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#fff', marginTop: 2 }}>{info.adminPaymentDetails?.bank || 'Bank details will be provided by the desk on request.'}</div>
+              </div>
             </div>
           </div>
 
