@@ -21,6 +21,7 @@ import {
   Check
 } from 'lucide-react';
 import TradingViewChart from '../components/TradingViewChart';
+import UsdStrategyPanel from '../components/UsdStrategyPanel';
 
 export default function SignalsPage() {
   const { activeSymbol, setActiveSymbol, currentPrice, priceDirection, signal, formatCurrency } = useMarket();
@@ -156,6 +157,9 @@ export default function SignalsPage() {
           </button>
         </div>
       </div>
+
+      {/* USD Strength Correlation Strategy (XAUUSD & BTCUSD) */}
+      <UsdStrategyPanel />
 
       {/* 2. Top Ticker Bar */}
       <div style={{

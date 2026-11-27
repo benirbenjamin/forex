@@ -8,6 +8,7 @@ const multer = require('multer');
 
 const db = require('./lib/db');
 const { getSignal, getAllSignals } = require('./lib/signals');
+const { getUsdStrategySignals } = require('./lib/usdStrategy');
 const {
   checkUnique,
   registerUser,
@@ -124,6 +125,16 @@ app.get('/api/signals/all', async (req, res) => {
     res.json(all);
   } catch (err) {
     res.status(502).json({ error: 'Multi-pair feed error: ' + err.message });
+  }
+});
+
+// USD Strength Correlation Strategy (XAUUSD & BTCUSD, SwiftEdge UK data)
+app.get('/api/usd-strategy', async (req, res) => {
+  try {
+    const data = await getUsdStrategySignals(req.query.timeframe || '15m');
+    res.json(data);
+  } catch (err) {
+    res.status(502).json({ error: 'USD strategy error: ' + err.message });
   }
 });
 
