@@ -161,6 +161,10 @@ export default function SignalsPage() {
       {/* USD Strength Correlation Strategy (XAUUSD & BTCUSD) */}
       <UsdStrategyPanel />
 
+      {/* Legacy single-symbol engine disabled — superseded by the USD Strength
+          Correlation strategy panel above (single source of truth for signals).
+          Kept in source for easy rollback; safe to delete later. */}
+      {false && (<>
       {/* 2. Top Ticker Bar */}
       <div style={{
         background: 'var(--panel)',
@@ -633,6 +637,7 @@ export default function SignalsPage() {
           </p>
         </div>
       </div>
+      </>)}
 
       {/* LIVE INSTITUTIONAL CHART */}
       <div style={{
