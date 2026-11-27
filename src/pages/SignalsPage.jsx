@@ -347,8 +347,8 @@ export default function SignalsPage() {
           </div>
         )}
 
-        {/* EXPIRED / MISSED ENTRY BANNER */}
-        {isExpired && !isWait && isAuthenticated && (
+        {/* FRESH MISSED-ENTRY WARNING (stale signals auto-reset to WAIT) */}
+        {!isWait && isAuthenticated && (signal?.missedEntry === true || (signal?.missedEntry === undefined && isExpired)) && (
           <div style={{
             background: 'rgba(255, 77, 79, 0.12)',
             border: '1px solid var(--dn)',

@@ -542,6 +542,33 @@ function processSignal(data, symbol) {
     }
   }
 
+  // Freshness guard: never keep emitting a stale BUY/SELL. If the validity
+  // window expired, or price moved far beyond the entry zone, reset to WAIT and
+  // clear the tracker so a fresh signal re-arms at the current price. A small,
+  // fresh overshoot (within TTL, small distance) keeps the signal but is flagged
+  // as a missed entry for the UI warning.
+  let missedEntry = false;
+  let isStaleSignal = false;
+  if (decision === 'BUY NOW' || decision === 'SELL NOW') {
+    let distanceBeyond = 0;
+    if (safePrice > entryZoneMax) distanceBeyond = safePrice - entryZoneMax;
+    else if (safePrice < entryZoneMin) distanceBeyond = entryZoneMin - safePrice;
+
+    const stale = isTtlExpired || (isBeyondEntryZone && distanceBeyond > 0.75 * safeAtr);
+    if (stale) {
+      isStaleSignal = true;
+      reason = `Previous ${decision === 'SELL NOW' ? 'SELL' : 'BUY'} setup is stale — the 15-minute validity window expired or price moved well beyond its entry zone (${entryZoneMin}–${entryZoneMax}). Standing aside (WAIT) and re-arming a fresh setup at the current price.`;
+      decision = 'WAIT';
+      tracker.decision = 'WAIT';
+      tracker.firstTriggeredAt = 0;
+      tracker.entryPrice = safePrice;
+      tracker.reversedAt = 0;
+      tracker.reversedFrom = null;
+    } else if (isBeyondEntryZone) {
+      missedEntry = true;
+    }
+  }
+
   // Direct Trader Action Guidance Alert (Time-Aware, Adaptive & TTL-Enforced)
   let actionAlert = {};
   if (isWithinReversalWindow && tracker.reversedFrom) {
@@ -680,6 +707,8 @@ function processSignal(data, symbol) {
     validUntil,
     validitySecondsRemaining,
     isExpired: isBeyondEntryZone || isTtlExpired,
+    missedEntry,
+    isStaleSignal,
     cooldownRemainingSeconds: Math.max(0, Math.floor((MIN_HOLD_MS - (Date.now() - tracker.firstTriggeredAt)) / 1000)),
     minHoldRemainingSeconds: Math.max(0, Math.floor((MIN_HOLD_MS - (Date.now() - tracker.firstTriggeredAt)) / 1000)),
     updated: new Date().toISOString()
